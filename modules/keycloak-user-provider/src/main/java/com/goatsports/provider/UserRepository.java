@@ -1,4 +1,4 @@
-package com.grocerystore.provider;
+package com.goatsports.provider;
 
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -47,7 +47,7 @@ public class UserRepository {
 
         try (Connection conn = dataSource.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, id);
+            ps.setObject(1, UUID.fromString(id));
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -64,7 +64,7 @@ public class UserRepository {
     private UserRecord map(ResultSet rs) throws SQLException {
         return new UserRecord(
                 rs.getObject("user_id", UUID.class),
-                rs.getString("keycloak_id"),
+                rs.getObject("keycloak_id", UUID.class),
                 rs.getString("email"),
                 rs.getString("username"),
                 rs.getString("full_name"),

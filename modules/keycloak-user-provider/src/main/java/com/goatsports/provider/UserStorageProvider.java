@@ -1,4 +1,4 @@
-package com.grocerystore.provider;
+package com.goatsports.provider;
 
 import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.CredentialInput;

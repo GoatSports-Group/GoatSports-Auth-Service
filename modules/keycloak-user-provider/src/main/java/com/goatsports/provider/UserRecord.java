@@ -1,10 +1,10 @@
-package com.grocerystore.provider;
+package com.goatsports.provider;
 
 import java.util.UUID;
 
 public record UserRecord(
         UUID userId,
-        String keycloakId,
+        UUID keycloakId,
         String email,
         String username,
         String fullName,

@@ -1,4 +1,4 @@
-package com.grocerystore.provider;
+package com.goatsports.provider;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;

@@ -1,25 +1,26 @@
-package com.grocerystore.provider;
+package com.goatsports.provider;
 
 import org.keycloak.component.ComponentModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.storage.StorageId;
 import org.keycloak.storage.adapter.AbstractUserAdapterFederatedStorage;
+import java.util.UUID;
 
 public class UserAdapter extends AbstractUserAdapterFederatedStorage {
 
-    private final String keycloakId;
+    private final UUID keycloakId;
     private final UserRecord user;
 
     public UserAdapter(KeycloakSession session, RealmModel realm, ComponentModel model, UserRecord user) {
         super(session, realm, model);
         this.user = user;
-        this.keycloakId = StorageId.keycloakId(model, user.keycloakId());
+        this.keycloakId = user.keycloakId();
     }
 
     @Override
     public String getId() {
-        return keycloakId;
+        return keycloakId.toString();
     }
 
     @Override
