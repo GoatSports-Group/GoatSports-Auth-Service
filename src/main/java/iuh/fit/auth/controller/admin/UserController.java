@@ -1,4 +1,4 @@
-package iuh.fit.auth.controller;
+package iuh.fit.auth.controller.admin;
 
 import iuh.fit.auth.dto.base.BaseListResponse;
 import iuh.fit.auth.dto.request.user.AssignRoleRequest;
@@ -13,11 +13,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
+@PreAuthorize("hasAuthority('ADMIN')")
 public class UserController {
     private final UserService userService;
 

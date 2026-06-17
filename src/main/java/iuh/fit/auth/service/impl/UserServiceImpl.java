@@ -1,7 +1,9 @@
 package iuh.fit.auth.service.impl;
 
 import iuh.fit.auth.dto.base.BaseListResponse;
+import iuh.fit.auth.dto.response.authentication.UserPermissionResponse;
 import iuh.fit.auth.dto.response.authentication.UserResponse;
+import iuh.fit.auth.entity.Permission;
 import iuh.fit.auth.entity.Role;
 import iuh.fit.auth.entity.User;
 import iuh.fit.auth.exception.ServiceException;
@@ -14,8 +16,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -61,6 +66,27 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         return convertToResponse(user);
+    }
+
+    @Override
+    public UserPermissionResponse getUserPermissions(String userId) throws ServiceException {
+        UUID userUUID;
+        try {
+            userUUID = UUID.fromString(userId);
+        } catch (IllegalArgumentException | NullPointerException ex) {
+            throw new ServiceException("Id User không hợp lệ: không phải UUID");
+        }
+
+        User user = userRepository.findById(userUUID)
+                .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
+
+        Set<String> permissions = (user.getRole() != null)
+                ? user.getRole().getPermissions().stream().map(Permission::getName).collect(Collectors.toSet())
+                : Collections.emptySet();
+
+        String role = user.getRole() != null ? user.getRole().getName() : "";
+
+        return new UserPermissionResponse(user.getEmail(), role, permissions);
     }
 
     @Override
