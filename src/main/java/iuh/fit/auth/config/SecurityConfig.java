@@ -1,7 +1,5 @@
 package iuh.fit.auth.config;
 
-import iuh.fit.auth.component.RedisTokenBlacklistFilter;
-import iuh.fit.auth.filter.SecurityHeaderFilter;
 import iuh.fit.auth.service.JwtService;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 
@@ -25,7 +23,6 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
-import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -38,10 +35,7 @@ public class SecurityConfig {
     private String jwtSecret;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http, RedisTokenBlacklistFilter redisBlacklistFilter, SecurityHeaderFilter securityHeaderFilter
-    ) throws Exception
-    {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
@@ -49,9 +43,7 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()
-                )
-                .addFilterBefore(securityHeaderFilter, BearerTokenAuthenticationFilter.class)
-                .addFilterAfter(redisBlacklistFilter, SecurityHeaderFilter.class);
+                );
 
         return http.build();
     }

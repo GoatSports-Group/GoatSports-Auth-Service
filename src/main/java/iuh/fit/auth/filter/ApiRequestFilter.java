@@ -1,4 +1,4 @@
-package iuh.fit.auth.component;
+package iuh.fit.auth.filter;
 
 import java.io.IOException;
 

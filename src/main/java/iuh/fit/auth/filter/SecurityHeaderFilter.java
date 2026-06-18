@@ -61,7 +61,6 @@ public class SecurityHeaderFilter extends OncePerRequestFilter {
             String email = request.getHeader("X-User-Email");
             String role = request.getHeader("X-User-Roles");
             String authoritiesRaw = request.getHeader("X-User-Authorities");
-            log.info("AuthoritiesRaw: {}", authoritiesRaw);
 
             List<SimpleGrantedAuthority> authorities = Collections.emptyList();
             if (hasText(authoritiesRaw)) {
