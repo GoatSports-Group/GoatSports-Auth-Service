@@ -30,10 +30,8 @@ public class SecurityHeaderFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        String contextPath = request.getContextPath();
-        String actuatorPath = contextPath + "/actuator";
 
-        return uri.equals(actuatorPath) || uri.startsWith(actuatorPath + "/");
+        return uri.startsWith("/internal/") || uri.startsWith("/actuator");
     }
 
     @Override
@@ -63,6 +61,7 @@ public class SecurityHeaderFilter extends OncePerRequestFilter {
             String email = request.getHeader("X-User-Email");
             String role = request.getHeader("X-User-Roles");
             String authoritiesRaw = request.getHeader("X-User-Authorities");
+            log.info("AuthoritiesRaw: {}", authoritiesRaw);
 
             List<SimpleGrantedAuthority> authorities = Collections.emptyList();
             if (hasText(authoritiesRaw)) {
@@ -75,12 +74,14 @@ public class SecurityHeaderFilter extends OncePerRequestFilter {
 
             if (hasText(role)) {
                 String roleName = normalizeRole(role);
-                List<SimpleGrantedAuthority> roleAuthorities = List.of(new SimpleGrantedAuthority("ROLE_" + roleName));
+                List<SimpleGrantedAuthority> roleAuthorities = List.of(new SimpleGrantedAuthority(roleName));
                 authorities = authorities.isEmpty()
                         ? roleAuthorities
                         : Stream.concat(authorities.stream(), roleAuthorities.stream())
                         .distinct()
                         .toList();
+
+                log.info("Authorities: {}", roleAuthorities);
             }
 
             if (hasText(userId) || hasText(email) || hasText(username)) {

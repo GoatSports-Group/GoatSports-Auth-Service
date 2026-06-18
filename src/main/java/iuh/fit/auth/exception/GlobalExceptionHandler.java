@@ -25,11 +25,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     ResponseEntity<BaseResponse<Object>> handleAllExceptions(Exception e){
         BaseResponse<Object> response = new BaseResponse<Object>();
-        response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        response.setStatusCode(HttpStatus.BAD_REQUEST.value());
         response.setMessage(e.getMessage());
-        response.setError("Internal Server Error");
+        response.setError("Có lỗi xảy ra");
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
 

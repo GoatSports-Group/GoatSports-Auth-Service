@@ -24,7 +24,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/permissions")
+@RequestMapping("/api/v1/admin/permissions")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('ADMIN')")
 public class PermissionController {

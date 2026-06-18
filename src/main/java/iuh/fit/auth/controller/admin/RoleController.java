@@ -19,7 +19,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/roles")
+@RequestMapping("/api/v1/admin/roles")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('ADMIN')")
 public class RoleController {
