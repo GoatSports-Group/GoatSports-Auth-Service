@@ -1,5 +1,6 @@
 package iuh.fit.auth.application.port.security;
 
+import iuh.fit.auth.application.dto.AuthProperties;
 import iuh.fit.auth.domain.entity.User;
 
 public interface JwtPort {
@@ -9,4 +10,5 @@ public interface JwtPort {
     String getRoleFromToken(String token);
     long getRemainingTime(String token);
     String hashPassword(String password);
+    AuthProperties getAuthProperties();
 }

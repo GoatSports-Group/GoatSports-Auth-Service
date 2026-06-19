@@ -1,6 +1,6 @@
 package iuh.fit.auth.application.usecase.user;
 
-import iuh.fit.auth.application.mapper.UserMapper;
+import iuh.fit.auth.infrastructure.persistence.mapper.UserMapper;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.domain.entity.Role;

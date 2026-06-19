@@ -1,4 +1,4 @@
-package iuh.fit.auth.application.mapper;
+package iuh.fit.auth.infrastructure.persistence.mapper;
 
 import iuh.fit.auth.domain.entity.User;
 import iuh.fit.auth.infrastructure.persistence.entity.UserEntity;

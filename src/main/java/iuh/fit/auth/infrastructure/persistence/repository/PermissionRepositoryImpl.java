@@ -1,6 +1,6 @@
 package iuh.fit.auth.infrastructure.persistence.repository;
 
-import iuh.fit.auth.application.mapper.PermissionMapper;
+import iuh.fit.auth.infrastructure.persistence.mapper.PermissionMapper;
 import iuh.fit.auth.application.port.persistence.PermissionRepository;
 import iuh.fit.auth.domain.entity.Permission;
 import iuh.fit.auth.infrastructure.persistence.entity.PermissionEntity;

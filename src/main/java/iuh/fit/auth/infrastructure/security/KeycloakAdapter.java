@@ -1,9 +1,8 @@
 package iuh.fit.auth.infrastructure.security;
 
-import iuh.fit.auth.application.dto.response.KeycloakInfoResponseCommand;
-import iuh.fit.auth.application.dto.response.KeycloakResponseCommand;
+import iuh.fit.auth.application.dto.response.auth.KeycloakInfoResponseCommand;
+import iuh.fit.auth.application.dto.response.auth.KeycloakResponseCommand;
 import iuh.fit.auth.application.port.security.KeycloakPort;
-import iuh.fit.auth.presentation.response.auth.KeycloakResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

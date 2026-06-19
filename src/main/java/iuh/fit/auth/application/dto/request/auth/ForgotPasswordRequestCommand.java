@@ -1,4 +1,4 @@
-package iuh.fit.auth.application.dto.request;
+package iuh.fit.auth.application.dto.request.auth;
 
 public record ForgotPasswordRequestCommand(
         String email,

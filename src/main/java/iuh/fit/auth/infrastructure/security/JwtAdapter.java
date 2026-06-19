@@ -1,5 +1,6 @@
 package iuh.fit.auth.infrastructure.security;
 
+import iuh.fit.auth.application.dto.AuthProperties;
 import iuh.fit.auth.application.port.security.JwtPort;
 import iuh.fit.auth.domain.entity.User;
 import com.nimbusds.jose.util.Base64;
@@ -31,6 +32,8 @@ public class JwtAdapter implements JwtPort {
     private long accessTokenExpirationSecond;
     @Value("${app.jwt.refresh-token.expiration-second}")
     private long refreshTokenExpirationSecond;
+    @Value("${app.verify-code-validity-in-second}")
+    private int verificationCodeValidityInSecond;
 
     @Override
     public String generateAccessToken(User user) {
@@ -70,6 +73,14 @@ public class JwtAdapter implements JwtPort {
     @Override
     public String hashPassword(String password) {
         return passwordEncoder.encode(password);
+    }
+
+    @Override
+    public AuthProperties getAuthProperties() {
+        return new AuthProperties(
+                verificationCodeValidityInSecond,
+                refreshTokenExpirationSecond
+        );
     }
 
     private String buildToken(User user, long accessTokenExpirationSecond) {

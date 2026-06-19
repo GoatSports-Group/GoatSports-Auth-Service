@@ -1,8 +1,8 @@
 package iuh.fit.auth.application.usecase.auth;
 
-import iuh.fit.auth.application.dto.request.*;
-import iuh.fit.auth.application.dto.response.KeycloakInfoResponseCommand;
-import iuh.fit.auth.application.dto.response.KeycloakResponseCommand;
+import iuh.fit.auth.application.dto.request.auth.*;
+import iuh.fit.auth.application.dto.response.auth.KeycloakInfoResponseCommand;
+import iuh.fit.auth.application.dto.response.auth.KeycloakResponseCommand;
 import iuh.fit.auth.application.port.cache.RedisPort;
 import iuh.fit.auth.application.port.notification.EmailNotificationPort;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
@@ -17,19 +17,12 @@ import iuh.fit.auth.domain.enums.RoleEnum;
 import iuh.fit.auth.domain.enums.UserStatusEnum;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.util.BaseUtil;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-@Service
-@RequiredArgsConstructor
-@Slf4j
 public class AuthenticationUseCase {
 
     private final JwtPort jwtPort;
@@ -41,12 +34,19 @@ public class AuthenticationUseCase {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
 
-    @Value("${app.verify-code-validity-in-second}")
-    private int verificationCodeValidityInSecond;
-    @Value("${app.jwt.refresh-token.expiration-second}")
-    private long refreshTokenExpirationSecond;
-    @Value("${app.jwt.access-token.expiration-second}")
-    private long accessTokenExpirationSecond;
+    public AuthenticationUseCase(
+            JwtPort jwtPort, RedisPort redisPort, KeycloakPort keycloakPort,
+            EmailNotificationPort emailNotificationPort, CurrentUserProvider currentUserProvider,
+            UserRepository userRepository, RoleRepository roleRepository
+    ) {
+        this.jwtPort = jwtPort;
+        this.redisPort = redisPort;
+        this.keycloakPort = keycloakPort;
+        this.emailNotificationPort = emailNotificationPort;
+        this.currentUserProvider = currentUserProvider;
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+    }
 
     public Map<String, Object> login(LoginRequestCommand loginCommand) throws ServiceException {
         User user = userRepository.findByUsernameOrEmailWithRole(loginCommand.username(), loginCommand.username())
@@ -60,10 +60,10 @@ public class AuthenticationUseCase {
         String accessToken = jwtPort.generateAccessToken(user);
         String refreshToken = jwtPort.generateRefreshToken(user);
 
-        this.redisPort.saveWithTTL(
+        redisPort.saveWithTTL(
                 "user:" + user.getUserId() + ":refresh",
                 refreshToken,
-                refreshTokenExpirationSecond,
+                jwtPort.getAuthProperties().refreshTokenExpirationSecond(),
                 TimeUnit.SECONDS
         );
 
@@ -102,7 +102,7 @@ public class AuthenticationUseCase {
         redisPort.saveWithTTL(
                 "user:" + user.getUserId() + ":refresh",
                 refreshToken,
-                refreshTokenExpirationSecond,
+                jwtPort.getAuthProperties().refreshTokenExpirationSecond(),
                 TimeUnit.SECONDS
         );
 
@@ -180,7 +180,7 @@ public class AuthenticationUseCase {
         this.redisPort.saveWithTTL(
                 createdUser.getUserId().toString(),
                 verificationCode,
-                verificationCodeValidityInSecond,
+                jwtPort.getAuthProperties().verificationCodeValidityInSecond(),
                 TimeUnit.SECONDS);
 
         emailNotificationPort.sendVerificationEmail(createdUser.getEmail(), verificationCode);
@@ -219,7 +219,7 @@ public class AuthenticationUseCase {
                 key,
                 key,
                 verificationCode,
-                verificationCodeValidityInSecond,
+                jwtPort.getAuthProperties().verificationCodeValidityInSecond(),
                 TimeUnit.SECONDS);
         emailNotificationPort.sendVerificationEmail(email, verificationCode);
     }
@@ -270,7 +270,7 @@ public class AuthenticationUseCase {
                 "user:" + userId + ":refresh",
                 "user:" + userId + ":refresh",
                 newRefreshToken,
-                refreshTokenExpirationSecond,
+                jwtPort.getAuthProperties().refreshTokenExpirationSecond(),
                 TimeUnit.SECONDS
         );
 
@@ -300,7 +300,7 @@ public class AuthenticationUseCase {
         redisPort.saveWithTTL(
                 user.getUserId().toString(),
                 verificationCode,
-                verificationCodeValidityInSecond,
+                jwtPort.getAuthProperties().verificationCodeValidityInSecond(),
                 TimeUnit.SECONDS
         );
         emailNotificationPort.sendVerificationEmail(user.getEmail(), verificationCode);

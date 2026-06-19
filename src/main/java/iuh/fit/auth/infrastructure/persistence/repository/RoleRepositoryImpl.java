@@ -1,6 +1,6 @@
 package iuh.fit.auth.infrastructure.persistence.repository;
 
-import iuh.fit.auth.application.mapper.RoleMapper;
+import iuh.fit.auth.infrastructure.persistence.mapper.RoleMapper;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.domain.entity.Role;
 import iuh.fit.auth.infrastructure.persistence.entity.RoleEntity;

@@ -1,4 +1,4 @@
-package iuh.fit.auth.application.dto.response;
+package iuh.fit.auth.application.dto.response.auth;
 
 import java.util.UUID;
 

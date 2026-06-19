@@ -1,6 +1,6 @@
 package iuh.fit.auth.infrastructure.persistence.repository;
 
-import iuh.fit.auth.application.mapper.UserMapper;
+import iuh.fit.auth.infrastructure.persistence.mapper.UserMapper;
 import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.domain.entity.User;
 import iuh.fit.auth.infrastructure.persistence.entity.UserEntity;

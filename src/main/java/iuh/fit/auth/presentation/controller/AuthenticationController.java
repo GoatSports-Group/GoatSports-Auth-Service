@@ -1,6 +1,6 @@
 package iuh.fit.auth.presentation.controller;
 
-import iuh.fit.auth.application.dto.request.*;
+import iuh.fit.auth.application.dto.request.auth.*;
 import iuh.fit.auth.application.usecase.auth.AuthenticationUseCase;
 import iuh.fit.auth.domain.entity.User;
 import iuh.fit.auth.application.exception.ServiceException;
