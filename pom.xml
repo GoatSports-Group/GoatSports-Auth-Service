@@ -9,10 +9,10 @@
         <version>3.3.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>iuh.fit</groupId>
-    <artifactId>auth</artifactId>
+    <groupId>com.goatsports</groupId>
+    <artifactId>auth-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>goat-sports-auth</name>
+    <name>auth-service</name>
     <description>Goat Sports Authentication Service</description>
 
     <properties>
