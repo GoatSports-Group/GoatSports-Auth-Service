@@ -1,6 +1,7 @@
 package iuh.fit.auth.presentation.controller.internal;
 
-import iuh.fit.auth.application.usecase.user.GetUserUseCase;
+import iuh.fit.auth.application.usecase.InternalUseCase;
+import iuh.fit.auth.application.dto.response.user.UserPermissionsResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.presentation.response.user.UserPermissionResponse;
 import lombok.RequiredArgsConstructor;
@@ -16,11 +17,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/internal/users")
 public class UserInternalController {
 
-    private final GetUserUseCase getUserUseCase;
+    private final InternalUseCase internalUseCase;
 
     @GetMapping("/{userId}/permissions")
     public ResponseEntity<UserPermissionResponse> getUserPermissions(@PathVariable String userId) throws ServiceException {
-        UserPermissionResponse result = getUserUseCase.getUserPermissions(userId);
+        UserPermissionsResponseCommand resultDto = internalUseCase.getUserPermissions(userId);
+
+        UserPermissionResponse result = UserPermissionResponse.builder()
+                .email(resultDto.email())
+                .role(resultDto.role())
+                .permissions(resultDto.permissions())
+                .build();
+
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 }

@@ -1,27 +1,27 @@
 package iuh.fit.auth.presentation.converter;
 
-import iuh.fit.auth.domain.entity.User;
+import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.presentation.response.user.UserResponse;
 
 public class UserConverter {
 
-    public static UserResponse toResponse(User user) {
+    public static UserResponse toResponse(UserResponseCommand user) {
         if (user == null) return null;
         return UserResponse.builder()
-            .userId(user.getUserId())
-            .email(user.getEmail())
-            .username(user.getUsername())
-            .fullName(user.getFullName())
-            .avatarUrl(user.getAvatarUrl())
-            .status(user.getStatus() != null ? user.getStatus().name() : null)
-            .createdAt(user.getCreatedAt())
-            .updatedAt(user.getUpdatedAt())
-            .role(user.getRole() != null ? UserResponse.UserRole.builder()
-                .roleId(user.getRole().getRoleId())
-                .name(user.getRole().getName())
+            .userId(user.userId())
+            .email(user.email())
+            .username(user.username())
+            .fullName(user.fullName())
+            .avatarUrl(user.avatarUrl())
+            .status(user.status() != null ? user.status().name() : null)
+            .createdAt(user.createdAt())
+            .updatedAt(user.updatedAt())
+            .role(user.role() != null ? UserResponse.UserRole.builder()
+                .roleId(user.role().getRoleId())
+                .name(user.role().getName())
                 .build() : null)
-            .keycloakId(user.getKeycloakId())
-            .authProvider(user.getAuthProvider())
+            .keycloakId(user.keycloakId())
+            .authProvider(user.authProvider())
             .build();
     }
 

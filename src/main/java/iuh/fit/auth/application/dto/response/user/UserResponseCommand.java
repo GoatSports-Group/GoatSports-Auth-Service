@@ -1,0 +1,24 @@
+package iuh.fit.auth.application.dto.response.user;
+
+import iuh.fit.auth.domain.entity.Role;
+import iuh.fit.auth.domain.enums.AuthProviderEnum;
+import iuh.fit.auth.domain.enums.UserStatusEnum;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+public record UserResponseCommand(
+        UUID userId,
+        UUID keycloakId,
+        String email,
+        String username,
+        String password,
+        String fullName,
+        String avatarUrl,
+        UserStatusEnum status,
+        AuthProviderEnum authProvider,
+        Role role,
+
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+) {}

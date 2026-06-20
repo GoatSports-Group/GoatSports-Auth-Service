@@ -1,9 +1,11 @@
 package iuh.fit.auth.presentation.controller;
 
 import iuh.fit.auth.application.dto.request.auth.*;
-import iuh.fit.auth.application.usecase.auth.AuthenticationUseCase;
-import iuh.fit.auth.domain.entity.User;
+import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
+import iuh.fit.auth.application.usecase.AuthenticationUseCase;
 import iuh.fit.auth.application.exception.ServiceException;
+import iuh.fit.auth.application.dto.response.auth.LoginResponseCommand;
+import iuh.fit.auth.application.dto.response.auth.RefreshResponseCommand;
 import iuh.fit.auth.presentation.converter.UserConverter;
 import iuh.fit.auth.presentation.request.auth.*;
 import iuh.fit.auth.presentation.response.user.UserResponse;
@@ -24,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -32,7 +33,6 @@ import java.util.Map;
 public class AuthenticationController {
 
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
-
     private final AuthenticationUseCase authenticationUseCase;
 
     @Value("${app.jwt.refresh-token.expiration-second}")
@@ -58,7 +58,7 @@ public class AuthenticationController {
                 );
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        Map<String, Object> result = authenticationUseCase.login(
+        LoginResponseCommand result = authenticationUseCase.login(
                 new LoginRequestCommand(loginRequest.getUsername(), loginRequest.getPassword())
         );
 
@@ -69,7 +69,7 @@ public class AuthenticationController {
     public ResponseEntity<UserResponse> loginWithKeycloak(
             @RequestBody LinkAccountRequest request, HttpServletResponse response
     ) throws ServiceException {
-        Map<String, Object> result = authenticationUseCase.loginWithKeycloak(
+        LoginResponseCommand result = authenticationUseCase.loginWithKeycloak(
                 new LinkAccountRequestCommand(request.getCode(), request.getRedirectUri())
         );
 
@@ -93,7 +93,7 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest registerRequest) throws ServiceException {
-        User userResponse = authenticationUseCase.register(
+        UserResponseCommand userResponse = authenticationUseCase.register(
                 new RegisterRequestCommand(
                         registerRequest.getUsername(), registerRequest.getFullName(), registerRequest.getEmail(),
                         registerRequest.getPassword(), registerRequest.getConfirmPassword()
@@ -140,11 +140,11 @@ public class AuthenticationController {
             HttpServletResponse response
     ) throws ServiceException
     {
-        Map<String, Object> result = authenticationUseCase.refresh(refreshToken);
+        RefreshResponseCommand result = authenticationUseCase.refresh(refreshToken);
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-                result.get("user"), null,
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + result.get("role").toString()))
+                result.user(), null,
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + result.role()))
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -168,7 +168,7 @@ public class AuthenticationController {
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser() throws ServiceException {
-        User user = authenticationUseCase.getCurrentUser();
+        UserResponseCommand user = authenticationUseCase.getCurrentUser();
         return ResponseEntity.status(HttpStatus.OK).body(UserConverter.toResponse(user));
     }
 
@@ -182,14 +182,25 @@ public class AuthenticationController {
         return builder.build();
     }
 
-    private ResponseEntity<UserResponse> setCookie(HttpServletResponse response, Map<String, Object> result) {
-        ResponseCookie accessCookie = createCookie("accessToken", result.get("accessToken").toString(), accessTokenExpirationSecond);
-        ResponseCookie refreshCookie = createCookie("refreshToken", result.get("refreshToken").toString(), refreshTokenExpirationSecond);
+    private ResponseEntity<UserResponse> setCookie(HttpServletResponse response, LoginResponseCommand result) {
+        ResponseCookie accessCookie = createCookie("accessToken", result.accessToken(), accessTokenExpirationSecond);
+        ResponseCookie refreshCookie = createCookie("refreshToken", result.refreshToken(), refreshTokenExpirationSecond);
 
         response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(result.get("user") != null ? UserConverter.toResponse((User) result.get("user")) : null);
+                .body(result.user() != null ? UserConverter.toResponse(result.user()) : null);
+    }
+
+    private ResponseEntity<UserResponse> setCookie(HttpServletResponse response, RefreshResponseCommand result) {
+        ResponseCookie accessCookie = createCookie("accessToken", result.accessToken(), accessTokenExpirationSecond);
+        ResponseCookie refreshCookie = createCookie("refreshToken", result.refreshToken(), refreshTokenExpirationSecond);
+
+        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(result.user() != null ? UserConverter.toResponse(result.user()) : null);
     }
 }

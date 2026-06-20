@@ -1,35 +1,32 @@
-package iuh.fit.auth.application.usecase.role;
+package iuh.fit.auth.application.usecase;
 
+import iuh.fit.auth.application.dto.PageFilter;
 import iuh.fit.auth.application.port.persistence.PermissionRepository;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.domain.entity.Permission;
 import iuh.fit.auth.domain.entity.Role;
 import iuh.fit.auth.application.exception.ServiceException;
-import iuh.fit.auth.infrastructure.persistence.entity.RoleEntity;
-import iuh.fit.auth.presentation.request.role.RoleCreateRequest;
-import iuh.fit.auth.presentation.request.role.RoleUpdateRequest;
-import iuh.fit.auth.presentation.response.base.BaseListResponse;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
-
+import iuh.fit.auth.application.dto.response.base.PageResult;
+import iuh.fit.auth.application.dto.request.role.CreateRoleRequestCommand;
+import iuh.fit.auth.application.dto.request.role.UpdateRoleRequestCommand;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Service
-@RequiredArgsConstructor
 public class RoleUseCase {
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
 
-    public Role createRole(RoleCreateRequest request) {
+    public RoleUseCase(RoleRepository roleRepository, PermissionRepository permissionRepository) {
+        this.roleRepository = roleRepository;
+        this.permissionRepository = permissionRepository;
+    }
+
+    public Role createRole(CreateRoleRequestCommand command) {
         Role role = new Role();
-        role.setName(request.getName().toUpperCase());
-        if (request.getDescription() != null) {
-            role.setDescription(request.getDescription());
+        role.setName(command.name().toUpperCase());
+        if (command.description() != null) {
+            role.setDescription(command.description());
         } else {
             role.setDescription("");
         }
@@ -38,19 +35,20 @@ public class RoleUseCase {
         return roleRepository.save(role);
     }
 
-    public Role updateRole(RoleUpdateRequest request) throws ServiceException {
-        Role resRole = getRoleById(request.getRoleId());
+    public Role updateRole(UpdateRoleRequestCommand command) throws ServiceException {
+        Role resRole = getRoleById(command.roleId());
 
-        if (request.getPermissionIds() != null) {
-            Set<UUID> permissionIds = request.getPermissionIds().stream().map(UUID::fromString)
+        if (command.permissionIds() != null) {
+            Set<UUID> permissionIds = command.permissionIds().stream()
+                    .map(UUID::fromString)
                     .collect(Collectors.toSet());
             Set<Permission> permissions = permissionRepository.findByPermissionIdIn(permissionIds);
             resRole.setPermissions(permissions);
         }
 
-        resRole.setDescription(request.getDescription());
-        resRole.setActive(request.isActive());
-        resRole.setName(request.getName());
+        resRole.setDescription(command.description());
+        resRole.setActive(command.active());
+        resRole.setName(command.name());
 
         return roleRepository.save(resRole);
     }
@@ -65,7 +63,7 @@ public class RoleUseCase {
 
         if (!role.isActive()) {
             role.setActive(true);
-            return roleRepository.save(role);
+            role = roleRepository.save(role);
         }
 
         return role;
@@ -76,7 +74,7 @@ public class RoleUseCase {
 
         if (role.isActive()) {
             role.setActive(false);
-            return roleRepository.save(role);
+            role = roleRepository.save(role);
         }
 
         return role;
@@ -95,18 +93,11 @@ public class RoleUseCase {
     }
 
     public Role getRoleByName(String name) throws ServiceException {
-        return roleRepository.findByName(name).orElseThrow(() -> new ServiceException("Vai trò không tồn tại"));
+       return roleRepository.findByName(name)
+                .orElseThrow(() -> new ServiceException("Vai trò không tồn tại"));
     }
 
-    public BaseListResponse getAllRoles(Specification<RoleEntity> spec, Pageable pageable) {
-        Page<Role> page = roleRepository.findAll(spec, pageable);
-
-        BaseListResponse.Meta meta = new BaseListResponse.Meta();
-        meta.setPage(pageable.getPageNumber() + 1);
-        meta.setPageSize(pageable.getPageSize());
-        meta.setTotal(page.getTotalElements());
-        meta.setPages(page.getTotalPages());
-
-        return new BaseListResponse(meta, page.getContent());
+    public PageResult<Role> getAllRoles(PageFilter filter) {
+        return roleRepository.findAll(filter);
     }
 }

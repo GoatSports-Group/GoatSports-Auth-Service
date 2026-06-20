@@ -1,10 +1,8 @@
 package iuh.fit.auth.application.port.persistence;
 
+import iuh.fit.auth.application.dto.PageFilter;
 import iuh.fit.auth.domain.entity.User;
-import iuh.fit.auth.infrastructure.persistence.entity.UserEntity;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
+import iuh.fit.auth.application.dto.response.base.PageResult;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -17,5 +15,5 @@ public interface UserRepository {
     boolean existsByUsernameOrEmail(String username, String email);
     Optional<User> findByUsernameOrEmailWithRole(String username, String email);
     User save(User user);
-    Page<User> findAll(Specification<UserEntity> spec, Pageable pageable);
+    PageResult<User> findAll(PageFilter filter);
 }

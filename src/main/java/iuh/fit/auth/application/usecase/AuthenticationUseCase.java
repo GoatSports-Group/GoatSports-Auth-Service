@@ -1,8 +1,10 @@
-package iuh.fit.auth.application.usecase.auth;
+package iuh.fit.auth.application.usecase;
 
 import iuh.fit.auth.application.dto.request.auth.*;
 import iuh.fit.auth.application.dto.response.auth.KeycloakInfoResponseCommand;
 import iuh.fit.auth.application.dto.response.auth.KeycloakResponseCommand;
+import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
+import iuh.fit.auth.application.mapper.UserMapper;
 import iuh.fit.auth.application.port.cache.RedisPort;
 import iuh.fit.auth.application.port.notification.EmailNotificationPort;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
@@ -17,9 +19,9 @@ import iuh.fit.auth.domain.enums.RoleEnum;
 import iuh.fit.auth.domain.enums.UserStatusEnum;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.util.BaseUtil;
+import iuh.fit.auth.application.dto.response.auth.LoginResponseCommand;
+import iuh.fit.auth.application.dto.response.auth.RefreshResponseCommand;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -48,7 +50,7 @@ public class AuthenticationUseCase {
         this.roleRepository = roleRepository;
     }
 
-    public Map<String, Object> login(LoginRequestCommand loginCommand) throws ServiceException {
+    public LoginResponseCommand login(LoginRequestCommand loginCommand) throws ServiceException {
         User user = userRepository.findByUsernameOrEmailWithRole(loginCommand.username(), loginCommand.username())
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
 
@@ -67,15 +69,10 @@ public class AuthenticationUseCase {
                 TimeUnit.SECONDS
         );
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("user", user);
-        result.put("accessToken", accessToken);
-        result.put("refreshToken", refreshToken);
-
-        return result;
+        return new LoginResponseCommand(UserMapper.toUserResponseCommand(user), accessToken, refreshToken);
     }
 
-    public Map<String, Object> loginWithKeycloak(LinkAccountRequestCommand linkAccountCommand) throws ServiceException {
+    public LoginResponseCommand loginWithKeycloak(LinkAccountRequestCommand linkAccountCommand) throws ServiceException {
         KeycloakResponseCommand token = keycloakPort.exchangeCode(linkAccountCommand.code(), linkAccountCommand.redirectUri());
 
         KeycloakInfoResponseCommand keycloakInfo = keycloakPort.decode(token.accessToken());
@@ -113,16 +110,12 @@ public class AuthenticationUseCase {
                 TimeUnit.SECONDS
         );
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("user", user);
-        result.put("accessToken", accessToken);
-        result.put("refreshToken", refreshToken);
-
-        return result;
+        return new LoginResponseCommand(UserMapper.toUserResponseCommand(user), accessToken, refreshToken);
     }
 
     public void linkKeycloakAccount(LinkAccountRequestCommand linkAccountCommand) throws ServiceException {
-        User user = getCurrentUser();
+        UserResponseCommand userResultCommand = getCurrentUser();
+        User user = UserMapper.toUser(userResultCommand);
         if (user.getKeycloakId() != null) {
             throw new ServiceException("Tài khoản đã được liên kết với Keycloak");
         }
@@ -154,7 +147,7 @@ public class AuthenticationUseCase {
                 TimeUnit.SECONDS);
     }
 
-    public User register(RegisterRequestCommand registerRequestCommand) throws ServiceException {
+    public UserResponseCommand register(RegisterRequestCommand registerRequestCommand) throws ServiceException {
         boolean existed = userRepository.existsByUsernameOrEmail(
                 registerRequestCommand.username(), registerRequestCommand.username()
         );
@@ -185,7 +178,7 @@ public class AuthenticationUseCase {
 
         emailNotificationPort.sendVerificationEmail(createdUser.getEmail(), verificationCode);
 
-        return createdUser;
+        return UserMapper.toUserResponseCommand(createdUser);
     }
 
     public void verifyUser(VerificationRequestCommand verificationRequestCommand) throws ServiceException {
@@ -243,7 +236,7 @@ public class AuthenticationUseCase {
         }
     }
 
-    public Map<String, Object> refresh(String refreshToken) throws ServiceException {
+    public RefreshResponseCommand refresh(String refreshToken) throws ServiceException {
         String userId = jwtPort.getUserIdFromToken(refreshToken);
         String role = jwtPort.getRoleFromToken(refreshToken);
 
@@ -274,13 +267,7 @@ public class AuthenticationUseCase {
                 TimeUnit.SECONDS
         );
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("user", currentUser);
-        result.put("role", role);
-        result.put("accessToken", newAccessToken);
-        result.put("refreshToken", newRefreshToken);
-
-        return result;
+        return new RefreshResponseCommand(UserMapper.toUserResponseCommand(currentUser), role, newAccessToken, newRefreshToken);
     }
 
     public void forgotPassword(ForgotPasswordRequestCommand forgotPasswordRequestCommand) throws ServiceException {
@@ -306,7 +293,8 @@ public class AuthenticationUseCase {
         emailNotificationPort.sendVerificationEmail(user.getEmail(), verificationCode);
     }
 
-    public User getCurrentUser() throws ServiceException {
-        return currentUserProvider.getCurrentUser();
+    public UserResponseCommand getCurrentUser() throws ServiceException {
+        User currentUser = currentUserProvider.getCurrentUser();
+        return UserMapper.toUserResponseCommand(currentUser);
     }
 }

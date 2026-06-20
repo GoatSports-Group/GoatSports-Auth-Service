@@ -4,8 +4,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class GoatSportsApplication {
+public class GoatSportsAuthApplication {
     public static void main(String[] args) {
-        SpringApplication.run(GoatSportsApplication.class, args);
+        SpringApplication.run(GoatSportsAuthApplication.class, args);
     }
 }

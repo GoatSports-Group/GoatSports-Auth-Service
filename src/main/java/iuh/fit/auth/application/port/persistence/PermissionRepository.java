@@ -1,10 +1,8 @@
 package iuh.fit.auth.application.port.persistence;
 
 import iuh.fit.auth.domain.entity.Permission;
-import iuh.fit.auth.infrastructure.persistence.entity.PermissionEntity;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
+import iuh.fit.auth.application.dto.response.base.PageResult;
+import iuh.fit.auth.application.dto.PageFilter;
 
 import java.util.Optional;
 import java.util.Set;
@@ -16,5 +14,5 @@ public interface PermissionRepository {
     Set<Permission> findByPermissionIdIn(Set<UUID> permissionIds);
     Permission save(Permission permission);
     void delete(Permission permission);
-    Page<Permission> findAll(Specification<PermissionEntity> spec, Pageable pageable);
+    PageResult<Permission> findAll(PageFilter filter);
 }
