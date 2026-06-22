@@ -11,7 +11,7 @@ import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.presentation.converter.PermissionConverter;
 import iuh.fit.auth.presentation.request.permission.PermissionCreateRequest;
 import iuh.fit.auth.presentation.request.permission.PermissionUpdateRequest;
-import iuh.fit.auth.presentation.response.base.BaseListResponse;
+import iuh.fit.auth.application.dto.response.base.BaseListResponse;
 import iuh.fit.auth.presentation.response.permission.PermissionResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

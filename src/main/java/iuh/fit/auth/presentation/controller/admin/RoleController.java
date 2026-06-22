@@ -11,7 +11,7 @@ import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.presentation.converter.RoleConverter;
 import iuh.fit.auth.presentation.request.role.RoleCreateRequest;
 import iuh.fit.auth.presentation.request.role.RoleUpdateRequest;
-import iuh.fit.auth.presentation.response.base.BaseListResponse;
+import iuh.fit.auth.application.dto.response.base.BaseListResponse;
 import iuh.fit.auth.presentation.response.role.RoleResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

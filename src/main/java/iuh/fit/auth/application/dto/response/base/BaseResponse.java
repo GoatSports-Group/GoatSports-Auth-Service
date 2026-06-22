@@ -1,4 +1,4 @@
-package iuh.fit.auth.presentation.response.base;
+package iuh.fit.auth.application.dto.response.base;
 
 import lombok.*;
 

@@ -1,7 +1,7 @@
 package iuh.fit.auth.infrastructure;
 
 import iuh.fit.auth.infrastructure.annotation.ApiMessage;
-import iuh.fit.auth.presentation.response.base.BaseResponse;
+import iuh.fit.auth.application.dto.response.base.BaseResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;

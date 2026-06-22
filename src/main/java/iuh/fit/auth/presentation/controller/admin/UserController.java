@@ -9,7 +9,7 @@ import iuh.fit.auth.application.usecase.UserUseCase;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.presentation.converter.UserConverter;
 import iuh.fit.auth.presentation.request.user.AssignRoleRequest;
-import iuh.fit.auth.presentation.response.base.BaseListResponse;
+import iuh.fit.auth.application.dto.response.base.BaseListResponse;
 import iuh.fit.auth.presentation.response.user.UserResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

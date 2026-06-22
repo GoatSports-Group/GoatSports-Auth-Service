@@ -1,7 +1,7 @@
 package iuh.fit.auth.infrastructure.exception;
 
 import iuh.fit.auth.application.exception.ServiceException;
-import iuh.fit.auth.presentation.response.base.BaseResponse;
+import iuh.fit.auth.application.dto.response.base.BaseResponse;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
