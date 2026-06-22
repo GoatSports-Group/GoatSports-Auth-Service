@@ -70,7 +70,7 @@ public class UserRepositoryImpl implements UserRepository {
         int pageSize = filter.size() > 0 ? filter.size() : 10;
         Pageable pageable = PageRequest.of(pageNum, pageSize);
 
-        Specification<UserEntity> spec = Specification.where(null);
+        Specification<UserEntity> spec = Specification.where((Specification<UserEntity>) null);
         if (filter.filter() != null && !filter.filter().trim().isEmpty()) {
             spec = filterSpecificationConverter.convert(filterParser.parse(filter.filter()));
         }
