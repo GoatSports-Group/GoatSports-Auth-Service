@@ -2,9 +2,12 @@ package iuh.fit.auth.application.usecase;
 
 import iuh.fit.auth.application.dto.response.user.UserPermissionsResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
+import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.domain.entity.Permission;
+import iuh.fit.auth.domain.entity.Role;
 import iuh.fit.auth.domain.entity.User;
+import iuh.fit.auth.domain.enums.RoleEnum;
 
 import java.util.Collections;
 import java.util.Set;
@@ -13,9 +16,11 @@ import java.util.stream.Collectors;
 
 public class InternalUseCase {
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
 
-    public InternalUseCase(UserRepository userRepository) {
+    public InternalUseCase(UserRepository userRepository, RoleRepository roleRepository) {
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
     }
 
     public UserPermissionsResponseCommand getUserPermissions(String userId) throws ServiceException {
@@ -38,4 +43,25 @@ public class InternalUseCase {
         return new UserPermissionsResponseCommand(user.getEmail(), role, permissions);
     }
 
+    public void assignVenueOwnerRole(String userId) throws ServiceException {
+        UUID userUUID;
+        try {
+            userUUID = UUID.fromString(userId);
+        } catch (IllegalArgumentException | NullPointerException ex) {
+            throw new ServiceException("Id User không hợp lệ: không phải UUID");
+        }
+
+        User user = userRepository.findById(userUUID)
+                .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
+
+        Role venueOwnerRole = roleRepository.findByName(RoleEnum.VENUE_OWNER.name())
+                .orElseThrow(() -> new ServiceException(
+                        String.format("Vai trò %s không tồn tại trong hệ thống", RoleEnum.VENUE_OWNER.getValue())
+                    )
+                );
+
+        user.setRole(venueOwnerRole);
+        userRepository.save(user);
+    }
 }
+

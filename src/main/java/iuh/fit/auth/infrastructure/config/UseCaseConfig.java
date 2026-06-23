@@ -49,9 +49,9 @@ public class UseCaseConfig {
 
     @Bean
     public InternalUseCase internalUseCase(
-            UserRepository userRepository
+            UserRepository userRepository, RoleRepository roleRepository
     ) {
-        return new InternalUseCase(userRepository);
+        return new InternalUseCase(userRepository, roleRepository);
     }
 
 }

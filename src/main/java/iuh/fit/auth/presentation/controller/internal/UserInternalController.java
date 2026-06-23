@@ -3,12 +3,14 @@ package iuh.fit.auth.presentation.controller.internal;
 import iuh.fit.auth.application.usecase.InternalUseCase;
 import iuh.fit.auth.application.dto.response.user.UserPermissionsResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
+import iuh.fit.auth.infrastructure.annotation.ApiMessage;
 import iuh.fit.auth.presentation.response.user.UserPermissionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,4 +33,12 @@ public class UserInternalController {
 
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
+
+    @PostMapping("/{userId}/roles/venue-owner")
+    @ApiMessage("Cấp quyền chủ sân thành công")
+    public ResponseEntity<Void> assignVenueOwnerRole(@PathVariable String userId) throws ServiceException {
+        internalUseCase.assignVenueOwnerRole(userId);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
 }
+
