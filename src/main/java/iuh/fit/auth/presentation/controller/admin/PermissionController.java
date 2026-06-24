@@ -6,7 +6,7 @@ import iuh.fit.auth.application.dto.request.permission.UpdatePermissionRequestCo
 import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.dto.response.permission.PermissionResponseCommand;
 import iuh.fit.auth.application.mapper.PermissionMapper;
-import iuh.fit.auth.application.usecase.PermissionUseCase;
+import iuh.fit.auth.application.service.PermissionService;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.presentation.converter.PermissionConverter;
 import iuh.fit.auth.presentation.request.permission.PermissionCreateRequest;
@@ -28,12 +28,12 @@ import java.util.List;
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('ADMIN')")
 public class PermissionController {
-    private final PermissionUseCase permissionUseCase;
+    private final PermissionService permissionService;
 
     @PostMapping
     public ResponseEntity<PermissionResponse> createPermission(@Valid @RequestBody PermissionCreateRequest request)
             throws ServiceException {
-        if (permissionUseCase.existsPermission(request.getApiPath(), request.getModule(), request.getMethod())) {
+        if (permissionService.existsPermission(request.getApiPath(), request.getModule(), request.getMethod())) {
             throw new ServiceException("Quyền hạn đã tồn tại");
         }
         CreatePermissionRequestCommand command = new CreatePermissionRequestCommand(
@@ -42,14 +42,14 @@ public class PermissionController {
                 request.getMethod(),
                 request.getModule()
         );
-        PermissionResponseCommand resDto = PermissionMapper.toPermissionResponseCommand(permissionUseCase.createPermission(command));
+        PermissionResponseCommand resDto = PermissionMapper.toPermissionResponseCommand(permissionService.createPermission(command));
         return ResponseEntity.status(HttpStatus.CREATED).body(PermissionConverter.toResponse(resDto));
     }
 
     @PutMapping
     public ResponseEntity<PermissionResponse> updatePermission(@Valid @RequestBody PermissionUpdateRequest request)
             throws ServiceException {
-        if (permissionUseCase.getPermissionById(request.getPermissionId()) == null) {
+        if (permissionService.getPermissionById(request.getPermissionId()) == null) {
             throw new ServiceException("Quyền hạn không tồn tại");
         }
         UpdatePermissionRequestCommand command = new UpdatePermissionRequestCommand(
@@ -59,22 +59,22 @@ public class PermissionController {
                 request.getMethod(),
                 request.getModule()
         );
-        PermissionResponseCommand resDto = PermissionMapper.toPermissionResponseCommand(permissionUseCase.updatePermission(command));
+        PermissionResponseCommand resDto = PermissionMapper.toPermissionResponseCommand(permissionService.updatePermission(command));
         return ResponseEntity.status(HttpStatus.OK).body(PermissionConverter.toResponse(resDto));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePermission(@PathVariable("id") String id) throws ServiceException {
-        if (permissionUseCase.getPermissionById(id) == null) {
+        if (permissionService.getPermissionById(id) == null) {
             throw new ServiceException("Quyền hạn không tồn tại");
         }
-        permissionUseCase.deletePermission(id);
+        permissionService.deletePermission(id);
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PermissionResponse> getPermissionById(@PathVariable("id") String id) throws ServiceException {
-        PermissionResponseCommand resDto = PermissionMapper.toPermissionResponseCommand(permissionUseCase.getPermissionById(id));
+        PermissionResponseCommand resDto = PermissionMapper.toPermissionResponseCommand(permissionService.getPermissionById(id));
         return ResponseEntity.status(HttpStatus.OK).body(PermissionConverter.toResponse(resDto));
     }
 
@@ -84,7 +84,7 @@ public class PermissionController {
             Pageable pageable
     ) {
         PageFilter query = new PageFilter(filter, pageable.getPageNumber() + 1, pageable.getPageSize());
-        PageResult<PermissionResponseCommand> resultDto = PermissionMapper.toPermissionResponseCommand(permissionUseCase.getAllPermissions(query));
+        PageResult<PermissionResponseCommand> resultDto = PermissionMapper.toPermissionResponseCommand(permissionService.getAllPermissions(query));
 
         BaseListResponse.Meta meta = new BaseListResponse.Meta();
         meta.setPage(resultDto.page());

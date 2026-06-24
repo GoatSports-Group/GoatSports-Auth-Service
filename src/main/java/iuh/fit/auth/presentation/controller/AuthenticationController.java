@@ -2,7 +2,7 @@ package iuh.fit.auth.presentation.controller;
 
 import iuh.fit.auth.application.dto.request.auth.*;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
-import iuh.fit.auth.application.usecase.AuthenticationUseCase;
+import iuh.fit.auth.application.service.AuthenticationService;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.dto.response.auth.LoginResponseCommand;
 import iuh.fit.auth.application.dto.response.auth.RefreshResponseCommand;
@@ -33,7 +33,7 @@ import java.util.Collections;
 public class AuthenticationController {
 
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
-    private final AuthenticationUseCase authenticationUseCase;
+    private final AuthenticationService authenticationService;
 
     @Value("${app.jwt.refresh-token.expiration-second}")
     private long refreshTokenExpirationSecond;
@@ -58,7 +58,7 @@ public class AuthenticationController {
                 );
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        LoginResponseCommand result = authenticationUseCase.login(
+        LoginResponseCommand result = authenticationService.login(
                 new LoginRequestCommand(loginRequest.getUsername(), loginRequest.getPassword())
         );
 
@@ -69,7 +69,7 @@ public class AuthenticationController {
     public ResponseEntity<UserResponse> loginWithKeycloak(
             @RequestBody LinkAccountRequest request, HttpServletResponse response
     ) throws ServiceException {
-        LoginResponseCommand result = authenticationUseCase.loginWithKeycloak(
+        LoginResponseCommand result = authenticationService.loginWithKeycloak(
                 new LinkAccountRequestCommand(request.getCode(), request.getRedirectUri())
         );
 
@@ -84,7 +84,7 @@ public class AuthenticationController {
             throw new ServiceException("Bạn cần đăng nhập trước khi liên kết tài khoản");
         }
 
-        authenticationUseCase.linkKeycloakAccount(
+        authenticationService.linkKeycloakAccount(
                 new LinkAccountRequestCommand(request.getCode(), request.getRedirectUri())
         );
 
@@ -93,7 +93,7 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest registerRequest) throws ServiceException {
-        UserResponseCommand userResponse = authenticationUseCase.register(
+        UserResponseCommand userResponse = authenticationService.register(
                 new RegisterRequestCommand(
                         registerRequest.getUsername(), registerRequest.getFullName(), registerRequest.getEmail(),
                         registerRequest.getPassword(), registerRequest.getConfirmPassword()
@@ -105,7 +105,7 @@ public class AuthenticationController {
     @PostMapping("/verify")
     public ResponseEntity<Void> verifyAccount(@RequestBody VerificationRequest verificationRequest)
             throws ServiceException {
-        authenticationUseCase.verifyUser(
+        authenticationService.verifyUser(
                 new VerificationRequestCommand(verificationRequest.getEmail(), verificationRequest.getVerificationCode())
         );
         return ResponseEntity.ok().build();
@@ -113,7 +113,7 @@ public class AuthenticationController {
 
     @PostMapping("/resend")
     public ResponseEntity<Void> resendVerificationCode(@RequestParam String email) throws ServiceException {
-        authenticationUseCase.resendVerificationCode(email);
+        authenticationService.resendVerificationCode(email);
         return ResponseEntity.ok().build();
     }
 
@@ -123,7 +123,7 @@ public class AuthenticationController {
             @CookieValue("refreshToken") String refreshToken,
             HttpServletResponse response
     ){
-        authenticationUseCase.logout(accessToken, refreshToken);
+        authenticationService.logout(accessToken, refreshToken);
 
         ResponseCookie deleteAccessCookie = createCookie("accessToken", "", 0);
         ResponseCookie deleteRefreshCookie = createCookie("refreshToken", "", 0);
@@ -140,7 +140,7 @@ public class AuthenticationController {
             HttpServletResponse response
     ) throws ServiceException
     {
-        RefreshResponseCommand result = authenticationUseCase.refresh(refreshToken);
+        RefreshResponseCommand result = authenticationService.refresh(refreshToken);
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 result.user(), null,
@@ -156,7 +156,7 @@ public class AuthenticationController {
             @Valid @RequestBody ForgotPasswordRequest forgotPasswordRequest
     ) throws ServiceException
     {
-        authenticationUseCase.forgotPassword(
+        authenticationService.forgotPassword(
                 new ForgotPasswordRequestCommand(
                         forgotPasswordRequest.getEmail(),
                         forgotPasswordRequest.getPassword(), forgotPasswordRequest.getConfirmPassword()
@@ -168,7 +168,7 @@ public class AuthenticationController {
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser() throws ServiceException {
-        UserResponseCommand user = authenticationUseCase.getCurrentUser();
+        UserResponseCommand user = authenticationService.getCurrentUser();
         return ResponseEntity.status(HttpStatus.OK).body(UserConverter.toResponse(user));
     }
 

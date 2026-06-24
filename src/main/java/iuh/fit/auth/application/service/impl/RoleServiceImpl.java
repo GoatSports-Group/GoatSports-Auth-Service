@@ -1,8 +1,9 @@
-package iuh.fit.auth.application.usecase;
+package iuh.fit.auth.application.service.impl;
 
 import iuh.fit.auth.application.dto.PageFilter;
 import iuh.fit.auth.application.port.persistence.PermissionRepository;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
+import iuh.fit.auth.application.service.RoleService;
 import iuh.fit.auth.domain.entity.Permission;
 import iuh.fit.auth.domain.entity.Role;
 import iuh.fit.auth.application.exception.ServiceException;
@@ -13,15 +14,16 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class RoleUseCase {
+public class RoleServiceImpl implements RoleService {
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
 
-    public RoleUseCase(RoleRepository roleRepository, PermissionRepository permissionRepository) {
+    public RoleServiceImpl(RoleRepository roleRepository, PermissionRepository permissionRepository) {
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
     }
 
+    @Override
     public Role createRole(CreateRoleRequestCommand command) {
         Role role = new Role();
         role.setName(command.name().toUpperCase());
@@ -35,6 +37,7 @@ public class RoleUseCase {
         return roleRepository.save(role);
     }
 
+    @Override
     public Role updateRole(UpdateRoleRequestCommand command) throws ServiceException {
         Role resRole = getRoleById(command.roleId());
 
@@ -53,11 +56,13 @@ public class RoleUseCase {
         return roleRepository.save(resRole);
     }
 
+    @Override
     public void deleteRole(String roleId) throws ServiceException {
         Role role = getRoleById(roleId);
         roleRepository.delete(role);
     }
 
+    @Override
     public Role activateRole(String roleId) throws ServiceException {
         Role role = getRoleById(roleId);
 
@@ -69,6 +74,7 @@ public class RoleUseCase {
         return role;
     }
 
+    @Override
     public Role deactivateRole(String roleId) throws ServiceException {
         Role role = getRoleById(roleId);
 
@@ -80,6 +86,7 @@ public class RoleUseCase {
         return role;
     }
 
+    @Override
     public Role getRoleById(String roleId) throws ServiceException {
         UUID uuid;
         try {
@@ -92,11 +99,13 @@ public class RoleUseCase {
                 .orElseThrow(() -> new ServiceException("Vai trò không tồn tại"));
     }
 
+    @Override
     public Role getRoleByName(String name) throws ServiceException {
        return roleRepository.findByName(name)
                 .orElseThrow(() -> new ServiceException("Vai trò không tồn tại"));
     }
 
+    @Override
     public PageResult<Role> getAllRoles(PageFilter filter) {
         return roleRepository.findAll(filter);
     }

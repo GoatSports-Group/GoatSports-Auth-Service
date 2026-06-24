@@ -6,6 +6,8 @@ import java.util.Optional;
 
 public interface CurrentUserProvider {
     Optional<String> getCurrentUserId();
+
     Optional<String> getCurrentUserEmailOrUsername();
+
     User getCurrentUser() throws ServiceException;
 }

@@ -5,7 +5,7 @@ import iuh.fit.auth.application.dto.request.user.AssignRoleRequestCommand;
 import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.mapper.UserMapper;
-import iuh.fit.auth.application.usecase.UserUseCase;
+import iuh.fit.auth.application.service.UserService;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.presentation.converter.UserConverter;
 import iuh.fit.auth.presentation.request.user.AssignRoleRequest;
@@ -26,7 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('ADMIN')")
 public class UserController {
-    private final UserUseCase userUseCase;
+    private final UserService userService;
 
     @GetMapping
     public ResponseEntity<BaseListResponse> getAllUsers(
@@ -34,7 +34,7 @@ public class UserController {
             Pageable pageable
     ) {
         PageFilter query = new PageFilter(filter, pageable.getPageNumber() + 1, pageable.getPageSize());
-        PageResult<UserResponseCommand> resultDto = UserMapper.toUserResponseCommand(userUseCase.getAllUsers(query));
+        PageResult<UserResponseCommand> resultDto = UserMapper.toUserResponseCommand(userService.getAllUsers(query));
 
         BaseListResponse.Meta meta = new BaseListResponse.Meta();
         meta.setPage(resultDto.page());
@@ -54,7 +54,7 @@ public class UserController {
             @Valid @RequestBody AssignRoleRequest request
     ) throws ServiceException
     {
-        UserResponseCommand user = userUseCase.assignRoleForUser(
+        UserResponseCommand user = userService.assignRoleForUser(
                 new AssignRoleRequestCommand(request.getUserId(), request.getRoleId())
         );
 

@@ -6,7 +6,7 @@ import iuh.fit.auth.application.dto.request.role.UpdateRoleRequestCommand;
 import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.dto.response.role.RoleResponseCommand;
 import iuh.fit.auth.application.mapper.RoleMapper;
-import iuh.fit.auth.application.usecase.RoleUseCase;
+import iuh.fit.auth.application.service.RoleService;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.presentation.converter.RoleConverter;
 import iuh.fit.auth.presentation.request.role.RoleCreateRequest;
@@ -29,12 +29,12 @@ import java.util.List;
 @PreAuthorize("hasAuthority('ADMIN')")
 public class RoleController {
 
-    private final RoleUseCase roleUseCase;
+    private final RoleService roleService;
 
     @PostMapping
     public ResponseEntity<RoleResponse> createRole(@Valid @RequestBody RoleCreateRequest request) {
         CreateRoleRequestCommand command = new CreateRoleRequestCommand(request.getName(), request.getDescription());
-        RoleResponseCommand resDto = RoleMapper.toRoleResponseCommand(roleUseCase.createRole(command));
+        RoleResponseCommand resDto = RoleMapper.toRoleResponseCommand(roleService.createRole(command));
         return ResponseEntity.status(HttpStatus.CREATED).body(RoleConverter.toResponse(resDto));
     }
 
@@ -47,31 +47,31 @@ public class RoleController {
                 request.isActive(),
                 request.getPermissionIds()
         );
-        RoleResponseCommand role = RoleMapper.toRoleResponseCommand(roleUseCase.updateRole(command));
+        RoleResponseCommand role = RoleMapper.toRoleResponseCommand(roleService.updateRole(command));
         return ResponseEntity.status(HttpStatus.OK).body(RoleConverter.toResponse(role));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRole(@PathVariable("id") String id) throws ServiceException {
-        roleUseCase.deleteRole(id);
+        roleService.deleteRole(id);
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 
     @PutMapping("/{id}/activate")
     public ResponseEntity<RoleResponse> activateRole(@PathVariable("id") String id) throws ServiceException {
-        RoleResponseCommand role = RoleMapper.toRoleResponseCommand(roleUseCase.activateRole(id));
+        RoleResponseCommand role = RoleMapper.toRoleResponseCommand(roleService.activateRole(id));
         return ResponseEntity.status(HttpStatus.OK).body(RoleConverter.toResponse(role));
     }
 
     @PutMapping("/{id}/deactivate")
     public ResponseEntity<RoleResponse> deactivateRole(@PathVariable("id") String id) throws ServiceException {
-        RoleResponseCommand role = RoleMapper.toRoleResponseCommand(roleUseCase.deactivateRole(id));
+        RoleResponseCommand role = RoleMapper.toRoleResponseCommand(roleService.deactivateRole(id));
         return ResponseEntity.status(HttpStatus.OK).body(RoleConverter.toResponse(role));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<RoleResponse> getRoleById(@PathVariable("id") String id) throws ServiceException {
-        RoleResponseCommand role = RoleMapper.toRoleResponseCommand(roleUseCase.getRoleById(id));
+        RoleResponseCommand role = RoleMapper.toRoleResponseCommand(roleService.getRoleById(id));
         return ResponseEntity.status(HttpStatus.OK).body(RoleConverter.toResponse(role));
     }
 
@@ -81,7 +81,7 @@ public class RoleController {
             Pageable pageable
     ) {
         PageFilter query = new PageFilter(filter, pageable.getPageNumber() + 1, pageable.getPageSize());
-        PageResult<RoleResponseCommand> resultDto = RoleMapper.toRoleResponseCommand(roleUseCase.getAllRoles(query));
+        PageResult<RoleResponseCommand> resultDto = RoleMapper.toRoleResponseCommand(roleService.getAllRoles(query));
 
         BaseListResponse.Meta meta = new BaseListResponse.Meta();
         meta.setPage(resultDto.page());

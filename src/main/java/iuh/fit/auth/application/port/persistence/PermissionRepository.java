@@ -10,9 +10,14 @@ import java.util.UUID;
 
 public interface PermissionRepository {
     Optional<Permission> findById(UUID id);
+
     boolean existsByApiPathAndModuleAndMethod(String apiPath, String module, String method);
+
     Set<Permission> findByPermissionIdIn(Set<UUID> permissionIds);
+
     Permission save(Permission permission);
+
     void delete(Permission permission);
+
     PageResult<Permission> findAll(PageFilter filter);
 }

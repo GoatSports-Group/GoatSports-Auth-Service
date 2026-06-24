@@ -1,4 +1,4 @@
-package iuh.fit.auth.application.usecase;
+package iuh.fit.auth.application.service.impl;
 
 import iuh.fit.auth.application.dto.PageFilter;
 import iuh.fit.auth.application.dto.request.user.AssignRoleRequestCommand;
@@ -10,6 +10,7 @@ import iuh.fit.auth.application.mapper.UserMapper;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.application.port.security.JwtPort;
+import iuh.fit.auth.application.service.UserService;
 import iuh.fit.auth.domain.entity.Role;
 import iuh.fit.auth.domain.entity.User;
 import iuh.fit.auth.domain.enums.AuthProviderEnum;
@@ -17,13 +18,13 @@ import iuh.fit.auth.domain.enums.UserStatusEnum;
 
 import java.util.UUID;
 
-public class UserUseCase {
+public class UserServiceImpl implements UserService {
 
     private final JwtPort jwtPort;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
 
-    public UserUseCase(
+    public UserServiceImpl(
             JwtPort jwtPort,
             UserRepository userRepository, RoleRepository roleRepository
     ) {
@@ -32,6 +33,7 @@ public class UserUseCase {
         this.roleRepository = roleRepository;
     }
 
+    @Override
     public User createUser(CreateUserRequestCommand command) throws ServiceException {
         boolean existed = userRepository.existsByUsernameOrEmail(command.username(), command.email());
         if (existed) throw new ServiceException("Người dùng đã tồn tại");
@@ -55,6 +57,7 @@ public class UserUseCase {
         return userRepository.save(user);
     }
 
+    @Override
     public UserResponseCommand assignRoleForUser(AssignRoleRequestCommand command) throws ServiceException {
         UUID userUUID;
         UUID roleUUID;
@@ -76,6 +79,7 @@ public class UserUseCase {
         return UserMapper.toUserResponseCommand(userRepository.save(user));
     }
 
+    @Override
     public User getUserById(String userId) throws ServiceException {
         UUID userUUID;
         try {
@@ -88,6 +92,7 @@ public class UserUseCase {
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
     }
 
+    @Override
     public PageResult<User> getAllUsers(PageFilter filter) {
         return userRepository.findAll(filter);
     }

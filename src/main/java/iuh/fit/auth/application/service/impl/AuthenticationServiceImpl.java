@@ -1,4 +1,4 @@
-package iuh.fit.auth.application.usecase;
+package iuh.fit.auth.application.service.impl;
 
 import iuh.fit.auth.application.dto.request.auth.*;
 import iuh.fit.auth.application.dto.response.auth.KeycloakInfoResponseCommand;
@@ -12,6 +12,7 @@ import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.application.port.security.CurrentUserProvider;
 import iuh.fit.auth.application.port.security.JwtPort;
 import iuh.fit.auth.application.port.security.KeycloakPort;
+import iuh.fit.auth.application.service.AuthenticationService;
 import iuh.fit.auth.domain.entity.Role;
 import iuh.fit.auth.domain.entity.User;
 import iuh.fit.auth.domain.enums.AuthProviderEnum;
@@ -25,7 +26,7 @@ import iuh.fit.auth.application.dto.response.auth.RefreshResponseCommand;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-public class AuthenticationUseCase {
+public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final JwtPort jwtPort;
     private final RedisPort redisPort;
@@ -36,7 +37,7 @@ public class AuthenticationUseCase {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
 
-    public AuthenticationUseCase(
+    public AuthenticationServiceImpl(
             JwtPort jwtPort, RedisPort redisPort, KeycloakPort keycloakPort,
             EmailNotificationPort emailNotificationPort, CurrentUserProvider currentUserProvider,
             UserRepository userRepository, RoleRepository roleRepository
@@ -50,6 +51,7 @@ public class AuthenticationUseCase {
         this.roleRepository = roleRepository;
     }
 
+    @Override
     public LoginResponseCommand login(LoginRequestCommand loginCommand) throws ServiceException {
         User user = userRepository.findByUsernameOrEmailWithRole(loginCommand.username(), loginCommand.username())
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
@@ -72,6 +74,7 @@ public class AuthenticationUseCase {
         return new LoginResponseCommand(UserMapper.toUserResponseCommand(user), accessToken, refreshToken);
     }
 
+    @Override
     public LoginResponseCommand loginWithKeycloak(LinkAccountRequestCommand linkAccountCommand) throws ServiceException {
         KeycloakResponseCommand token = keycloakPort.exchangeCode(linkAccountCommand.code(), linkAccountCommand.redirectUri());
 
@@ -113,6 +116,7 @@ public class AuthenticationUseCase {
         return new LoginResponseCommand(UserMapper.toUserResponseCommand(user), accessToken, refreshToken);
     }
 
+    @Override
     public void linkKeycloakAccount(LinkAccountRequestCommand linkAccountCommand) throws ServiceException {
         UserResponseCommand userResultCommand = getCurrentUser();
         User user = UserMapper.toUser(userResultCommand);
@@ -147,6 +151,7 @@ public class AuthenticationUseCase {
                 TimeUnit.SECONDS);
     }
 
+    @Override
     public UserResponseCommand register(RegisterRequestCommand registerRequestCommand) throws ServiceException {
         boolean existed = userRepository.existsByUsernameOrEmail(
                 registerRequestCommand.username(), registerRequestCommand.username()
@@ -181,6 +186,7 @@ public class AuthenticationUseCase {
         return UserMapper.toUserResponseCommand(createdUser);
     }
 
+    @Override
     public void verifyUser(VerificationRequestCommand verificationRequestCommand) throws ServiceException {
         User user = userRepository.findByEmail(verificationRequestCommand.email())
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
@@ -202,6 +208,7 @@ public class AuthenticationUseCase {
         redisPort.deleteKey(user.getUserId().toString());
     }
 
+    @Override
     public void resendVerificationCode(String email) throws ServiceException {
         User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) throw new ServiceException("Người dùng không tồn tại");
@@ -217,6 +224,7 @@ public class AuthenticationUseCase {
         emailNotificationPort.sendVerificationEmail(email, verificationCode);
     }
 
+    @Override
     public void logout(String accessToken, String refreshToken) {
         String userId = jwtPort.getUserIdFromToken(refreshToken);
         if (userId == null || userId.isEmpty()) return;
@@ -236,6 +244,7 @@ public class AuthenticationUseCase {
         }
     }
 
+    @Override
     public RefreshResponseCommand refresh(String refreshToken) throws ServiceException {
         String userId = jwtPort.getUserIdFromToken(refreshToken);
         String role = jwtPort.getRoleFromToken(refreshToken);
@@ -270,6 +279,7 @@ public class AuthenticationUseCase {
         return new RefreshResponseCommand(UserMapper.toUserResponseCommand(currentUser), role, newAccessToken, newRefreshToken);
     }
 
+    @Override
     public void forgotPassword(ForgotPasswordRequestCommand forgotPasswordRequestCommand) throws ServiceException {
         User user = userRepository.findByEmail(forgotPasswordRequestCommand.email()).orElse(null);
 
@@ -293,6 +303,7 @@ public class AuthenticationUseCase {
         emailNotificationPort.sendVerificationEmail(user.getEmail(), verificationCode);
     }
 
+    @Override
     public UserResponseCommand getCurrentUser() throws ServiceException {
         User currentUser = currentUserProvider.getCurrentUser();
         return UserMapper.toUserResponseCommand(currentUser);

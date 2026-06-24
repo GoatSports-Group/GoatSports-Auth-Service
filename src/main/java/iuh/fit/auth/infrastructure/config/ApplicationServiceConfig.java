@@ -8,20 +8,20 @@ import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.application.port.security.CurrentUserProvider;
 import iuh.fit.auth.application.port.security.JwtPort;
 import iuh.fit.auth.application.port.security.KeycloakPort;
-import iuh.fit.auth.application.usecase.*;
+import iuh.fit.auth.application.service.impl.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class UseCaseConfig {
+public class ApplicationServiceConfig {
 
     @Bean
-    public AuthenticationUseCase authenticationUseCase(
+    public AuthenticationServiceImpl authenticationService(
             JwtPort jwtPort, RedisPort redisPort, KeycloakPort keycloakPort,
             EmailNotificationPort emailNotificationPort, CurrentUserProvider currentUserProvider,
             UserRepository userRepository, RoleRepository roleRepository
     ) {
-        return new AuthenticationUseCase(
+        return new AuthenticationServiceImpl(
                 jwtPort, redisPort, keycloakPort,
                 emailNotificationPort, currentUserProvider,
                 userRepository, roleRepository
@@ -29,29 +29,29 @@ public class UseCaseConfig {
     }
 
     @Bean
-    public UserUseCase userUseCase(
+    public UserServiceImpl userService(
             JwtPort jwtPort, UserRepository userRepository, RoleRepository roleRepository
     ) {
-        return new UserUseCase(jwtPort, userRepository, roleRepository);
+        return new UserServiceImpl(jwtPort, userRepository, roleRepository);
     }
 
     @Bean
-    public RoleUseCase roleUseCase(
+    public RoleServiceImpl roleService(
             RoleRepository roleRepository, PermissionRepository permissionRepository
     ) {
-        return new RoleUseCase(roleRepository, permissionRepository);
+        return new RoleServiceImpl(roleRepository, permissionRepository);
     }
 
     @Bean
-    public PermissionUseCase permissionUseCase(PermissionRepository permissionRepository) {
-        return new PermissionUseCase(permissionRepository);
+    public PermissionServiceImpl permissionService(PermissionRepository permissionRepository) {
+        return new PermissionServiceImpl(permissionRepository);
     }
 
     @Bean
-    public InternalUseCase internalUseCase(
+    public InternalServiceImpl internalService(
             UserRepository userRepository, RoleRepository roleRepository
     ) {
-        return new InternalUseCase(userRepository, roleRepository);
+        return new InternalServiceImpl(userRepository, roleRepository);
     }
 
 }

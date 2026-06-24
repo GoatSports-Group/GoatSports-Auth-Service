@@ -9,11 +9,18 @@ import java.util.UUID;
 
 public interface UserRepository {
     Optional<User> findById(UUID id);
+
     Optional<User> findByEmail(String email);
+
     Optional<User> findByKeycloakId(UUID keycloakId);
+
     boolean existsByKeycloakId(UUID keycloakId);
+
     boolean existsByUsernameOrEmail(String username, String email);
+
     Optional<User> findByUsernameOrEmailWithRole(String username, String email);
+
     User save(User user);
+
     PageResult<User> findAll(PageFilter filter);
 }

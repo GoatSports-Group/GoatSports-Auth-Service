@@ -1,6 +1,7 @@
-package iuh.fit.auth.application.usecase;
+package iuh.fit.auth.application.service.impl;
 
 import iuh.fit.auth.application.port.persistence.PermissionRepository;
+import iuh.fit.auth.application.service.PermissionService;
 import iuh.fit.auth.domain.entity.Permission;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.dto.response.base.PageResult;
@@ -10,13 +11,14 @@ import iuh.fit.auth.application.dto.request.permission.UpdatePermissionRequestCo
 
 import java.util.UUID;
 
-public class PermissionUseCase {
+public class PermissionServiceImpl implements PermissionService {
     private final PermissionRepository permissionRepository;
 
-    public PermissionUseCase(PermissionRepository permissionRepository) {
+    public PermissionServiceImpl(PermissionRepository permissionRepository) {
         this.permissionRepository = permissionRepository;
     }
 
+    @Override
     public Permission createPermission(CreatePermissionRequestCommand command) {
         Permission permission = new Permission();
         permission.setName(command.name().toUpperCase().replace(" ", "_"));
@@ -27,6 +29,7 @@ public class PermissionUseCase {
         return permissionRepository.save(permission);
     }
 
+    @Override
     public Permission updatePermission(UpdatePermissionRequestCommand command) throws ServiceException {
         Permission resPermission = getPermissionById(command.permissionId());
 
@@ -38,20 +41,24 @@ public class PermissionUseCase {
         return this.permissionRepository.save(resPermission);
     }
 
+    @Override
     public void deletePermission(String permissionId) throws ServiceException {
         Permission permission = getPermissionById(permissionId);
         permissionRepository.delete(permission);
     }
 
+    @Override
     public Permission getPermissionById(String permissionId) throws ServiceException {
         return permissionRepository.findById(UUID.fromString(permissionId))
                 .orElseThrow(() -> new ServiceException("Quyền hạn không tồn tại"));
     }
 
+    @Override
     public PageResult<Permission> getAllPermissions(PageFilter filter) {
         return permissionRepository.findAll(filter);
     }
 
+    @Override
     public boolean existsPermission(String apiPath, String module, String method) {
         return permissionRepository.existsByApiPathAndModuleAndMethod(apiPath, module, method);
     }

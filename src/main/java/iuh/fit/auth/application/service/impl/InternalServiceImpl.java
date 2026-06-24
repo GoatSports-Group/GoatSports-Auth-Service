@@ -1,9 +1,10 @@
-package iuh.fit.auth.application.usecase;
+package iuh.fit.auth.application.service.impl;
 
 import iuh.fit.auth.application.dto.response.user.UserPermissionsResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.application.port.persistence.UserRepository;
+import iuh.fit.auth.application.service.InternalService;
 import iuh.fit.auth.domain.entity.Permission;
 import iuh.fit.auth.domain.entity.Role;
 import iuh.fit.auth.domain.entity.User;
@@ -14,15 +15,16 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class InternalUseCase {
+public class InternalServiceImpl implements InternalService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
 
-    public InternalUseCase(UserRepository userRepository, RoleRepository roleRepository) {
+    public InternalServiceImpl(UserRepository userRepository, RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
     }
 
+    @Override
     public UserPermissionsResponseCommand getUserPermissions(String userId) throws ServiceException {
         UUID userUUID;
         try {
@@ -43,6 +45,7 @@ public class InternalUseCase {
         return new UserPermissionsResponseCommand(user.getEmail(), role, permissions);
     }
 
+    @Override
     public void assignVenueOwnerRole(String userId) throws ServiceException {
         UUID userUUID;
         try {
