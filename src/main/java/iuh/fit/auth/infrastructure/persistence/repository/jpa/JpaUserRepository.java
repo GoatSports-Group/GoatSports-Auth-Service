@@ -22,4 +22,6 @@ public interface JpaUserRepository extends JpaRepository<UserEntity, UUID>, JpaS
 
     @Query("SELECT u FROM UserEntity u LEFT JOIN FETCH u.role WHERE u.username = :username OR u.email = :email")
     Optional<UserEntity> findByUsernameOrEmailWithRole(@Param("username") String username, @Param("email") String email);
+
+    Optional<UserEntity> findByRole_Name(String name);
 }

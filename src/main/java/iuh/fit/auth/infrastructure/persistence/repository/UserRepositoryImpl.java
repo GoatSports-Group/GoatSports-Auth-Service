@@ -88,4 +88,9 @@ public class UserRepositoryImpl implements UserRepository {
                 entityPage.getTotalPages()
         );
     }
+
+    @Override
+    public Optional<User> findByRole_Name(String name) {
+        return jpaUserRepository.findByRole_Name(name).map(UserMapper::toDomain);
+    }
 }
