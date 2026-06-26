@@ -66,5 +66,13 @@ public class InternalServiceImpl implements InternalService {
         user.setRole(venueOwnerRole);
         userRepository.save(user);
     }
+
+    @Override
+    public String getAdmin() throws ServiceException {
+        User user = userRepository.findByRole_Name(RoleEnum.ADMIN.name())
+                .orElseThrow(() -> new ServiceException("Không tìm thấy người dùng với vai trò ADMIN"));
+
+        return user.getUserId().toString();
+    }
 }
 

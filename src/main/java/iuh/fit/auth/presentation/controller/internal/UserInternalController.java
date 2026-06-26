@@ -38,5 +38,10 @@ public class UserInternalController {
         internalService.assignVenueOwnerRole(userId);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    @GetMapping("/admin")
+    public ResponseEntity<String> getAdmin() throws ServiceException {
+        return ResponseEntity.status(HttpStatus.OK).body(internalService.getAdmin());
+    }
 }
 

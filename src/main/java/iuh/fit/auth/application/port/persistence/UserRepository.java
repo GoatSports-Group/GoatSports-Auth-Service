@@ -23,4 +23,6 @@ public interface UserRepository {
     User save(User user);
 
     PageResult<User> findAll(PageFilter filter);
+
+    Optional<User> findByRole_Name(String name);
 }

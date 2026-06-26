@@ -7,4 +7,6 @@ public interface InternalService {
     UserPermissionsResponseCommand getUserPermissions(String userId) throws ServiceException;
 
     void assignVenueOwnerRole(String userId) throws ServiceException;
+
+    String getAdmin() throws ServiceException;
 }

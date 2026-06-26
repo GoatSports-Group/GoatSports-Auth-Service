@@ -24,4 +24,10 @@ public class InternalDecorator implements InternalService {
     public void assignVenueOwnerRole(String userId) throws ServiceException {
         internalServiceImpl.assignVenueOwnerRole(userId);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String getAdmin() throws ServiceException {
+        return internalServiceImpl.getAdmin();
+    }
 }
