@@ -46,6 +46,7 @@ public class UserStorageProvider implements
     @Override
     public UserModel getUserByUsername(RealmModel realm, String username) {
         return userRepository.findByUsernameOrEmail(username)
+                .filter(user -> user.keycloakId() != null)
                 .map(user -> new UserAdapter(session, realm, model, user))
                 .orElse(null);
     }
@@ -53,6 +54,7 @@ public class UserStorageProvider implements
     @Override
     public UserModel getUserByEmail(RealmModel realm, String email) {
         return userRepository.findByUsernameOrEmail(email)
+                .filter(user -> user.keycloakId() != null)
                 .map(user -> new UserAdapter(session, realm, model, user))
                 .orElse(null);
     }
