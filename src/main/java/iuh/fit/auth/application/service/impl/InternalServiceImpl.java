@@ -1,5 +1,6 @@
 package iuh.fit.auth.application.service.impl;
 
+import iuh.fit.auth.application.dto.report.UserReportResponseCommand;
 import iuh.fit.auth.application.dto.response.user.UserPermissionsResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
@@ -11,6 +12,7 @@ import iuh.fit.auth.domain.entity.User;
 import iuh.fit.auth.domain.enums.RoleEnum;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -73,6 +75,22 @@ public class InternalServiceImpl implements InternalService {
                 .orElseThrow(() -> new ServiceException("Không tìm thấy người dùng với vai trò ADMIN"));
 
         return user.getUserId().toString();
+    }
+
+    @Override
+    public List<UserReportResponseCommand> getAllUserReports() {
+        List<User> users = userRepository.findAllUsers();
+
+        return users.stream()
+                .map(user -> new UserReportResponseCommand(
+                        user.getUserId(),
+                        user.getFullName(),
+                        user.getEmail(),
+                        user.getRole().getName(),
+                        user.getStatus().getValue(),
+                        user.getCreatedAt()
+                ))
+                .collect(Collectors.toList());
     }
 }
 

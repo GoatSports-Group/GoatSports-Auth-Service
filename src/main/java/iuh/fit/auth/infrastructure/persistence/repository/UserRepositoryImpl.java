@@ -90,6 +90,14 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public List<User> findAllUsers() {
+        List<UserEntity> userEntities = jpaUserRepository.findAll();
+        return userEntities.stream()
+                .map(UserMapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public Optional<User> findByRole_Name(String name) {
         return jpaUserRepository.findByRole_Name(name).map(UserMapper::toDomain);
     }
