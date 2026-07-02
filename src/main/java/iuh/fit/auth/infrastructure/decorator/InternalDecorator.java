@@ -2,6 +2,7 @@ package iuh.fit.auth.infrastructure.decorator;
 
 import iuh.fit.auth.application.dto.report.UserReportResponseCommand;
 import iuh.fit.auth.application.dto.response.user.UserPermissionsResponseCommand;
+import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.service.InternalService;
 import iuh.fit.auth.application.service.impl.InternalServiceImpl;
@@ -38,5 +39,10 @@ public class InternalDecorator implements InternalService {
     @Transactional(readOnly = true)
     public List<UserReportResponseCommand> getAllUserReports() {
         return internalServiceImpl.getAllUserReports();
+    }
+
+    @Override
+    public UserResponseCommand getUserById(String userId) throws ServiceException {
+        return internalServiceImpl.getUserById(userId);
     }
 }

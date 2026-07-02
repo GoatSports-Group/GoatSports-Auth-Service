@@ -2,6 +2,7 @@ package iuh.fit.auth.application.service.impl;
 
 import iuh.fit.auth.application.dto.report.UserReportResponseCommand;
 import iuh.fit.auth.application.dto.response.user.UserPermissionsResponseCommand;
+import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.application.port.persistence.UserRepository;
@@ -91,6 +92,27 @@ public class InternalServiceImpl implements InternalService {
                         user.getCreatedAt()
                 ))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public UserResponseCommand getUserById(String userId) throws ServiceException {
+        User user = userRepository.findById(UUID.fromString(userId))
+                .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
+
+        return new UserResponseCommand(
+                user.getUserId(),
+                user.getKeycloakId(),
+                user.getEmail(),
+                user.getUsername(),
+                "",
+                user.getFullName(),
+                user.getAvatarUrl(),
+                user.getStatus(),
+                user.getAuthProvider(),
+                user.getRole(),
+                user.getCreatedAt(),
+                user.getUpdatedAt()
+        );
     }
 }
 

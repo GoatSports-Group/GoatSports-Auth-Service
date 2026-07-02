@@ -2,6 +2,7 @@ package iuh.fit.auth.presentation.converter;
 
 import iuh.fit.auth.application.dto.report.UserReportResponseCommand;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
+import iuh.fit.auth.presentation.report.UserDetailReportResponse;
 import iuh.fit.auth.presentation.report.UserReportResponse;
 import iuh.fit.auth.presentation.response.user.UserResponse;
 
@@ -36,6 +37,20 @@ public class UserConverter {
                 .roleName(user.roleName())
                 .status(user.status())
                 .createdAt(user.createdAt())
+                .build();
+    }
+
+    public static UserDetailReportResponse toResponseUserDetailReport(UserResponseCommand user) {
+        if (user == null) return null;
+        return UserDetailReportResponse.builder()
+                .userId(user.userId())
+                .email(user.email())
+                .username(user.username())
+                .fullName(user.fullName())
+                .avatarUrl(user.avatarUrl())
+                .status(user.status().getValue())
+                .createdAt(user.createdAt())
+                .roleName(user.role() != null ? user.role().getName() : "Unknown")
                 .build();
     }
 

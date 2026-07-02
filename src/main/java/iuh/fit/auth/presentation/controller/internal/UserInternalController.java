@@ -1,10 +1,12 @@
 package iuh.fit.auth.presentation.controller.internal;
 
 import iuh.fit.auth.application.dto.report.UserReportResponseCommand;
+import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.service.InternalService;
 import iuh.fit.auth.application.dto.response.user.UserPermissionsResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.presentation.converter.UserConverter;
+import iuh.fit.auth.presentation.report.UserDetailReportResponse;
 import iuh.fit.auth.presentation.report.UserReportResponse;
 import iuh.fit.auth.presentation.response.user.UserPermissionResponse;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,13 @@ public class UserInternalController {
         ).toList();
 
         return ResponseEntity.status(HttpStatus.OK).body(users);
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserDetailReportResponse> getUserById(@PathVariable String userId) throws ServiceException {
+        UserResponseCommand userResponseCommand = internalService.getUserById(userId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(UserConverter.toResponseUserDetailReport(userResponseCommand));
     }
 
     @GetMapping("/{userId}/permissions")
