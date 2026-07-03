@@ -15,6 +15,7 @@ import org.springframework.web.client.RestClientResponseException;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -98,5 +99,24 @@ public class KeycloakAdapter implements KeycloakPort {
         String fullName = jwt.getClaimAsString("name");
 
         return new KeycloakInfoResponseCommand(keycloakId, email, username, fullName);
+    }
+
+    @Override
+    public KeycloakResponseCommand refreshKeycloakToken(String keycloakRefreshToken) {
+        try {
+            String body = "grant_type=refresh_token"
+                    + "&client_id=" + URLEncoder.encode(clientId, StandardCharsets.UTF_8)
+                    + "&client_secret=" + URLEncoder.encode(clientSecret, StandardCharsets.UTF_8)
+                    + "&refresh_token=" + URLEncoder.encode(keycloakRefreshToken, StandardCharsets.UTF_8);
+
+            return restClient.post()
+                    .uri(tokenUri)
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(body)
+                    .retrieve()
+                    .body(KeycloakResponseCommand.class);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

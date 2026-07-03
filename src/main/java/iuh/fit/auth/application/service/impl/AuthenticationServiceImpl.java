@@ -249,14 +249,34 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String userId = jwtPort.getUserIdFromToken(refreshToken);
         String role = jwtPort.getRoleFromToken(refreshToken);
 
+        String refreshKey = "user:" + userId + ":refresh";
+        String keycloakRefreshKey = "user:" + userId + ":keycloakRefresh";
+
         if (refreshToken.equalsIgnoreCase("missingValue")) {
             throw new ServiceException("Hết hạn đăng nhập");
         }
-        if (!redisPort.hasKey("user:" + userId + ":refresh")
-                || !redisPort.getValue("user:" + userId + ":refresh")
-                .equalsIgnoreCase(refreshToken))
-        {
+        if (!redisPort.hasKey(refreshKey) || !redisPort.getValue(refreshKey).equalsIgnoreCase(refreshToken)) {
             throw new ServiceException("Refresh token hết hạn");
+        }
+
+        if(redisPort.hasKey(keycloakRefreshKey)) {
+            String keycloakRefresh = redisPort.getValue(keycloakRefreshKey);
+            KeycloakResponseCommand keycloakResponseCommand = keycloakPort.refreshKeycloakToken(keycloakRefresh);
+
+            if(keycloakResponseCommand == null || keycloakResponseCommand.refreshToken() == null) {
+                redisPort.deleteKey(refreshKey);
+                redisPort.deleteKey(keycloakRefreshKey);
+
+                throw new ServiceException("Phiên đăng nhập trên hệ thống đã hết hạn. Vui lòng đăng nhập.");
+            }
+
+            redisPort.replaceKey(
+                    keycloakRefreshKey,
+                    keycloakRefreshKey,
+                    keycloakResponseCommand.refreshToken(),
+                    keycloakResponseCommand.refreshExpiresIn(),
+                    TimeUnit.SECONDS
+            );
         }
 
         User currentUser = userRepository.findById(UUID.fromString(userId)).orElse(null);

@@ -138,17 +138,27 @@ public class AuthenticationController {
     public ResponseEntity<UserResponse> refresh(
             @CookieValue(name = "refreshToken", defaultValue = "missingValue") String refreshToken,
             HttpServletResponse response
-    ) throws ServiceException
+    )
     {
-        RefreshResponseCommand result = authenticationService.refresh(refreshToken);
+        try {
+            RefreshResponseCommand result = authenticationService.refresh(refreshToken);
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                result.user(), null,
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + result.role()))
-        );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+            Authentication authentication = new UsernamePasswordAuthenticationToken(
+                    result.user(), null,
+                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + result.role()))
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        return setCookie(response, result);
+            return setCookie(response, result);
+        } catch (ServiceException e) {
+            ResponseCookie deleteAccessCookie = createCookie("accessToken", "", 0);
+            ResponseCookie deleteRefreshCookie = createCookie("refreshToken", "", 0);
+
+            response.addHeader(HttpHeaders.SET_COOKIE, deleteAccessCookie.toString());
+            response.addHeader(HttpHeaders.SET_COOKIE, deleteRefreshCookie.toString());
+
+            return ResponseEntity.status(HttpStatus.OK).body(null);
+        }
     }
 
     @PutMapping("/forgot-password")

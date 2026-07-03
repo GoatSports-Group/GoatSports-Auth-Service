@@ -11,4 +11,6 @@ public interface KeycloakPort {
     KeycloakResponseCommand exchangeCode(String code, String redirectUri);
 
     KeycloakInfoResponseCommand decode(String accessToken);
+
+    KeycloakResponseCommand refreshKeycloakToken(String keycloakRefreshToken);
 }
