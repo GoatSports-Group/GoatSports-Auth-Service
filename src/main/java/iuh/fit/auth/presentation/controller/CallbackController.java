@@ -19,6 +19,10 @@ public class CallbackController {
 
     @Value("${keycloak.callback-url}")
     private String callbackUrl;
+    @Value("${client.frontend.url}")
+    private String clientUrl;
+    @Value("${admin.frontend.url}")
+    private String adminUrl;
     @Value("${app.jwt.refresh-token.expiration-second}")
     private long refreshTokenExpirationSecond;
     @Value("${app.jwt.access-token.expiration-second}")
@@ -41,7 +45,19 @@ public class CallbackController {
         response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
-        response.sendRedirect(state);
+        String redirectUrl = state;
+        if (result.user() != null && result.user().role() != null) {
+            String roleName = result.user().role().getName();
+            if ("ADMIN".equalsIgnoreCase(roleName)) {
+                if (
+                    redirectUrl == null || redirectUrl.isEmpty() || redirectUrl.contains(clientUrl)
+                ) {
+                    redirectUrl = adminUrl;
+                }
+            }
+        }
+
+        response.sendRedirect(redirectUrl);
     }
 
     private ResponseCookie createCookie(String name, String value, long maxAge) {
