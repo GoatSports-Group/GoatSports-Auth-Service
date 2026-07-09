@@ -10,10 +10,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.goatsports</groupId>
-    <artifactId>goatsports-user-service</artifactId>
+    <artifactId>goatsports-auth-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>user-service</name>
-    <description>Goat Sports User Service</description>
+    <name>auth-service</name>
+    <description>Goat Sports Auth Service</description>
 
     <properties>
         <java.version>21</java.version>
