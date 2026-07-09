@@ -21,9 +21,13 @@ public class UserDetailCustom implements UserDetailsService {
 
     @Override
     @NonNull
-    public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException, DisabledException {
         UserEntity user = userRepository.findByUsernameOrEmailWithRole(username, username)
                 .orElseThrow(() -> new UsernameNotFoundException("Người dùng không tồn tại"));
+
+        if(user.getPassword() == null) {
+            throw new DisabledException("Tài khoản được đăng nhập bằng mạng xã hội");
+        }
 
         if (user.getStatus() == UserStatusEnum.INACTIVE) {
             throw new DisabledException("Tài khoản chưa được kích hoạt hoặc đã bị khóa");
