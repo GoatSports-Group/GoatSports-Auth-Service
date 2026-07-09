@@ -54,7 +54,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             user.setFullName("Admin");
             user.setEmail("admin@gmail.com");
             user.setStatus(UserStatusEnum.ACTIVE);
-            user.setAuthProvider(AuthProviderEnum.LOCAL);
+            user.getAuthProviders().add(AuthProviderEnum.LOCAL);
 
             RoleEntity role = roleRepository.findByName(RoleEnum.ADMIN.name())
                     .orElseThrow(() -> new ServiceException("Vai trò không tồn tại"));

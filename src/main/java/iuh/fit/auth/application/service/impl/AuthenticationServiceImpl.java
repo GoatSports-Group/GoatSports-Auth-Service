@@ -1,12 +1,13 @@
 package iuh.fit.auth.application.service.impl;
 
 import iuh.fit.auth.application.dto.request.auth.*;
-import iuh.fit.auth.application.dto.response.auth.KeycloakInfoResponseCommand;
+import iuh.fit.auth.application.dto.response.auth.KeycloakParseCommand;
 import iuh.fit.auth.application.dto.response.auth.KeycloakResponseCommand;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.mapper.UserMapper;
 import iuh.fit.auth.application.port.cache.RedisPort;
 import iuh.fit.auth.application.port.notification.EmailNotificationPort;
+import iuh.fit.auth.application.port.event.UserRegistrationEventPublisher;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.application.port.security.CurrentUserProvider;
@@ -16,23 +17,29 @@ import iuh.fit.auth.application.service.AuthenticationService;
 import iuh.fit.auth.domain.entity.Role;
 import iuh.fit.auth.domain.entity.User;
 import iuh.fit.auth.domain.enums.AuthProviderEnum;
+import iuh.fit.auth.domain.enums.GenderEnum;
 import iuh.fit.auth.domain.enums.RoleEnum;
 import iuh.fit.auth.domain.enums.UserStatusEnum;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.util.BaseUtil;
 import iuh.fit.auth.application.dto.response.auth.LoginResponseCommand;
 import iuh.fit.auth.application.dto.response.auth.RefreshResponseCommand;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class AuthenticationServiceImpl implements AuthenticationService {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthenticationServiceImpl.class);
+
     private final JwtPort jwtPort;
     private final RedisPort redisPort;
     private final KeycloakPort keycloakPort;
     private final EmailNotificationPort emailNotificationPort;
     private final CurrentUserProvider currentUserProvider;
+    private final UserRegistrationEventPublisher userRegistrationEventPublisher;
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -40,6 +47,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public AuthenticationServiceImpl(
             JwtPort jwtPort, RedisPort redisPort, KeycloakPort keycloakPort,
             EmailNotificationPort emailNotificationPort, CurrentUserProvider currentUserProvider,
+            UserRegistrationEventPublisher userRegistrationEventPublisher,
             UserRepository userRepository, RoleRepository roleRepository
     ) {
         this.jwtPort = jwtPort;
@@ -47,116 +55,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         this.keycloakPort = keycloakPort;
         this.emailNotificationPort = emailNotificationPort;
         this.currentUserProvider = currentUserProvider;
+        this.userRegistrationEventPublisher = userRegistrationEventPublisher;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
     }
 
     @Override
-    public LoginResponseCommand login(LoginRequestCommand loginCommand) throws ServiceException {
-        User user = userRepository.findByUsernameOrEmailWithRole(loginCommand.username(), loginCommand.username())
-                .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
-
-        String oldRefreshToken = redisPort.getValue("user:" + user.getUserId() + ":refresh");
-        if (oldRefreshToken != null) {
-            redisPort.deleteKey("user:" + user.getUserId() + ":refresh");
-        }
-
-        String accessToken = jwtPort.generateAccessToken(user);
-        String refreshToken = jwtPort.generateRefreshToken(user);
-
-        redisPort.saveWithTTL(
-                "user:" + user.getUserId() + ":refresh",
-                refreshToken,
-                jwtPort.getAuthProperties().refreshTokenExpirationSecond(),
-                TimeUnit.SECONDS
-        );
-
-        return new LoginResponseCommand(UserMapper.toUserResponseCommand(user), accessToken, refreshToken);
-    }
-
-    @Override
-    public LoginResponseCommand loginWithKeycloak(LinkAccountRequestCommand linkAccountCommand) throws ServiceException {
-        KeycloakResponseCommand token = keycloakPort.exchangeCode(linkAccountCommand.code(), linkAccountCommand.redirectUri());
-
-        KeycloakInfoResponseCommand keycloakInfo = keycloakPort.decode(token.accessToken());
-
-        Role role = roleRepository.findByName(RoleEnum.PLAYER.name())
-                .orElseThrow(() -> new ServiceException("Vai trò không tồn tại"));
-
-        User user = userRepository.findByKeycloakId(keycloakInfo.keycloakId())
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setKeycloakId(keycloakInfo.keycloakId());
-                    newUser.setEmail(keycloakInfo.email());
-                    newUser.setUsername(keycloakInfo.username());
-                    newUser.setFullName(keycloakInfo.fullName());
-                    newUser.setRole(role);
-                    newUser.setStatus(UserStatusEnum.ACTIVE);
-                    newUser.setAuthProvider(AuthProviderEnum.KEYCLOAK);
-                    return userRepository.save(newUser);
-                });
-
-        String accessToken = jwtPort.generateAccessToken(user);
-        String refreshToken = jwtPort.generateRefreshToken(user);
-
-        redisPort.saveWithTTL(
-                "user:" + user.getUserId() + ":refresh",
-                refreshToken,
-                jwtPort.getAuthProperties().refreshTokenExpirationSecond(),
-                TimeUnit.SECONDS
-        );
-
-        redisPort.saveWithTTL(
-                "user:" + user.getUserId() + ":keycloakRefresh",
-                token.refreshToken(),
-                token.refreshExpiresIn(),
-                TimeUnit.SECONDS
-        );
-
-        return new LoginResponseCommand(UserMapper.toUserResponseCommand(user), accessToken, refreshToken);
-    }
-
-    @Override
-    public void linkKeycloakAccount(LinkAccountRequestCommand linkAccountCommand) throws ServiceException {
-        UserResponseCommand userResultCommand = getCurrentUser();
-        User user = UserMapper.toUser(userResultCommand);
-        if (user.getKeycloakId() != null) {
-            throw new ServiceException("Tài khoản đã được liên kết với Keycloak");
-        }
-
-        KeycloakResponseCommand token = keycloakPort.exchangeCode(linkAccountCommand.code(), linkAccountCommand.redirectUri());
-        KeycloakInfoResponseCommand keycloakInfo = keycloakPort.decode(token.accessToken());
-
-        String keycloakIdStr = keycloakInfo.keycloakId().toString();
-        if (keycloakIdStr == null || keycloakIdStr.isEmpty()) {
-            keycloakPort.logout(token.refreshToken());
-            throw new ServiceException("Không thể lấy thông tin từ Keycloak");
-        }
-
-        UUID keycloakId = UUID.fromString(keycloakIdStr);
-        boolean checkedKeycloak = userRepository.existsByKeycloakId(keycloakId);
-        if (checkedKeycloak) {
-            keycloakPort.logout(token.refreshToken());
-            throw new ServiceException("Tài khoản Keycloak đã được liên kết với tài khoản khác");
-        }
-
-        user.setKeycloakId(keycloakId);
-        user.setAuthProvider(AuthProviderEnum.ALL);
-        userRepository.save(user);
-
-        redisPort.saveWithTTL(
-                "user:" + user.getUserId() + ":keycloakRefresh",
-                token.refreshToken(),
-                token.refreshExpiresIn(),
-                TimeUnit.SECONDS);
-    }
-
-    @Override
     public UserResponseCommand register(RegisterRequestCommand registerRequestCommand) throws ServiceException {
         boolean existed = userRepository.existsByUsernameOrEmail(
-                registerRequestCommand.username(), registerRequestCommand.username()
-        );
-        if (existed) throw new ServiceException("Người dùng đã tồn tại");
+                registerRequestCommand.username(), registerRequestCommand.username());
+        if (existed)
+            throw new ServiceException("Người dùng đã tồn tại");
 
         String hashedPassword = jwtPort.hashPassword(registerRequestCommand.password());
 
@@ -166,13 +75,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setFullName(registerRequestCommand.fullName());
         user.setEmail(registerRequestCommand.email());
         user.setStatus(UserStatusEnum.INACTIVE);
-        user.setAuthProvider(AuthProviderEnum.LOCAL);
+        user.setGender(GenderEnum.valueOf(registerRequestCommand.gender()));
+        user.getAuthProviders().add(AuthProviderEnum.LOCAL);
 
         Role role = roleRepository.findByName(RoleEnum.PLAYER.name())
                 .orElseThrow(() -> new ServiceException("Vai trò không tồn tại"));
         user.setRole(role);
 
         User createdUser = userRepository.save(user);
+
+        userRegistrationEventPublisher.publishUserRegistered(createdUser, registerRequestCommand.password());
 
         String verificationCode = BaseUtil.generateVerificationCode();
         this.redisPort.saveWithTTL(
@@ -187,6 +99,29 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
+    public LoginResponseCommand login(LoginRequestCommand loginCommand) throws ServiceException {
+        User user = userRepository.findByUsernameOrEmailWithRole(loginCommand.username(), loginCommand.username())
+                .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
+
+        String accessToken = jwtPort.generateAccessToken(user);
+        String refreshToken = jwtPort.generateRefreshToken(user);
+
+        String oldRefreshToken = redisPort.getValue("user:" + user.getUserId() + ":refresh");
+        if (oldRefreshToken != null) {
+            redisPort.deleteKey("user:" + user.getUserId() + ":refresh");
+        }
+
+        redisPort.saveWithTTL(
+                "user:" + user.getUserId() + ":refresh",
+                refreshToken,
+                jwtPort.getAuthProperties().refreshTokenExpirationSecond(),
+                TimeUnit.SECONDS
+        );
+
+        return new LoginResponseCommand(UserMapper.toUserResponseCommand(user), accessToken, refreshToken);
+    }
+
+    @Override
     public void verifyUser(VerificationRequestCommand verificationRequestCommand) throws ServiceException {
         User user = userRepository.findByEmail(verificationRequestCommand.email())
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
@@ -194,40 +129,44 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (!redisPort.hasKey(user.getUserId().toString())) {
             throw new ServiceException("Mã xác thực đã hết hạn");
         }
-        if (!redisPort.getValue(user.getUserId().toString()).equalsIgnoreCase(verificationRequestCommand.verificationCode())) {
+        if (!redisPort.getValue(user.getUserId().toString())
+                .equalsIgnoreCase(verificationRequestCommand.verificationCode())) {
             throw new ServiceException("Mã xác thực không chính xác");
         }
 
-        if (user.getAuthProvider() != null && user.getAuthProvider() == AuthProviderEnum.KEYCLOAK) {
-            user.setAuthProvider(AuthProviderEnum.ALL);
-        }
-
         user.setStatus(UserStatusEnum.ACTIVE);
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
 
-        redisPort.deleteKey(user.getUserId().toString());
+        userRegistrationEventPublisher.publishUserVerified(savedUser);
+
+        redisPort.deleteKey(savedUser.getUserId().toString());
     }
 
     @Override
     public void resendVerificationCode(String email) throws ServiceException {
         User user = userRepository.findByEmail(email).orElse(null);
-        if (user == null) throw new ServiceException("Người dùng không tồn tại");
+        if (user == null)
+            throw new ServiceException("Người dùng không tồn tại");
 
         String key = user.getUserId().toString();
         String verificationCode = BaseUtil.generateVerificationCode();
+
         redisPort.replaceKey(
                 key,
                 key,
                 verificationCode,
                 jwtPort.getAuthProperties().verificationCodeValidityInSecond(),
-                TimeUnit.SECONDS);
+                TimeUnit.SECONDS
+        );
+
         emailNotificationPort.sendVerificationEmail(email, verificationCode);
     }
 
     @Override
     public void logout(String accessToken, String refreshToken) {
         String userId = jwtPort.getUserIdFromToken(refreshToken);
-        if (userId == null || userId.isEmpty()) return;
+        if (userId == null || userId.isEmpty())
+            return;
 
         redisPort.deleteKey("user:" + userId + ":refresh");
         redisPort.saveWithTTL(
@@ -239,44 +178,67 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         if (redisPort.hasKey("user:" + userId + ":keycloakRefresh")) {
             String keycloakRefresh = redisPort.getValue("user:" + userId + ":keycloakRefresh");
-            keycloakPort.logout(keycloakRefresh);
+            try {
+                keycloakPort.logout(keycloakRefresh);
+            } catch (Exception e) {
+                log.warn("Keycloak logout failed or unreachable: {}. Proceeding with local logout.", e.getMessage());
+            }
             redisPort.deleteKey("user:" + userId + ":keycloakRefresh");
         }
     }
 
     @Override
     public RefreshResponseCommand refresh(String refreshToken) throws ServiceException {
-        String userId = jwtPort.getUserIdFromToken(refreshToken);
-        String role = jwtPort.getRoleFromToken(refreshToken);
+        if (refreshToken == null || refreshToken.isBlank() || refreshToken.equalsIgnoreCase("missingValue")) {
+            throw new ServiceException("Hết hạn đăng nhập");
+        }
+
+        String userId;
+        String role;
+        try {
+            userId = jwtPort.getUserIdFromToken(refreshToken);
+            role = jwtPort.getRoleFromToken(refreshToken);
+        } catch (Exception e) {
+            throw new ServiceException("Refresh token không hợp lệ hoặc đã hết hạn");
+        }
 
         String refreshKey = "user:" + userId + ":refresh";
         String keycloakRefreshKey = "user:" + userId + ":keycloakRefresh";
 
-        if (refreshToken.equalsIgnoreCase("missingValue")) {
-            throw new ServiceException("Hết hạn đăng nhập");
+        String blacklistKey = "blacklist_refresh:" + refreshToken;
+        if (redisPort.hasKey(blacklistKey)) {
+            redisPort.deleteKey(refreshKey);
+            redisPort.deleteKey(keycloakRefreshKey);
+
+            log.warn("Security Alert: Replay attack detected for user ID {}. Invalidated all active refresh tokens.",
+                    userId);
+
+            throw new ServiceException("Cảnh báo bảo mật: Phiên làm việc đã bị xâm phạm. Vui lòng đăng nhập lại.");
         }
+
         if (!redisPort.hasKey(refreshKey) || !redisPort.getValue(refreshKey).equalsIgnoreCase(refreshToken)) {
-            throw new ServiceException("Refresh token hết hạn");
+            throw new ServiceException("Refresh token đã hết hạn");
         }
 
-        if(redisPort.hasKey(keycloakRefreshKey)) {
+        if (redisPort.hasKey(keycloakRefreshKey)) {
             String keycloakRefresh = redisPort.getValue(keycloakRefreshKey);
-            KeycloakResponseCommand keycloakResponseCommand = keycloakPort.refreshKeycloakToken(keycloakRefresh);
-
-            if(keycloakResponseCommand == null || keycloakResponseCommand.refreshToken() == null) {
-                redisPort.deleteKey(refreshKey);
-                redisPort.deleteKey(keycloakRefreshKey);
-
-                throw new ServiceException("Phiên đăng nhập trên hệ thống đã hết hạn. Vui lòng đăng nhập.");
+            try {
+                KeycloakResponseCommand keycloakResponseCommand = keycloakPort.refreshKeycloakToken(keycloakRefresh);
+                if (keycloakResponseCommand != null && keycloakResponseCommand.refreshToken() != null) {
+                    redisPort.replaceKey(
+                            keycloakRefreshKey,
+                            keycloakRefreshKey,
+                            keycloakResponseCommand.refreshToken(),
+                            keycloakResponseCommand.refreshExpiresIn(),
+                            TimeUnit.SECONDS
+                    );
+                } else {
+                    log.warn("Keycloak session expired during refresh. Proceeding with local token refresh only.");
+                }
+            } catch (Exception e) {
+                log.warn("Keycloak is unreachable during token refresh: {}. Proceeding with local token refresh only.",
+                        e.getMessage());
             }
-
-            redisPort.replaceKey(
-                    keycloakRefreshKey,
-                    keycloakRefreshKey,
-                    keycloakResponseCommand.refreshToken(),
-                    keycloakResponseCommand.refreshExpiresIn(),
-                    TimeUnit.SECONDS
-            );
         }
 
         User currentUser = userRepository.findById(UUID.fromString(userId)).orElse(null);
@@ -296,6 +258,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 TimeUnit.SECONDS
         );
 
+        long remainingTime = jwtPort.getRemainingTime(refreshToken);
+        if (remainingTime > 0) {
+            redisPort.saveWithTTL(
+                    blacklistKey,
+                    "used",
+                    remainingTime,
+                    TimeUnit.SECONDS
+            );
+        }
+
         return new RefreshResponseCommand(UserMapper.toUserResponseCommand(currentUser), role, newAccessToken, newRefreshToken);
     }
 
@@ -311,21 +283,93 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String hashedPassword = jwtPort.hashPassword(forgotPasswordRequestCommand.password());
         user.setPassword(hashedPassword);
         user.setStatus(UserStatusEnum.INACTIVE);
-        this.userRepository.save(user);
+        User savedUser = this.userRepository.save(user);
+
+        userRegistrationEventPublisher.publishUserPasswordUpdated(savedUser, forgotPasswordRequestCommand.password());
 
         String verificationCode = BaseUtil.generateVerificationCode();
         redisPort.saveWithTTL(
-                user.getUserId().toString(),
+                savedUser.getUserId().toString(),
                 verificationCode,
                 jwtPort.getAuthProperties().verificationCodeValidityInSecond(),
                 TimeUnit.SECONDS
         );
-        emailNotificationPort.sendVerificationEmail(user.getEmail(), verificationCode);
+
+        emailNotificationPort.sendVerificationEmail(savedUser.getEmail(), verificationCode);
     }
 
     @Override
     public UserResponseCommand getCurrentUser() throws ServiceException {
         User currentUser = currentUserProvider.getCurrentUser();
         return UserMapper.toUserResponseCommand(currentUser);
+    }
+
+    @Override
+    public LoginResponseCommand callback(String code, String redirectUri) throws ServiceException {
+        KeycloakResponseCommand keycloakResponse = keycloakPort.exchangeCode(code, redirectUri);
+        if (keycloakResponse == null || keycloakResponse.accessToken() == null) {
+            throw new ServiceException("Failed to exchange code with Keycloak");
+        }
+
+        KeycloakParseCommand keycloakParsed = jwtPort.decodeKeycloakToken(keycloakResponse.accessToken());
+        String email = keycloakParsed.email();
+        String username = keycloakParsed.username();
+        String fullName = keycloakParsed.fullName();
+        UUID keycloakId = keycloakParsed.keycloakId();
+
+        if (keycloakId == null) {
+            throw new ServiceException("Keycloak access token does not contain a sub claim");
+        }
+
+        User user = userRepository.findByKeycloakId(keycloakId)
+                .orElseGet(() -> userRepository.findByUsernameOrEmailWithRole(
+                        username, email
+                ).orElse(null));
+
+        if (user == null) {
+            user = new User();
+            user.setUsername(username != null ? username : email);
+            user.setFullName(fullName != null ? fullName : (username != null ? username : email));
+            user.setEmail(email);
+            user.setKeycloakId(keycloakId);
+            user.setStatus(UserStatusEnum.ACTIVE);
+            
+            Role defualtRole = roleRepository.findByName(RoleEnum.PLAYER.name())
+                    .orElseThrow(() -> new ServiceException("Default role PLAYER not found"));
+            user.setRole(defualtRole);
+
+            user.getAuthProviders().add(AuthProviderEnum.GOOGLE);
+            user.getAuthProviders().add(AuthProviderEnum.LOCAL);
+
+            user = userRepository.save(user);
+        } else {
+            if (user.getKeycloakId() == null) {
+                user.setKeycloakId(keycloakId);
+                userRepository.save(user);
+            }
+        }
+
+         String oldKeycloakRefresh = redisPort.getValue("user:" + user.getUserId() + ":keycloakRefresh");
+         if (oldKeycloakRefresh != null) {
+             redisPort.deleteKey("user:" + user.getUserId() + ":keycloakRefresh");
+         }
+        redisPort.saveWithTTL(
+                "user:" + user.getUserId() + ":keycloakRefresh",
+                keycloakResponse.refreshToken(),
+                keycloakResponse.refreshExpiresIn(),
+                TimeUnit.SECONDS
+        );
+
+        String accessToken = jwtPort.generateAccessToken(user);
+        String refreshToken = jwtPort.generateRefreshToken(user);
+
+        redisPort.saveWithTTL(
+                "user:" + user.getUserId() + ":refresh",
+                refreshToken,
+                jwtPort.getAuthProperties().refreshTokenExpirationSecond(),
+                TimeUnit.SECONDS
+        );
+
+        return new LoginResponseCommand(UserMapper.toUserResponseCommand(user), accessToken, refreshToken);
     }
 }

@@ -17,6 +17,7 @@ public class UserConverter {
             .fullName(user.fullName())
             .avatarUrl(user.avatarUrl())
             .status(user.status() != null ? user.status().name() : null)
+            .gender(user.gender() != null ? user.gender().name()  : null)
             .createdAt(user.createdAt())
             .updatedAt(user.updatedAt())
             .role(user.role() != null ? UserResponse.UserRole.builder()
@@ -24,7 +25,6 @@ public class UserConverter {
                 .name(user.role().getName())
                 .build() : null)
             .keycloakId(user.keycloakId())
-            .authProvider(user.authProvider())
             .build();
     }
 

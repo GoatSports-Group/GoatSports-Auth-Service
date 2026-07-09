@@ -5,7 +5,5 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd"
 >
-    <include file="db.changelog/schema/11-06-2026/user-role-permission.xml"/>
-    <include file="db.changelog/schema/15-06-2026/change-type-keycloakId.xml"/>
-    <include file="db.changelog/schema/15-06-2026/column-auth-provider.xml"/>
+    <include file="db.changelog/schema/07-07-2026/init-schema-db-user.xml"/>
 </databaseChangeLog>

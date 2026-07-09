@@ -22,7 +22,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
@@ -65,37 +64,12 @@ public class AuthenticationController {
         return setCookie(response, result);
     }
 
-    @PostMapping("/login/keycloak")
-    public ResponseEntity<UserResponse> loginWithKeycloak(
-            @RequestBody LinkAccountRequest request, HttpServletResponse response
-    ) throws ServiceException {
-        LoginResponseCommand result = authenticationService.loginWithKeycloak(
-                new LinkAccountRequestCommand(request.getCode(), request.getRedirectUri())
-        );
-
-        return setCookie(response, result);
-    }
-
-    @PostMapping("/link/keycloak")
-    @Transactional
-    public ResponseEntity<Void> linkKeycloakAccount(@RequestBody LinkAccountRequest request) throws ServiceException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null) {
-            throw new ServiceException("Bạn cần đăng nhập trước khi liên kết tài khoản");
-        }
-
-        authenticationService.linkKeycloakAccount(
-                new LinkAccountRequestCommand(request.getCode(), request.getRedirectUri())
-        );
-
-        return ResponseEntity.status(HttpStatus.OK).body(null);
-    }
-
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest registerRequest) throws ServiceException {
         UserResponseCommand userResponse = authenticationService.register(
                 new RegisterRequestCommand(
                         registerRequest.getUsername(), registerRequest.getFullName(), registerRequest.getEmail(),
+                        registerRequest.getGender().toUpperCase(),
                         registerRequest.getPassword(), registerRequest.getConfirmPassword()
                 )
         );
@@ -103,8 +77,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<Void> verifyAccount(@RequestBody VerificationRequest verificationRequest)
-            throws ServiceException {
+    public ResponseEntity<Void> verifyAccount(@RequestBody VerificationRequest verificationRequest) throws ServiceException {
         authenticationService.verifyUser(
                 new VerificationRequestCommand(verificationRequest.getEmail(), verificationRequest.getVerificationCode())
         );

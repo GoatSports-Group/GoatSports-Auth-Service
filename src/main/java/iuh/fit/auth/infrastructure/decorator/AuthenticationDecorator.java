@@ -9,6 +9,7 @@ import iuh.fit.auth.application.service.AuthenticationService;
 import iuh.fit.auth.application.service.impl.AuthenticationServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -16,26 +17,19 @@ public class AuthenticationDecorator implements AuthenticationService {
     private final AuthenticationServiceImpl authenticationServiceImpl;
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public LoginResponseCommand login(LoginRequestCommand loginCommand) throws ServiceException {
         return authenticationServiceImpl.login(loginCommand);
     }
 
     @Override
-    public LoginResponseCommand loginWithKeycloak(LinkAccountRequestCommand linkAccountCommand) throws ServiceException {
-        return authenticationServiceImpl.loginWithKeycloak(linkAccountCommand);
-    }
-
-    @Override
-    public void linkKeycloakAccount(LinkAccountRequestCommand linkAccountCommand) throws ServiceException {
-        authenticationServiceImpl.linkKeycloakAccount(linkAccountCommand);
-    }
-
-    @Override
+    @Transactional(rollbackFor = Exception.class)
     public UserResponseCommand register(RegisterRequestCommand registerRequestCommand) throws ServiceException {
         return authenticationServiceImpl.register(registerRequestCommand);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void verifyUser(VerificationRequestCommand verificationRequestCommand) throws ServiceException {
         authenticationServiceImpl.verifyUser(verificationRequestCommand);
     }
@@ -63,5 +57,10 @@ public class AuthenticationDecorator implements AuthenticationService {
     @Override
     public UserResponseCommand getCurrentUser() throws ServiceException {
         return authenticationServiceImpl.getCurrentUser();
+    }
+
+    @Override
+    public LoginResponseCommand callback(String code, String redirectUri) throws ServiceException {
+        return authenticationServiceImpl.callback(code, redirectUri);
     }
 }

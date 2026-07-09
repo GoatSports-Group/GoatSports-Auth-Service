@@ -1,6 +1,5 @@
 package iuh.fit.auth.presentation.response.user;
 
-import iuh.fit.auth.domain.enums.AuthProviderEnum;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -18,11 +17,11 @@ public class UserResponse {
     private String fullName;
     private String avatarUrl;
     private String status;
+    private String gender;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private UserRole role;
     private UUID keycloakId;
-    private AuthProviderEnum authProvider;
 
     @Getter
     @Setter

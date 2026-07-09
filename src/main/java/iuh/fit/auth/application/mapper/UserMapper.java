@@ -10,16 +10,27 @@ public class UserMapper {
         return new UserResponseCommand(
                 user.getUserId(), user.getKeycloakId(), user.getEmail(), user.getUsername(),
                 user.getPassword(), user.getFullName(), user.getAvatarUrl(), user.getStatus(),
-                user.getAuthProvider(), user.getRole(), user.getCreatedAt(), user.getUpdatedAt()
+                user.getGender(),user.getRole(), user.getCreatedAt(), user.getUpdatedAt()
         );
     }
 
     public static User toUser(UserResponseCommand user){
-        return new User(
-                user.userId(), user.keycloakId(), user.email(), user.username(),
-                user.password(), user.fullName(), user.avatarUrl(), user.status(),
-                user.authProvider(), user.role(), user.createdAt(), user.updatedAt()
-        );
+        if(user == null) return null;
+
+        return User.builder()
+                .userId(user.userId())
+                .keycloakId(user.keycloakId())
+                .email(user.email())
+                .username(user.username())
+                .password(user.password())
+                .fullName(user.fullName())
+                .avatarUrl(user.avatarUrl())
+                .status(user.status())
+                .gender(user.gender())
+                .role(user.role())
+                .createdAt(user.createdAt())
+                .updatedAt(user.updatedAt())
+                .build();
     }
 
     public static PageResult<UserResponseCommand> toUserResponseCommand(PageResult<User> users){

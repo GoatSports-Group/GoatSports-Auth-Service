@@ -108,7 +108,7 @@ public class InternalServiceImpl implements InternalService {
                 user.getFullName(),
                 user.getAvatarUrl(),
                 user.getStatus(),
-                user.getAuthProvider(),
+                user.getGender(),
                 user.getRole(),
                 user.getCreatedAt(),
                 user.getUpdatedAt()

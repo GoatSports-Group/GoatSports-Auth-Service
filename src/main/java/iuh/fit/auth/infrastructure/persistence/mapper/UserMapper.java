@@ -16,7 +16,8 @@ public class UserMapper {
                 .fullName(user.getFullName())
                 .avatarUrl(user.getAvatarUrl())
                 .status(user.getStatus())
-                .authProvider(user.getAuthProvider())
+                .gender(user.getGender())
+                .authProviders(user.getAuthProviders())
                 .role(RoleMapper.toEntity(user.getRole()))
                 .build();
         entity.setCreatedAt(user.getCreatedAt());
@@ -35,7 +36,8 @@ public class UserMapper {
                 .fullName(entity.getFullName())
                 .avatarUrl(entity.getAvatarUrl())
                 .status(entity.getStatus())
-                .authProvider(entity.getAuthProvider())
+                .gender(entity.getGender())
+                .authProviders(entity.getAuthProviders())
                 .role(RoleMapper.toDomain(entity.getRole()))
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())

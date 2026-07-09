@@ -7,13 +7,9 @@ import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 
 public interface AuthenticationService {
-    LoginResponseCommand login(LoginRequestCommand loginCommand) throws ServiceException;
-
-    LoginResponseCommand loginWithKeycloak(LinkAccountRequestCommand linkAccountCommand) throws ServiceException;
-
-    void linkKeycloakAccount(LinkAccountRequestCommand linkAccountCommand) throws ServiceException;
-
     UserResponseCommand register(RegisterRequestCommand registerRequestCommand) throws ServiceException;
+
+    LoginResponseCommand login(LoginRequestCommand loginCommand) throws ServiceException;
 
     void verifyUser(VerificationRequestCommand verificationRequestCommand) throws ServiceException;
 
@@ -26,4 +22,6 @@ public interface AuthenticationService {
     void forgotPassword(ForgotPasswordRequestCommand forgotPasswordRequestCommand) throws ServiceException;
 
     UserResponseCommand getCurrentUser() throws ServiceException;
+
+    LoginResponseCommand callback(String code, String redirectUri) throws ServiceException;
 }

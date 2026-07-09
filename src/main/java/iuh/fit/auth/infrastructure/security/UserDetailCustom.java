@@ -1,7 +1,9 @@
 package iuh.fit.auth.infrastructure.security;
 
+import iuh.fit.auth.domain.enums.UserStatusEnum;
 import iuh.fit.auth.infrastructure.persistence.entity.UserEntity;
 import iuh.fit.auth.infrastructure.persistence.repository.jpa.JpaUserRepository;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -18,14 +20,13 @@ public class UserDetailCustom implements UserDetailsService {
     private final JpaUserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    @NonNull
+    public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
         UserEntity user = userRepository.findByUsernameOrEmailWithRole(username, username)
                 .orElseThrow(() -> new UsernameNotFoundException("Người dùng không tồn tại"));
 
-        if (user.getPassword() == null || user.getPassword().isEmpty()) {
-            throw new DisabledException(
-                    "Tài khoản này đăng nhập bằng bên thứ 3. Vui lòng quên mật khẩu để đặt mật khẩu."
-            );
+        if (user.getStatus() == UserStatusEnum.INACTIVE) {
+            throw new DisabledException("Tài khoản chưa được kích hoạt hoặc đã bị khóa");
         }
 
         if (user.getRole() == null || !user.getRole().isActive()) {

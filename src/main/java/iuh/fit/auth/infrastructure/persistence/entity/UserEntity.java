@@ -1,10 +1,13 @@
 package iuh.fit.auth.infrastructure.persistence.entity;
 
 import iuh.fit.auth.domain.enums.AuthProviderEnum;
+import iuh.fit.auth.domain.enums.GenderEnum;
 import iuh.fit.auth.domain.enums.UserStatusEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -32,7 +35,16 @@ public class UserEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private UserStatusEnum status;
     @Enumerated(EnumType.STRING)
-    private AuthProviderEnum authProvider;
+    private GenderEnum gender;
+
+    @ElementCollection(targetClass = AuthProviderEnum.class, fetch = FetchType.LAZY)
+    @CollectionTable(
+            name = "user_auth_providers",
+            joinColumns = @JoinColumn(name = "user_id")
+    )
+    @Enumerated(EnumType.STRING)
+    @Column(name = "auth_provider")
+    Set<AuthProviderEnum> authProviders = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id")

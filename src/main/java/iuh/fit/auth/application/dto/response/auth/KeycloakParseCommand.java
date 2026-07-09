@@ -2,9 +2,10 @@ package iuh.fit.auth.application.dto.response.auth;
 
 import java.util.UUID;
 
-public record KeycloakInfoResponseCommand(
-        UUID keycloakId,
+public record KeycloakParseCommand(
         String email,
         String username,
-        String fullName
-) {}
+        String fullName,
+        UUID keycloakId
+) {
+}

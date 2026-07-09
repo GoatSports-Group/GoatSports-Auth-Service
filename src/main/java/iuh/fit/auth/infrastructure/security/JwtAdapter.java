@@ -1,6 +1,9 @@
 package iuh.fit.auth.infrastructure.security;
 
+import com.nimbusds.jwt.SignedJWT;
 import iuh.fit.auth.application.dto.AuthProperties;
+import iuh.fit.auth.application.dto.response.auth.KeycloakParseCommand;
+import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.port.security.JwtPort;
 import iuh.fit.auth.domain.entity.User;
 import com.nimbusds.jose.util.Base64;
@@ -17,6 +20,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -76,11 +80,33 @@ public class JwtAdapter implements JwtPort {
     }
 
     @Override
+    public KeycloakParseCommand decodeKeycloakToken(String token) throws ServiceException {
+        SignedJWT signedJWT;
+        KeycloakParseCommand response;
+
+        try {
+            signedJWT = SignedJWT.parse(token);
+
+            response = new KeycloakParseCommand(
+                signedJWT.getJWTClaimsSet().getStringClaim("email"),
+                signedJWT.getJWTClaimsSet().getStringClaim("preferred_username"),
+                signedJWT.getJWTClaimsSet().getStringClaim("name"),
+                signedJWT.getJWTClaimsSet().getStringClaim("sub") != null
+                    ? UUID.fromString(signedJWT.getJWTClaimsSet().getStringClaim("sub"))
+                    : null
+            );
+        } catch (java.text.ParseException | IllegalArgumentException e) {
+            throw new ServiceException("Failed to parse Keycloak access token: " + e.getMessage());
+        }
+
+        return response;
+    }
+
+    @Override
     public AuthProperties getAuthProperties() {
         return new AuthProperties(
                 verificationCodeValidityInSecond,
-                refreshTokenExpirationSecond
-        );
+                refreshTokenExpirationSecond);
     }
 
     private String buildToken(User user, long accessTokenExpirationSecond) {

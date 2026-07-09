@@ -1,10 +1,12 @@
 package iuh.fit.auth.domain.entity;
 
 import iuh.fit.auth.domain.enums.AuthProviderEnum;
+import iuh.fit.auth.domain.enums.GenderEnum;
 import iuh.fit.auth.domain.enums.UserStatusEnum;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -21,7 +23,8 @@ public class User {
     private String fullName;
     private String avatarUrl;
     private UserStatusEnum status;
-    private AuthProviderEnum authProvider;
+    private GenderEnum gender;
+    private Set<AuthProviderEnum> authProviders = new java.util.HashSet<>();
     private Role role;
     
     private LocalDateTime createdAt;

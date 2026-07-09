@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public enum AuthProviderEnum {
     LOCAL("Local"),
-    KEYCLOAK("Keycloak"),
+    GOOGLE("Google"),
     ALL("Tất cả");
 
     private final String value;

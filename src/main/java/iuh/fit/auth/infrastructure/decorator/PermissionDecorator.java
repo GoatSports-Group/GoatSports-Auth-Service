@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class PermissionDecorator implements PermissionService {
     private final PermissionServiceImpl permissionServiceImpl;
 
-
     @Override
     public Permission createPermission(CreatePermissionRequestCommand command) {
         return permissionServiceImpl.createPermission(command);

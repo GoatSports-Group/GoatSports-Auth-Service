@@ -46,7 +46,7 @@ public class UserServiceImpl implements UserService {
         user.setFullName(command.fullName());
         user.setEmail(command.email());
         user.setStatus(UserStatusEnum.ACTIVE);
-        user.setAuthProvider(AuthProviderEnum.LOCAL);
+        user.getAuthProviders().add(AuthProviderEnum.LOCAL);
 
         if (command.roleId() != null && !command.roleId().isBlank()) {
             Role role = roleRepository.findById(UUID.fromString(command.roleId()))

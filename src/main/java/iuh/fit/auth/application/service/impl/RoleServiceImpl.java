@@ -4,6 +4,7 @@ import iuh.fit.auth.application.dto.PageFilter;
 import iuh.fit.auth.application.port.persistence.PermissionRepository;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.application.service.RoleService;
+import iuh.fit.auth.application.util.BaseUtil;
 import iuh.fit.auth.domain.entity.Permission;
 import iuh.fit.auth.domain.entity.Role;
 import iuh.fit.auth.application.exception.ServiceException;
@@ -88,12 +89,7 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public Role getRoleById(String roleId) throws ServiceException {
-        UUID uuid;
-        try {
-            uuid = UUID.fromString(roleId);
-        } catch (IllegalArgumentException | NullPointerException ex) {
-            throw new ServiceException("Id không hợp lệ: không phải UUID");
-        }
+        UUID uuid = BaseUtil.uuid(roleId);
 
         return roleRepository.findById(uuid)
                 .orElseThrow(() -> new ServiceException("Vai trò không tồn tại"));

@@ -19,6 +19,8 @@ public class RegisterRequest {
     @NotBlank(message = "Email không được để trống")
     @Email(message = "Email không hợp lệ")
     private String email;
+    @NotBlank(message = "Giới tính không được để trống")
+    private String gender;
     @NotBlank(message = "Mật khẩu không được để trống")
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$", message = "Mật khẩu phải có ít nhất 8 ký tự, chữ hoa, chữ thường, số và ký tự đặc biệt")
     private String password;
