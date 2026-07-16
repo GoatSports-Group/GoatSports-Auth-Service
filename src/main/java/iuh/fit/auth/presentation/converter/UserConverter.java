@@ -2,8 +2,8 @@ package iuh.fit.auth.presentation.converter;
 
 import iuh.fit.auth.application.dto.report.UserReportResponseCommand;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
-import iuh.fit.auth.presentation.report.UserDetailReportResponse;
-import iuh.fit.auth.presentation.report.UserReportResponse;
+import iuh.fit.auth.presentation.response.report.UserDetailReportResponse;
+import iuh.fit.auth.presentation.response.report.UserReportResponse;
 import iuh.fit.auth.presentation.response.user.UserResponse;
 
 public class UserConverter {
