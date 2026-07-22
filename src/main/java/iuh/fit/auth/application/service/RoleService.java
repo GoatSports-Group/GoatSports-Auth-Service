@@ -8,7 +8,7 @@ import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.domain.entity.Role;
 
 public interface RoleService {
-    Role createRole(CreateRoleRequestCommand command);
+    Role createRole(CreateRoleRequestCommand command) throws ServiceException;
 
     Role updateRole(UpdateRoleRequestCommand command) throws ServiceException;
 

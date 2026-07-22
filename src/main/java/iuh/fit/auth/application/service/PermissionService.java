@@ -8,7 +8,7 @@ import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.domain.entity.Permission;
 
 public interface PermissionService {
-    Permission createPermission(CreatePermissionRequestCommand command);
+    Permission createPermission(CreatePermissionRequestCommand command) throws ServiceException;
 
     Permission updatePermission(UpdatePermissionRequestCommand command) throws ServiceException;
 

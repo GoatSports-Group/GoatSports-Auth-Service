@@ -30,12 +30,14 @@ import java.util.List;
 public class RoleController {
 
     private final RoleService roleService;
+    private final RoleMapper roleMapper;
+    private final RoleConverter roleConverter;
 
     @PostMapping
-    public ResponseEntity<RoleResponse> createRole(@Valid @RequestBody RoleCreateRequest request) {
+    public ResponseEntity<RoleResponse> createRole(@Valid @RequestBody RoleCreateRequest request) throws ServiceException {
         CreateRoleRequestCommand command = new CreateRoleRequestCommand(request.getName(), request.getDescription());
-        RoleResponseCommand resDto = RoleMapper.toRoleResponseCommand(roleService.createRole(command));
-        return ResponseEntity.status(HttpStatus.CREATED).body(RoleConverter.toResponse(resDto));
+        RoleResponseCommand resDto = roleMapper.toRoleResponseCommand(roleService.createRole(command));
+        return ResponseEntity.status(HttpStatus.CREATED).body(roleConverter.toResponse(resDto));
     }
 
     @PutMapping
@@ -47,8 +49,8 @@ public class RoleController {
                 request.isActive(),
                 request.getPermissionIds()
         );
-        RoleResponseCommand role = RoleMapper.toRoleResponseCommand(roleService.updateRole(command));
-        return ResponseEntity.status(HttpStatus.OK).body(RoleConverter.toResponse(role));
+        RoleResponseCommand role = roleMapper.toRoleResponseCommand(roleService.updateRole(command));
+        return ResponseEntity.status(HttpStatus.OK).body(roleConverter.toResponse(role));
     }
 
     @DeleteMapping("/{id}")
@@ -59,20 +61,20 @@ public class RoleController {
 
     @PutMapping("/{id}/activate")
     public ResponseEntity<RoleResponse> activateRole(@PathVariable("id") String id) throws ServiceException {
-        RoleResponseCommand role = RoleMapper.toRoleResponseCommand(roleService.activateRole(id));
-        return ResponseEntity.status(HttpStatus.OK).body(RoleConverter.toResponse(role));
+        RoleResponseCommand role = roleMapper.toRoleResponseCommand(roleService.activateRole(id));
+        return ResponseEntity.status(HttpStatus.OK).body(roleConverter.toResponse(role));
     }
 
     @PutMapping("/{id}/deactivate")
     public ResponseEntity<RoleResponse> deactivateRole(@PathVariable("id") String id) throws ServiceException {
-        RoleResponseCommand role = RoleMapper.toRoleResponseCommand(roleService.deactivateRole(id));
-        return ResponseEntity.status(HttpStatus.OK).body(RoleConverter.toResponse(role));
+        RoleResponseCommand role = roleMapper.toRoleResponseCommand(roleService.deactivateRole(id));
+        return ResponseEntity.status(HttpStatus.OK).body(roleConverter.toResponse(role));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<RoleResponse> getRoleById(@PathVariable("id") String id) throws ServiceException {
-        RoleResponseCommand role = RoleMapper.toRoleResponseCommand(roleService.getRoleById(id));
-        return ResponseEntity.status(HttpStatus.OK).body(RoleConverter.toResponse(role));
+        RoleResponseCommand role = roleMapper.toRoleResponseCommand(roleService.getRoleById(id));
+        return ResponseEntity.status(HttpStatus.OK).body(roleConverter.toResponse(role));
     }
 
     @GetMapping
@@ -81,7 +83,7 @@ public class RoleController {
             Pageable pageable
     ) {
         PageFilter query = new PageFilter(filter, pageable.getPageNumber() + 1, pageable.getPageSize());
-        PageResult<RoleResponseCommand> resultDto = RoleMapper.toRoleResponseCommand(roleService.getAllRoles(query));
+        PageResult<RoleResponseCommand> resultDto = roleMapper.toRoleResponseCommand(roleService.getAllRoles(query));
 
         BaseListResponse.Meta meta = new BaseListResponse.Meta();
         meta.setPage(resultDto.page());
@@ -90,7 +92,7 @@ public class RoleController {
         meta.setTotal(resultDto.total());
 
         List<RoleResponse> roleResponses = resultDto.items().stream()
-                .map(RoleConverter::toResponse)
+                .map(roleConverter::toResponse)
                 .toList();
 
         return ResponseEntity.status(HttpStatus.OK).body(new BaseListResponse(meta, roleResponses));

@@ -4,6 +4,7 @@ import iuh.fit.auth.application.dto.report.UserReportResponseCommand;
 import iuh.fit.auth.application.dto.response.user.UserPermissionsResponseCommand;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
+import iuh.fit.auth.application.mapper.UserMapper;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.application.service.InternalService;
@@ -21,10 +22,12 @@ import java.util.stream.Collectors;
 public class InternalServiceImpl implements InternalService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final UserMapper userMapper;
 
-    public InternalServiceImpl(UserRepository userRepository, RoleRepository roleRepository) {
+    public InternalServiceImpl(UserRepository userRepository, RoleRepository roleRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.userMapper = userMapper;
     }
 
     @Override
@@ -99,20 +102,6 @@ public class InternalServiceImpl implements InternalService {
         User user = userRepository.findById(UUID.fromString(userId))
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
 
-        return new UserResponseCommand(
-                user.getUserId(),
-                user.getKeycloakId(),
-                user.getEmail(),
-                user.getUsername(),
-                "",
-                user.getFullName(),
-                user.getAvatarUrl(),
-                user.getStatus(),
-                user.getGender(),
-                user.getRole(),
-                user.getCreatedAt(),
-                user.getUpdatedAt()
-        );
+        return userMapper.toUserResponseCommand(user);
     }
 }
-

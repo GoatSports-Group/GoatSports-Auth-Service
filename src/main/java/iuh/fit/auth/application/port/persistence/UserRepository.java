@@ -1,6 +1,7 @@
 package iuh.fit.auth.application.port.persistence;
 
 import iuh.fit.auth.application.dto.PageFilter;
+import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.domain.entity.User;
 import iuh.fit.auth.application.dto.response.base.PageResult;
 
@@ -21,7 +22,7 @@ public interface UserRepository {
 
     Optional<User> findByUsernameOrEmailWithRole(String username, String email);
 
-    User save(User user);
+    User save(User user) throws ServiceException;
 
     PageResult<User> findAll(PageFilter filter);
 

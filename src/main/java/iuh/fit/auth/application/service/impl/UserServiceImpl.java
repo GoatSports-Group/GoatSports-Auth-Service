@@ -23,14 +23,17 @@ public class UserServiceImpl implements UserService {
     private final JwtPort jwtPort;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final UserMapper userMapper;
 
     public UserServiceImpl(
             JwtPort jwtPort,
-            UserRepository userRepository, RoleRepository roleRepository
+            UserRepository userRepository, RoleRepository roleRepository,
+            UserMapper userMapper
     ) {
         this.jwtPort = jwtPort;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.userMapper = userMapper;
     }
 
     @Override
@@ -76,7 +79,7 @@ public class UserServiceImpl implements UserService {
 
         user.setRole(role);
 
-        return UserMapper.toUserResponseCommand(userRepository.save(user));
+        return userMapper.toUserResponseCommand(userRepository.save(user));
     }
 
     @Override

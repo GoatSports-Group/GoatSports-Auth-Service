@@ -2,6 +2,7 @@ package iuh.fit.auth.infrastructure.external.kafka.consumer;
 
 import iuh.fit.auth.application.dto.event.UserRegistrationEvent;
 import iuh.fit.auth.application.dto.event.UserRegistrationEventType;
+import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.domain.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ public class UserSyncConsumer {
             groupId = "${spring.kafka.consumer.group-id}"
     )
     @Transactional
-    public void consumeUserSyncEvent(UserRegistrationEvent event) {
+    public void consumeUserSyncEvent(UserRegistrationEvent event) throws ServiceException {
         log.info("Received Kafka event: {} for user: {}", event.getEventType(), event.getData().getUsername());
         
         if (UserRegistrationEventType.USER_SYNCED.equals(event.getEventType())) {

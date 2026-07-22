@@ -43,12 +43,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final UserMapper userMapper;
 
     public AuthenticationServiceImpl(
             JwtPort jwtPort, RedisPort redisPort, KeycloakPort keycloakPort,
             EmailNotificationPort emailNotificationPort, CurrentUserProvider currentUserProvider,
             UserRegistrationEventPublisher userRegistrationEventPublisher,
-            UserRepository userRepository, RoleRepository roleRepository
+            UserRepository userRepository, RoleRepository roleRepository,
+            UserMapper userMapper
     ) {
         this.jwtPort = jwtPort;
         this.redisPort = redisPort;
@@ -58,6 +60,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         this.userRegistrationEventPublisher = userRegistrationEventPublisher;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.userMapper = userMapper;
     }
 
     @Override
@@ -95,7 +98,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         emailNotificationPort.sendVerificationEmail(createdUser.getEmail(), verificationCode);
 
-        return UserMapper.toUserResponseCommand(createdUser);
+        return userMapper.toUserResponseCommand(createdUser);
     }
 
     @Override
@@ -118,7 +121,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 TimeUnit.SECONDS
         );
 
-        return new LoginResponseCommand(UserMapper.toUserResponseCommand(user), accessToken, refreshToken);
+        return new LoginResponseCommand(userMapper.toUserResponseCommand(user), accessToken, refreshToken);
     }
 
     @Override
@@ -268,7 +271,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             );
         }
 
-        return new RefreshResponseCommand(UserMapper.toUserResponseCommand(currentUser), role, newAccessToken, newRefreshToken);
+        return new RefreshResponseCommand(userMapper.toUserResponseCommand(currentUser), role, newAccessToken, newRefreshToken);
     }
 
     @Override
@@ -301,7 +304,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public UserResponseCommand getCurrentUser() throws ServiceException {
         User currentUser = currentUserProvider.getCurrentUser();
-        return UserMapper.toUserResponseCommand(currentUser);
+        return userMapper.toUserResponseCommand(currentUser);
     }
 
     @Override
@@ -370,6 +373,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 TimeUnit.SECONDS
         );
 
-        return new LoginResponseCommand(UserMapper.toUserResponseCommand(user), accessToken, refreshToken);
+        return new LoginResponseCommand(userMapper.toUserResponseCommand(user), accessToken, refreshToken);
     }
 }

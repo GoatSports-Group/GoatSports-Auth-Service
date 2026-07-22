@@ -29,6 +29,8 @@ import java.util.List;
 @PreAuthorize("hasAuthority('ADMIN')")
 public class PermissionController {
     private final PermissionService permissionService;
+    private final PermissionMapper permissionMapper;
+    private final PermissionConverter permissionConverter;
 
     @PostMapping
     public ResponseEntity<PermissionResponse> createPermission(@Valid @RequestBody PermissionCreateRequest request)
@@ -42,8 +44,8 @@ public class PermissionController {
                 request.getMethod(),
                 request.getModule()
         );
-        PermissionResponseCommand resDto = PermissionMapper.toPermissionResponseCommand(permissionService.createPermission(command));
-        return ResponseEntity.status(HttpStatus.CREATED).body(PermissionConverter.toResponse(resDto));
+        PermissionResponseCommand resDto = permissionMapper.toPermissionResponseCommand(permissionService.createPermission(command));
+        return ResponseEntity.status(HttpStatus.CREATED).body(permissionConverter.toResponse(resDto));
     }
 
     @PutMapping
@@ -59,8 +61,8 @@ public class PermissionController {
                 request.getMethod(),
                 request.getModule()
         );
-        PermissionResponseCommand resDto = PermissionMapper.toPermissionResponseCommand(permissionService.updatePermission(command));
-        return ResponseEntity.status(HttpStatus.OK).body(PermissionConverter.toResponse(resDto));
+        PermissionResponseCommand resDto = permissionMapper.toPermissionResponseCommand(permissionService.updatePermission(command));
+        return ResponseEntity.status(HttpStatus.OK).body(permissionConverter.toResponse(resDto));
     }
 
     @DeleteMapping("/{id}")
@@ -74,8 +76,8 @@ public class PermissionController {
 
     @GetMapping("/{id}")
     public ResponseEntity<PermissionResponse> getPermissionById(@PathVariable("id") String id) throws ServiceException {
-        PermissionResponseCommand resDto = PermissionMapper.toPermissionResponseCommand(permissionService.getPermissionById(id));
-        return ResponseEntity.status(HttpStatus.OK).body(PermissionConverter.toResponse(resDto));
+        PermissionResponseCommand resDto = permissionMapper.toPermissionResponseCommand(permissionService.getPermissionById(id));
+        return ResponseEntity.status(HttpStatus.OK).body(permissionConverter.toResponse(resDto));
     }
 
     @GetMapping
@@ -84,7 +86,7 @@ public class PermissionController {
             Pageable pageable
     ) {
         PageFilter query = new PageFilter(filter, pageable.getPageNumber() + 1, pageable.getPageSize());
-        PageResult<PermissionResponseCommand> resultDto = PermissionMapper.toPermissionResponseCommand(permissionService.getAllPermissions(query));
+        PageResult<PermissionResponseCommand> resultDto = permissionMapper.toPermissionResponseCommand(permissionService.getAllPermissions(query));
 
         BaseListResponse.Meta meta = new BaseListResponse.Meta();
         meta.setPage(resultDto.page());
@@ -93,7 +95,7 @@ public class PermissionController {
         meta.setTotal(resultDto.total());
 
         List<PermissionResponse> permissionResponses = resultDto.items().stream()
-                .map(PermissionConverter::toResponse)
+                .map(permissionConverter::toResponse)
                 .toList();
 
         return ResponseEntity.status(HttpStatus.OK).body(new BaseListResponse(meta, permissionResponses));

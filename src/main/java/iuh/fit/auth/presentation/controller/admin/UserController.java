@@ -27,6 +27,8 @@ import java.util.List;
 @PreAuthorize("hasAuthority('ADMIN')")
 public class UserController {
     private final UserService userService;
+    private final UserMapper userMapper;
+    private final UserConverter userConverter;
 
     @GetMapping
     public ResponseEntity<BaseListResponse> getAllUsers(
@@ -34,7 +36,7 @@ public class UserController {
             Pageable pageable
     ) {
         PageFilter query = new PageFilter(filter, pageable.getPageNumber() + 1, pageable.getPageSize());
-        PageResult<UserResponseCommand> resultDto = UserMapper.toUserResponseCommand(userService.getAllUsers(query));
+        PageResult<UserResponseCommand> resultDto = userMapper.toUserResponseCommand(userService.getAllUsers(query));
 
         BaseListResponse.Meta meta = new BaseListResponse.Meta();
         meta.setPage(resultDto.page());
@@ -43,7 +45,7 @@ public class UserController {
         meta.setTotal(resultDto.total());
 
         List<UserResponse> userResponses = resultDto.items().stream()
-                .map(UserConverter::toResponse)
+                .map(userConverter::toResponse)
                 .toList();
 
         return ResponseEntity.status(HttpStatus.OK).body(new BaseListResponse(meta, userResponses));
@@ -58,6 +60,6 @@ public class UserController {
                 new AssignRoleRequestCommand(request.getUserId(), request.getRoleId())
         );
 
-        return ResponseEntity.status(HttpStatus.OK).body(UserConverter.toResponse(user));
+        return ResponseEntity.status(HttpStatus.OK).body(userConverter.toResponse(user));
     }
 }

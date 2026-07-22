@@ -3,24 +3,25 @@ package iuh.fit.auth.application.mapper;
 import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.dto.response.permission.PermissionResponseCommand;
 import iuh.fit.auth.domain.entity.Permission;
+import org.mapstruct.Mapper;
 
-public class PermissionMapper {
+import java.util.List;
 
-    public static PermissionResponseCommand toPermissionResponseCommand(Permission permission) {
-        return new PermissionResponseCommand(
-                permission.getPermissionId(),
-                permission.getName(),
-                permission.getApiPath(),
-                permission.getMethod(),
-                permission.getModule()
-        );
-    }
+@Mapper(componentModel = "spring")
+public interface PermissionMapper {
 
-    public static PageResult<PermissionResponseCommand> toPermissionResponseCommand(PageResult<Permission> permissions) {
+    PermissionResponseCommand toPermissionResponseCommand(Permission permission);
+
+    List<PermissionResponseCommand> toPermissionResponseCommandList(List<Permission> permissions);
+
+    default PageResult<PermissionResponseCommand> toPermissionResponseCommand(PageResult<Permission> permissions) {
+        if (permissions == null) return null;
         return new PageResult<>(
-                permissions.items().stream().map(PermissionMapper::toPermissionResponseCommand).toList(),
-                permissions.total(), permissions.page(), permissions.pageSize(), permissions.totalPages()
+                toPermissionResponseCommandList(permissions.items()),
+                permissions.total(),
+                permissions.page(),
+                permissions.pageSize(),
+                permissions.totalPages()
         );
     }
-
 }

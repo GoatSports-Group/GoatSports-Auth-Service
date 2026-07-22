@@ -4,10 +4,11 @@ import com.turkraft.springfilter.converter.FilterSpecificationConverter;
 import com.turkraft.springfilter.parser.FilterParser;
 import iuh.fit.auth.application.dto.PageFilter;
 import iuh.fit.auth.application.dto.response.base.PageResult;
+import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.domain.entity.User;
 import iuh.fit.auth.infrastructure.persistence.entity.UserEntity;
-import iuh.fit.auth.infrastructure.persistence.mapper.UserMapper;
+import iuh.fit.auth.infrastructure.persistence.mapper.UserEntityMapper;
 import iuh.fit.auth.infrastructure.persistence.repository.jpa.JpaUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,20 +27,21 @@ public class UserRepositoryImpl implements UserRepository {
     private final JpaUserRepository jpaUserRepository;
     private final FilterParser filterParser;
     private final FilterSpecificationConverter filterSpecificationConverter;
+    private final UserEntityMapper userEntityMapper;
 
     @Override
     public Optional<User> findById(UUID id) {
-        return jpaUserRepository.findById(id).map(UserMapper::toDomain);
+        return jpaUserRepository.findById(id).map(userEntityMapper::toDomain);
     }
 
     @Override
     public Optional<User> findByEmail(String email) {
-        return jpaUserRepository.findByEmail(email).map(UserMapper::toDomain);
+        return jpaUserRepository.findByEmail(email).map(userEntityMapper::toDomain);
     }
 
     @Override
     public Optional<User> findByKeycloakId(UUID keycloakId) {
-        return jpaUserRepository.findByKeycloakId(keycloakId).map(UserMapper::toDomain);
+        return jpaUserRepository.findByKeycloakId(keycloakId).map(userEntityMapper::toDomain);
     }
 
     @Override
@@ -54,14 +56,24 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public Optional<User> findByUsernameOrEmailWithRole(String username, String email) {
-        return jpaUserRepository.findByUsernameOrEmailWithRole(username, email).map(UserMapper::toDomain);
+        return jpaUserRepository.findByUsernameOrEmailWithRole(username, email).map(userEntityMapper::toDomain);
     }
 
     @Override
-    public User save(User user) {
-        UserEntity entity = UserMapper.toEntity(user);
+    public User save(User user) throws ServiceException {
+        UserEntity entity;
+        if (user.getUserId() != null) {
+            entity = jpaUserRepository.findById(user.getUserId())
+                    .map(existing -> {
+                        userEntityMapper.updateEntity(user, existing);
+                        return existing;
+                    })
+                    .orElseThrow(() -> new ServiceException("Người dùng không tồn tại."));
+        } else {
+            entity = userEntityMapper.createEntity(user);
+        }
         UserEntity savedEntity = jpaUserRepository.save(entity);
-        return UserMapper.toDomain(savedEntity);
+        return userEntityMapper.toDomain(savedEntity);
     }
 
     @Override
@@ -77,7 +89,7 @@ public class UserRepositoryImpl implements UserRepository {
 
         Page<UserEntity> entityPage = jpaUserRepository.findAll(spec, pageable);
         List<User> items = entityPage.getContent().stream()
-                .map(UserMapper::toDomain)
+                .map(userEntityMapper::toDomain)
                 .toList();
 
         return new PageResult<>(
@@ -93,12 +105,12 @@ public class UserRepositoryImpl implements UserRepository {
     public List<User> findAllUsers() {
         List<UserEntity> userEntities = jpaUserRepository.findAll();
         return userEntities.stream()
-                .map(UserMapper::toDomain)
+                .map(userEntityMapper::toDomain)
                 .toList();
     }
 
     @Override
     public Optional<User> findByRole_Name(String name) {
-        return jpaUserRepository.findByRole_Name(name).map(UserMapper::toDomain);
+        return jpaUserRepository.findByRole_Name(name).map(userEntityMapper::toDomain);
     }
 }

@@ -1,5 +1,6 @@
 package iuh.fit.auth.application.port.persistence;
 
+import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.domain.entity.Permission;
 import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.dto.PageFilter;
@@ -15,7 +16,7 @@ public interface PermissionRepository {
 
     Set<Permission> findByPermissionIdIn(Set<UUID> permissionIds);
 
-    Permission save(Permission permission);
+    Permission save(Permission permission) throws ServiceException;
 
     void delete(Permission permission);
 

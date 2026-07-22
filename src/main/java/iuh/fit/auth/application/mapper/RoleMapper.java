@@ -3,29 +3,25 @@ package iuh.fit.auth.application.mapper;
 import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.dto.response.role.RoleResponseCommand;
 import iuh.fit.auth.domain.entity.Role;
+import org.mapstruct.Mapper;
 
-import java.util.stream.Collectors;
+import java.util.List;
 
-public class RoleMapper {
+@Mapper(componentModel = "spring", uses = {PermissionMapper.class})
+public interface RoleMapper {
 
-    public static RoleResponseCommand toRoleResponseCommand(Role role) {
-        return new RoleResponseCommand(
-                role.getRoleId(),
-                role.getName(),
-                role.getDescription(),
-                role.isActive(),
-                role.getPermissions().stream()
-                        .map(PermissionMapper::toPermissionResponseCommand)
-                        .collect(Collectors.toSet()
-                )
-        );
-    }
+    RoleResponseCommand toRoleResponseCommand(Role role);
 
-    public static PageResult<RoleResponseCommand> toRoleResponseCommand(PageResult<Role> roles){
+    List<RoleResponseCommand> toRoleResponseCommandList(List<Role> roles);
+
+    default PageResult<RoleResponseCommand> toRoleResponseCommand(PageResult<Role> roles) {
+        if (roles == null) return null;
         return new PageResult<>(
-                roles.items().stream().map(RoleMapper::toRoleResponseCommand).toList(),
-                roles.total(), roles.page(), roles.pageSize(), roles.totalPages()
+                toRoleResponseCommandList(roles.items()),
+                roles.total(),
+                roles.page(),
+                roles.pageSize(),
+                roles.totalPages()
         );
     }
-
 }

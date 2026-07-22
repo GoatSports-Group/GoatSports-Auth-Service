@@ -4,10 +4,11 @@ import com.turkraft.springfilter.converter.FilterSpecificationConverter;
 import com.turkraft.springfilter.parser.FilterParser;
 import iuh.fit.auth.application.dto.PageFilter;
 import iuh.fit.auth.application.dto.response.base.PageResult;
+import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.domain.entity.Role;
 import iuh.fit.auth.infrastructure.persistence.entity.RoleEntity;
-import iuh.fit.auth.infrastructure.persistence.mapper.RoleMapper;
+import iuh.fit.auth.infrastructure.persistence.mapper.RoleEntityMapper;
 import iuh.fit.auth.infrastructure.persistence.repository.jpa.JpaRoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,27 +27,38 @@ public class RoleRepositoryImpl implements RoleRepository {
     private final JpaRoleRepository jpaRoleRepository;
     private final FilterParser filterParser;
     private final FilterSpecificationConverter filterSpecificationConverter;
+    private final RoleEntityMapper roleEntityMapper;
 
     @Override
     public Optional<Role> findById(UUID id) {
-        return jpaRoleRepository.findById(id).map(RoleMapper::toDomain);
+        return jpaRoleRepository.findById(id).map(roleEntityMapper::toDomain);
     }
 
     @Override
     public Optional<Role> findByName(String name) {
-        return jpaRoleRepository.findByName(name).map(RoleMapper::toDomain);
+        return jpaRoleRepository.findByName(name).map(roleEntityMapper::toDomain);
     }
 
     @Override
-    public Role save(Role role) {
-        RoleEntity entity = RoleMapper.toEntity(role);
+    public Role save(Role role) throws ServiceException {
+        RoleEntity entity;
+        if (role.getRoleId() != null) {
+            entity = jpaRoleRepository.findById(role.getRoleId())
+                    .map(existing -> {
+                        roleEntityMapper.updateEntity(role, existing);
+                        return existing;
+                    })
+                    .orElseThrow(() -> new ServiceException("Vai trò không tồn tại."));
+        } else {
+            entity = roleEntityMapper.createEntity(role);
+        }
         RoleEntity savedEntity = jpaRoleRepository.save(entity);
-        return RoleMapper.toDomain(savedEntity);
+        return roleEntityMapper.toDomain(savedEntity);
     }
 
     @Override
     public void delete(Role role) {
-        RoleEntity entity = RoleMapper.toEntity(role);
+        RoleEntity entity = roleEntityMapper.createEntity(role);
         jpaRoleRepository.delete(entity);
     }
 
@@ -63,7 +75,7 @@ public class RoleRepositoryImpl implements RoleRepository {
 
         Page<RoleEntity> entityPage = jpaRoleRepository.findAll(spec, pageable);
         List<Role> items = entityPage.getContent().stream()
-                .map(RoleMapper::toDomain)
+                .map(roleEntityMapper::toDomain)
                 .toList();
 
         return new PageResult<>(

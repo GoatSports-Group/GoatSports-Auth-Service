@@ -3,41 +3,27 @@ package iuh.fit.auth.application.mapper;
 import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.domain.entity.User;
+import org.mapstruct.Mapper;
 
-public class UserMapper {
+import java.util.List;
 
-    public static UserResponseCommand toUserResponseCommand(User user){
-        return new UserResponseCommand(
-                user.getUserId(), user.getKeycloakId(), user.getEmail(), user.getUsername(),
-                user.getPassword(), user.getFullName(), user.getAvatarUrl(), user.getStatus(),
-                user.getGender(),user.getRole(), user.getCreatedAt(), user.getUpdatedAt()
-        );
-    }
+@Mapper(componentModel = "spring")
+public interface UserMapper {
 
-    public static User toUser(UserResponseCommand user){
-        if(user == null) return null;
+    UserResponseCommand toUserResponseCommand(User user);
 
-        return User.builder()
-                .userId(user.userId())
-                .keycloakId(user.keycloakId())
-                .email(user.email())
-                .username(user.username())
-                .password(user.password())
-                .fullName(user.fullName())
-                .avatarUrl(user.avatarUrl())
-                .status(user.status())
-                .gender(user.gender())
-                .role(user.role())
-                .createdAt(user.createdAt())
-                .updatedAt(user.updatedAt())
-                .build();
-    }
+    User toUser(UserResponseCommand user);
 
-    public static PageResult<UserResponseCommand> toUserResponseCommand(PageResult<User> users){
+    List<UserResponseCommand> toUserResponseCommandList(List<User> users);
+
+    default PageResult<UserResponseCommand> toUserResponseCommand(PageResult<User> users) {
+        if (users == null) return null;
         return new PageResult<>(
-                users.items().stream().map(UserMapper::toUserResponseCommand).toList(),
-                users.total(), users.page(), users.pageSize(), users.totalPages()
+                toUserResponseCommandList(users.items()),
+                users.total(),
+                users.page(),
+                users.pageSize(),
+                users.totalPages()
         );
     }
-
 }

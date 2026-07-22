@@ -26,13 +26,14 @@ import java.util.List;
 public class UserInternalController {
 
     private final InternalService internalService;
+    private final UserConverter userConverter;
 
     @GetMapping
     public ResponseEntity<List<UserReportResponse>> getAllUsers() {
         List<UserReportResponseCommand> userReportResponseCommands = internalService.getAllUserReports();
 
         List<UserReportResponse> users = userReportResponseCommands.stream().map(
-                UserConverter::toResponse
+                userConverter::toResponse
         ).toList();
 
         return ResponseEntity.status(HttpStatus.OK).body(users);
@@ -42,7 +43,7 @@ public class UserInternalController {
     public ResponseEntity<UserDetailReportResponse> getUserById(@PathVariable String userId) throws ServiceException {
         UserResponseCommand userResponseCommand = internalService.getUserById(userId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(UserConverter.toResponseUserDetailReport(userResponseCommand));
+        return ResponseEntity.status(HttpStatus.OK).body(userConverter.toResponseUserDetailReport(userResponseCommand));
     }
 
     @GetMapping("/{userId}/permissions")
@@ -69,4 +70,3 @@ public class UserInternalController {
         return ResponseEntity.status(HttpStatus.OK).body(internalService.getAdmin());
     }
 }
-

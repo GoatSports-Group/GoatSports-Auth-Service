@@ -25,7 +25,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public Role createRole(CreateRoleRequestCommand command) {
+    public Role createRole(CreateRoleRequestCommand command) throws ServiceException {
         Role role = new Role();
         role.setName(command.name().toUpperCase());
         if (command.description() != null) {

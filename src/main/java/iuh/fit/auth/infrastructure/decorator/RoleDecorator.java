@@ -17,7 +17,7 @@ public class RoleDecorator implements RoleService {
     private final RoleServiceImpl roleServiceImpl;
 
     @Override
-    public Role createRole(CreateRoleRequestCommand command) {
+    public Role createRole(CreateRoleRequestCommand command) throws ServiceException {
         return roleServiceImpl.createRole(command);
     }
 

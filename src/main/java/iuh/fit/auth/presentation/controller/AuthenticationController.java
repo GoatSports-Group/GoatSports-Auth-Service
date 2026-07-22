@@ -33,6 +33,7 @@ public class AuthenticationController {
 
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final AuthenticationService authenticationService;
+    private final UserConverter userConverter;
 
     @Value("${app.jwt.refresh-token.expiration-second}")
     private long refreshTokenExpirationSecond;
@@ -73,7 +74,7 @@ public class AuthenticationController {
                         registerRequest.getPassword(), registerRequest.getConfirmPassword()
                 )
         );
-        return ResponseEntity.status(HttpStatus.OK).body(UserConverter.toResponse(userResponse));
+        return ResponseEntity.status(HttpStatus.OK).body(userConverter.toResponse(userResponse));
     }
 
     @PostMapping("/verify")
@@ -152,7 +153,7 @@ public class AuthenticationController {
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser() throws ServiceException {
         UserResponseCommand user = authenticationService.getCurrentUser();
-        return ResponseEntity.status(HttpStatus.OK).body(UserConverter.toResponse(user));
+        return ResponseEntity.status(HttpStatus.OK).body(userConverter.toResponse(user));
     }
 
     private ResponseCookie createCookie(String name, String value, long maxAge) {
@@ -173,7 +174,7 @@ public class AuthenticationController {
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(result.user() != null ? UserConverter.toResponse(result.user()) : null);
+                .body(result.user() != null ? userConverter.toResponse(result.user()) : null);
     }
 
     private ResponseEntity<UserResponse> setCookie(HttpServletResponse response, RefreshResponseCommand result) {
@@ -184,6 +185,6 @@ public class AuthenticationController {
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(result.user() != null ? UserConverter.toResponse(result.user()) : null);
+                .body(result.user() != null ? userConverter.toResponse(result.user()) : null);
     }
 }

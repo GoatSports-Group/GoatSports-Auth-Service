@@ -1,5 +1,6 @@
 package iuh.fit.auth.infrastructure.config;
 
+import iuh.fit.auth.application.mapper.UserMapper;
 import iuh.fit.auth.application.port.cache.RedisPort;
 import iuh.fit.auth.application.port.notification.EmailNotificationPort;
 import iuh.fit.auth.application.port.persistence.PermissionRepository;
@@ -21,21 +22,24 @@ public class ApplicationServiceConfig {
             JwtPort jwtPort, RedisPort redisPort, KeycloakPort keycloakPort,
             EmailNotificationPort emailNotificationPort, CurrentUserProvider currentUserProvider,
             UserRegistrationEventPublisher userRegistrationEventPublisher,
-            UserRepository userRepository, RoleRepository roleRepository
+            UserRepository userRepository, RoleRepository roleRepository,
+            UserMapper userMapper
     ) {
         return new AuthenticationServiceImpl(
                 jwtPort, redisPort, keycloakPort,
                 emailNotificationPort, currentUserProvider,
                 userRegistrationEventPublisher,
-                userRepository, roleRepository
+                userRepository, roleRepository,
+                userMapper
         );
     }
 
     @Bean
     public UserServiceImpl userService(
-            JwtPort jwtPort, UserRepository userRepository, RoleRepository roleRepository
+            JwtPort jwtPort, UserRepository userRepository, RoleRepository roleRepository,
+            UserMapper userMapper
     ) {
-        return new UserServiceImpl(jwtPort, userRepository, roleRepository);
+        return new UserServiceImpl(jwtPort, userRepository, roleRepository, userMapper);
     }
 
     @Bean
@@ -52,9 +56,10 @@ public class ApplicationServiceConfig {
 
     @Bean
     public InternalServiceImpl internalService(
-            UserRepository userRepository, RoleRepository roleRepository
+            UserRepository userRepository, RoleRepository roleRepository,
+            UserMapper userMapper
     ) {
-        return new InternalServiceImpl(userRepository, roleRepository);
+        return new InternalServiceImpl(userRepository, roleRepository, userMapper);
     }
 
 }

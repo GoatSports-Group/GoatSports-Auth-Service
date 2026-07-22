@@ -5,53 +5,18 @@ import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.presentation.response.report.UserDetailReportResponse;
 import iuh.fit.auth.presentation.response.report.UserReportResponse;
 import iuh.fit.auth.presentation.response.user.UserResponse;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-public class UserConverter {
+@Mapper(componentModel = "spring")
+public interface UserConverter {
 
-    public static UserResponse toResponse(UserResponseCommand user) {
-        if (user == null) return null;
-        return UserResponse.builder()
-            .userId(user.userId())
-            .email(user.email())
-            .username(user.username())
-            .fullName(user.fullName())
-            .avatarUrl(user.avatarUrl())
-            .status(user.status() != null ? user.status().name() : null)
-            .gender(user.gender() != null ? user.gender().name()  : null)
-            .createdAt(user.createdAt())
-            .updatedAt(user.updatedAt())
-            .role(user.role() != null ? UserResponse.UserRole.builder()
-                .roleId(user.role().getRoleId())
-                .name(user.role().getName())
-                .build() : null)
-            .keycloakId(user.keycloakId())
-            .build();
-    }
+    @Mapping(target = "role", source = "role")
+    UserResponse toResponse(UserResponseCommand user);
 
-    public static UserReportResponse toResponse(UserReportResponseCommand user) {
-        if (user == null) return null;
-        return UserReportResponse.builder()
-                .userId(user.userId())
-                .fullName(user.fullName())
-                .email(user.email())
-                .roleName(user.roleName())
-                .status(user.status())
-                .createdAt(user.createdAt())
-                .build();
-    }
+    UserReportResponse toResponse(UserReportResponseCommand user);
 
-    public static UserDetailReportResponse toResponseUserDetailReport(UserResponseCommand user) {
-        if (user == null) return null;
-        return UserDetailReportResponse.builder()
-                .userId(user.userId())
-                .email(user.email())
-                .username(user.username())
-                .fullName(user.fullName())
-                .avatarUrl(user.avatarUrl())
-                .status(user.status().getValue())
-                .createdAt(user.createdAt())
-                .roleName(user.role() != null ? user.role().getName() : "Unknown")
-                .build();
-    }
-
+    @Mapping(target = "status", expression = "java(user.status() != null ? user.status().getValue() : null)")
+    @Mapping(target = "roleName", expression = "java(user.role() != null ? user.role().getName() : \"Unknown\")")
+    UserDetailReportResponse toResponseUserDetailReport(UserResponseCommand user);
 }

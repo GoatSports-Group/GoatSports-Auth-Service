@@ -19,7 +19,7 @@ public class PermissionServiceImpl implements PermissionService {
     }
 
     @Override
-    public Permission createPermission(CreatePermissionRequestCommand command) {
+    public Permission createPermission(CreatePermissionRequestCommand command) throws ServiceException {
         Permission permission = new Permission();
         permission.setName(command.name().toUpperCase().replace(" ", "_"));
         permission.setApiPath(command.apiPath());

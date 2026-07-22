@@ -18,7 +18,7 @@ public class PermissionDecorator implements PermissionService {
     private final PermissionServiceImpl permissionServiceImpl;
 
     @Override
-    public Permission createPermission(CreatePermissionRequestCommand command) {
+    public Permission createPermission(CreatePermissionRequestCommand command) throws ServiceException {
         return permissionServiceImpl.createPermission(command);
     }
 
