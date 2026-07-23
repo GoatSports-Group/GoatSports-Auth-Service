@@ -8,6 +8,7 @@ import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.domain.entity.User;
 import iuh.fit.auth.infrastructure.persistence.entity.UserEntity;
+import iuh.fit.auth.infrastructure.persistence.mapper.RoleEntityMapper;
 import iuh.fit.auth.infrastructure.persistence.mapper.UserEntityMapper;
 import iuh.fit.auth.infrastructure.persistence.repository.jpa.JpaUserRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class UserRepositoryImpl implements UserRepository {
     private final FilterParser filterParser;
     private final FilterSpecificationConverter filterSpecificationConverter;
     private final UserEntityMapper userEntityMapper;
+    private final RoleEntityMapper roleEntityMapper;
 
     @Override
     public Optional<User> findById(UUID id) {
@@ -65,7 +67,7 @@ public class UserRepositoryImpl implements UserRepository {
         if (user.getUserId() != null) {
             entity = jpaUserRepository.findById(user.getUserId())
                     .map(existing -> {
-                        userEntityMapper.updateEntity(user, existing);
+                        userEntityMapper.updateEntity(user, existing, roleEntityMapper.toEntity(user.getRole()));
                         return existing;
                     })
                     .orElseThrow(() -> new ServiceException("Người dùng không tồn tại."));
