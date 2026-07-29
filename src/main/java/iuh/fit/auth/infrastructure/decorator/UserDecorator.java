@@ -20,7 +20,7 @@ public class UserDecorator implements UserService {
 
     @Override
     @Transactional(rollbackFor = ServiceException.class)
-    public User createUser(CreateUserRequestCommand command) throws ServiceException {
+    public UserResponseCommand createUser(CreateUserRequestCommand command) throws ServiceException {
         return userServiceImpl.createUser(command);
     }
 

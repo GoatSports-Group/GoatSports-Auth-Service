@@ -4,6 +4,6 @@ public record CreateUserRequestCommand(
     String username,
     String fullName,
     String email,
-    String password,
-    String roleId
+    String gender,
+    String password
 ) {}

@@ -37,9 +37,9 @@ public class ApplicationServiceConfig {
     @Bean
     public UserServiceImpl userService(
             JwtPort jwtPort, UserRepository userRepository, RoleRepository roleRepository,
-            UserMapper userMapper
+            UserMapper userMapper, UserRegistrationEventPublisher userRegistrationEventPublisher
     ) {
-        return new UserServiceImpl(jwtPort, userRepository, roleRepository, userMapper);
+        return new UserServiceImpl(jwtPort, userRepository, roleRepository, userMapper,  userRegistrationEventPublisher);
     }
 
     @Bean

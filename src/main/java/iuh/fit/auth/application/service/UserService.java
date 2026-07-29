@@ -9,7 +9,7 @@ import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.domain.entity.User;
 
 public interface UserService {
-    User createUser(CreateUserRequestCommand command) throws ServiceException;
+    UserResponseCommand createUser(CreateUserRequestCommand command) throws ServiceException;
 
     UserResponseCommand assignRoleForUser(AssignRoleRequestCommand command) throws ServiceException;
 

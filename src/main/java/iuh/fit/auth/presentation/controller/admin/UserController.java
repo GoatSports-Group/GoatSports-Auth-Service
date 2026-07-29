@@ -2,6 +2,7 @@ package iuh.fit.auth.presentation.controller.admin;
 
 import iuh.fit.auth.application.dto.PageFilter;
 import iuh.fit.auth.application.dto.request.user.AssignRoleRequestCommand;
+import iuh.fit.auth.application.dto.request.user.CreateUserRequestCommand;
 import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.mapper.UserMapper;
@@ -10,6 +11,7 @@ import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.presentation.converter.UserConverter;
 import iuh.fit.auth.presentation.request.user.AssignRoleRequest;
 import iuh.fit.auth.application.dto.response.base.BaseListResponse;
+import iuh.fit.auth.presentation.request.user.CreateUserRequest;
 import iuh.fit.auth.presentation.response.user.UserResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,21 @@ public class UserController {
     private final UserService userService;
     private final UserMapper userMapper;
     private final UserConverter userConverter;
+
+    @PostMapping
+    public ResponseEntity<UserResponse> createUser(
+            @Valid @RequestBody CreateUserRequest request
+    ) throws ServiceException
+    {
+        UserResponseCommand user = userService.createUser(
+                new CreateUserRequestCommand(
+                        request.getUsername(), request.getFullName(), request.getEmail(),
+                        request.getGender(), request.getPassword()
+                )
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(userConverter.toResponse(user));
+    }
 
     @GetMapping
     public ResponseEntity<BaseListResponse> getAllUsers(

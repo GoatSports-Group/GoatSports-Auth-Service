@@ -7,6 +7,7 @@ import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.mapper.UserMapper;
+import iuh.fit.auth.application.port.event.UserRegistrationEventPublisher;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.application.port.security.JwtPort;
@@ -14,6 +15,8 @@ import iuh.fit.auth.application.service.UserService;
 import iuh.fit.auth.domain.entity.Role;
 import iuh.fit.auth.domain.entity.User;
 import iuh.fit.auth.domain.enums.AuthProviderEnum;
+import iuh.fit.auth.domain.enums.GenderEnum;
+import iuh.fit.auth.domain.enums.RoleEnum;
 import iuh.fit.auth.domain.enums.UserStatusEnum;
 
 import java.util.UUID;
@@ -24,20 +27,23 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
+    private final UserRegistrationEventPublisher userRegistrationEventPublisher;
 
     public UserServiceImpl(
             JwtPort jwtPort,
             UserRepository userRepository, RoleRepository roleRepository,
-            UserMapper userMapper
+            UserMapper userMapper,
+            UserRegistrationEventPublisher userRegistrationEventPublisher
     ) {
         this.jwtPort = jwtPort;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userMapper = userMapper;
+        this.userRegistrationEventPublisher = userRegistrationEventPublisher;
     }
 
     @Override
-    public User createUser(CreateUserRequestCommand command) throws ServiceException {
+    public UserResponseCommand createUser(CreateUserRequestCommand command) throws ServiceException {
         boolean existed = userRepository.existsByUsernameOrEmail(command.username(), command.email());
         if (existed) throw new ServiceException("Người dùng đã tồn tại");
 
@@ -45,19 +51,23 @@ public class UserServiceImpl implements UserService {
 
         User user = new User();
         user.setUsername(command.username());
-        user.setPassword(hashedPassword);
         user.setFullName(command.fullName());
         user.setEmail(command.email());
+        user.setGender(GenderEnum.valueOf(command.gender()));
         user.setStatus(UserStatusEnum.ACTIVE);
+        user.setPassword(hashedPassword);
         user.getAuthProviders().add(AuthProviderEnum.LOCAL);
 
-        if (command.roleId() != null && !command.roleId().isBlank()) {
-            Role role = roleRepository.findById(UUID.fromString(command.roleId()))
-                    .orElseThrow(() -> new ServiceException("Vai trò không tồn tại"));
-            user.setRole(role);
-        }
+        Role role = roleRepository.findByName(RoleEnum.PLAYER.name())
+                .orElseThrow(() -> new ServiceException("Vai trò không tồn tại"));
+        user.setRole(role);
 
-        return userRepository.save(user);
+        User createdUser = userRepository.save(user);
+
+        userRegistrationEventPublisher.publishUserRegistered(createdUser, command.password());
+        userRegistrationEventPublisher.publishUserVerified(createdUser);
+
+        return userMapper.toUserResponseCommand(createdUser);
     }
 
     @Override

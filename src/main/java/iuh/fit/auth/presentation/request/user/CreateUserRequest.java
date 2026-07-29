@@ -17,7 +17,8 @@ public class CreateUserRequest {
     @NotBlank(message = "Email không được để trống")
     @Email(message = "Email không hợp lệ")
     private String email;
+    @NotBlank(message = "Giới tính không được để trống")
+    private String gender;
     @NotBlank(message = "Mật khẩu không được để trống")
     private String password;
-    private String roleId;
 }
