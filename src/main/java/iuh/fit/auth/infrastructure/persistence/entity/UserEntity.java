@@ -32,6 +32,8 @@ public class UserEntity extends BaseEntity {
     private String password;
     private String fullName;
     private String avatarUrl;
+    private String phone;
+    private String country;
     @Enumerated(EnumType.STRING)
     private UserStatusEnum status;
     @Enumerated(EnumType.STRING)

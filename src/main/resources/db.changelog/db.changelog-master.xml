@@ -6,4 +6,5 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd"
 >
     <include file="db.changelog/schema/07-07-2026/init-schema-db-user.xml"/>
+    <include file="db.changelog/schema/29-07-2026/add-phone-country.xml"/>
 </databaseChangeLog>

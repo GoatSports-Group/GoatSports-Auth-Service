@@ -22,6 +22,8 @@ public class User {
     private String password;
     private String fullName;
     private String avatarUrl;
+    private String phone;
+    private String country;
     private UserStatusEnum status;
     private GenderEnum gender;
     private Set<AuthProviderEnum> authProviders = new java.util.HashSet<>();

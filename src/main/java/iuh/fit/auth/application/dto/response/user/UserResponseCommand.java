@@ -17,6 +17,8 @@ public record UserResponseCommand(
         String password,
         String fullName,
         String avatarUrl,
+        String phone,
+        String country,
         UserStatusEnum status,
         GenderEnum gender,
         Set<AuthProviderEnum> authProviders,
