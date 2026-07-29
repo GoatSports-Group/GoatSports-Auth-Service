@@ -21,6 +21,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -51,8 +53,18 @@ public class UserController {
     public ResponseEntity<BaseListResponse> getAllUsers(
             @RequestParam(value = "filter", required = false) String filter,
             Pageable pageable
-    ) {
-        PageFilter query = new PageFilter(filter, pageable.getPageNumber() + 1, pageable.getPageSize());
+    ) throws ServiceException
+    {
+        String decodedFilter = filter;
+        if (filter != null) {
+            try {
+                decodedFilter = URLDecoder.decode(filter, StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                throw new ServiceException("Bộ lọc không hợp lệ: " + filter);
+            }
+        }
+
+        PageFilter query = new PageFilter(decodedFilter, pageable.getPageNumber() + 1, pageable.getPageSize());
         PageResult<UserResponseCommand> resultDto = userMapper.toUserResponseCommand(userService.getAllUsers(query));
 
         BaseListResponse.Meta meta = new BaseListResponse.Meta();
