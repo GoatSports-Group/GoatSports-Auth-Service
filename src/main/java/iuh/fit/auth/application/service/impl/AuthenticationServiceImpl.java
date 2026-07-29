@@ -78,7 +78,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setFullName(registerRequestCommand.fullName());
         user.setEmail(registerRequestCommand.email());
         user.setStatus(UserStatusEnum.INACTIVE);
-        user.setGender(GenderEnum.valueOf(registerRequestCommand.gender()));
         user.getAuthProviders().add(AuthProviderEnum.LOCAL);
 
         Role role = roleRepository.findByName(RoleEnum.PLAYER.name())

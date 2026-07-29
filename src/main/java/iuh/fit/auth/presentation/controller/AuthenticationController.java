@@ -70,7 +70,6 @@ public class AuthenticationController {
         UserResponseCommand userResponse = authenticationService.register(
                 new RegisterRequestCommand(
                         registerRequest.getUsername(), registerRequest.getFullName(), registerRequest.getEmail(),
-                        registerRequest.getGender().toUpperCase(),
                         registerRequest.getPassword(), registerRequest.getConfirmPassword()
                 )
         );
