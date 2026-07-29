@@ -93,16 +93,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getUserById(String userId) throws ServiceException {
-        UUID userUUID;
-        try {
-            userUUID = UUID.fromString(userId);
-        } catch (IllegalArgumentException | NullPointerException ex) {
-            throw new ServiceException("Id User không hợp lệ: không phải UUID");
-        }
-
-        return userRepository.findById(userUUID)
+    public UserResponseCommand getUserById(String userId) throws ServiceException {
+        User user = userRepository.findById(UUID.fromString(userId))
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
+
+        return userMapper.toUserResponseCommand(user);
     }
 
     @Override

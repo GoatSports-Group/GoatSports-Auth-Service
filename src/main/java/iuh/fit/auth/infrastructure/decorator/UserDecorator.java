@@ -32,7 +32,7 @@ public class UserDecorator implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public User getUserById(String userId) throws ServiceException {
+    public UserResponseCommand getUserById(String userId) throws ServiceException {
         return userServiceImpl.getUserById(userId);
     }
 

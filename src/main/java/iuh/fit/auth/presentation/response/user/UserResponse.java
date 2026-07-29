@@ -3,6 +3,7 @@ package iuh.fit.auth.presentation.response.user;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -22,6 +23,7 @@ public class UserResponse {
     private LocalDateTime updatedAt;
     private UserRole role;
     private UUID keycloakId;
+    private Set<String> authProviders;
 
     @Getter
     @Setter

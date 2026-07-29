@@ -12,8 +12,6 @@ public interface UserMapper {
 
     UserResponseCommand toUserResponseCommand(User user);
 
-    User toUser(UserResponseCommand user);
-
     List<UserResponseCommand> toUserResponseCommandList(List<User> users);
 
     default PageResult<UserResponseCommand> toUserResponseCommand(PageResult<User> users) {

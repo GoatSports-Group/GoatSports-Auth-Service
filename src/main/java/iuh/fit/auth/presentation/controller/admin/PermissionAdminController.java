@@ -27,7 +27,7 @@ import java.util.List;
 @RequestMapping("/api/v1/admin/permissions")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('ADMIN')")
-public class PermissionController {
+public class PermissionAdminController {
     private final PermissionService permissionService;
     private final PermissionMapper permissionMapper;
     private final PermissionConverter permissionConverter;

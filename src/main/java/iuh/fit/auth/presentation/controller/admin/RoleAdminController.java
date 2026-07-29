@@ -27,7 +27,7 @@ import java.util.List;
 @RequestMapping("/api/v1/admin/roles")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('ADMIN')")
-public class RoleController {
+public class RoleAdminController {
 
     private final RoleService roleService;
     private final RoleMapper roleMapper;

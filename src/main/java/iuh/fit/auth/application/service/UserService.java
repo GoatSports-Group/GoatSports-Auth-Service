@@ -13,7 +13,7 @@ public interface UserService {
 
     UserResponseCommand assignRoleForUser(AssignRoleRequestCommand command) throws ServiceException;
 
-    User getUserById(String userId) throws ServiceException;
+    UserResponseCommand getUserById(String userId) throws ServiceException;
 
     PageResult<User> getAllUsers(PageFilter filter);
 }

@@ -29,7 +29,7 @@ import java.util.List;
 @RequestMapping("/api/v1/admin/users")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('ADMIN')")
-public class UserController {
+public class UserAdminController {
     private final UserService userService;
     private final UserMapper userMapper;
     private final UserConverter userConverter;
