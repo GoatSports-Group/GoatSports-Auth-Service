@@ -80,6 +80,29 @@ public class UserRegistrationEventPublisherAdapter implements UserRegistrationEv
         }
     }
 
+    @Override
+    public void publishUserUpdated(User user) {
+        UserRegistrationEvent event = UserRegistrationEvent.builder()
+                .eventId(UUID.randomUUID())
+                .eventType(UserRegistrationEventType.USER_UPDATED)
+                .timestamp(LocalDateTime.now())
+                .data(UserRegistrationEvent.UserRegistrationData.builder()
+                        .userId(user.getUserId())
+                        .keycloakId(user.getKeycloakId())
+                        .username(user.getUsername())
+                        .email(user.getEmail())
+                        .fullName(user.getFullName())
+                        .build())
+                .build();
+        try {
+            kafkaTemplate.send(topic, user.getUserId().toString(), event).get();
+            log.info("Sent user-updated event to Kafka successfully for user ID: {}", user.getUserId());
+        } catch (Exception e) {
+            log.error("Failed to send user-updated event to Kafka for user ID: {}", user.getUserId(), e);
+            throw new RuntimeException("User update event publication failed, rolling back transaction", e);
+        }
+    }
+
     private UserRegistrationEvent toUserRegistrationEvent(User user, String plainPassword) {
         return UserRegistrationEvent.builder()
                 .eventId(UUID.randomUUID())

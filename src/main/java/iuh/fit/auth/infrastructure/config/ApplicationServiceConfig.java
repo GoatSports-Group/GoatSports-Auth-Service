@@ -2,6 +2,7 @@ package iuh.fit.auth.infrastructure.config;
 
 import iuh.fit.auth.application.mapper.UserMapper;
 import iuh.fit.auth.application.port.cache.RedisPort;
+import iuh.fit.auth.application.port.client.StoragePort;
 import iuh.fit.auth.application.port.notification.EmailNotificationPort;
 import iuh.fit.auth.application.port.persistence.PermissionRepository;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
@@ -37,9 +38,13 @@ public class ApplicationServiceConfig {
     @Bean
     public UserServiceImpl userService(
             JwtPort jwtPort, UserRepository userRepository, RoleRepository roleRepository,
-            UserMapper userMapper, UserRegistrationEventPublisher userRegistrationEventPublisher
+            UserMapper userMapper, UserRegistrationEventPublisher userRegistrationEventPublisher,
+            StoragePort storagePort
     ) {
-        return new UserServiceImpl(jwtPort, userRepository, roleRepository, userMapper,  userRegistrationEventPublisher);
+        return new UserServiceImpl(
+                jwtPort, userRepository, roleRepository,
+                userMapper, userRegistrationEventPublisher, storagePort
+        );
     }
 
     @Bean

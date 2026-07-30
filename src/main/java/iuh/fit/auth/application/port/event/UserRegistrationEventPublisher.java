@@ -8,4 +8,6 @@ public interface UserRegistrationEventPublisher {
     void publishUserVerified(User user);
 
     void publishUserPasswordUpdated(User user, String newPassword);
+
+    void publishUserUpdated(User user);
 }

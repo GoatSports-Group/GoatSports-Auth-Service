@@ -1,17 +1,17 @@
 package iuh.fit.auth.presentation.controller;
 
+import iuh.fit.auth.application.dto.request.user.UpdateUserRequestCommand;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.service.UserService;
 import iuh.fit.auth.presentation.converter.UserConverter;
+import iuh.fit.auth.presentation.request.user.UpdateUserRequest;
 import iuh.fit.auth.presentation.response.user.UserResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -26,4 +26,30 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(userConverter.toResponse(user));
     }
 
+    @PutMapping("/{userId}")
+    public ResponseEntity<UserResponse> updateUser(
+            @PathVariable("userId") String userId,
+            @Valid @RequestBody UpdateUserRequest request
+    ) throws ServiceException
+    {
+        UserResponseCommand user = userService.updateUser(
+                userId,
+                new UpdateUserRequestCommand(
+                        request.getUsername(), request.getFullName(),
+                        request.getPhone(), request.getCountry(), request.getGender()
+                )
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(userConverter.toResponse(user));
+    }
+
+    @PutMapping("/{userId}/avatar")
+    public ResponseEntity<Void> updateAvatar(
+            @PathVariable("userId") String userId,
+            @RequestParam("tempKey") String tempKey
+    ) throws ServiceException
+    {
+        userService.updateAvatar(userId, tempKey);
+        return ResponseEntity.status(HttpStatus.OK).body(null);
+    }
 }

@@ -3,6 +3,7 @@ package iuh.fit.auth.infrastructure.decorator;
 import iuh.fit.auth.application.dto.PageFilter;
 import iuh.fit.auth.application.dto.request.user.AssignRoleRequestCommand;
 import iuh.fit.auth.application.dto.request.user.CreateUserRequestCommand;
+import iuh.fit.auth.application.dto.request.user.UpdateUserRequestCommand;
 import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
@@ -34,6 +35,17 @@ public class UserDecorator implements UserService {
     @Transactional(readOnly = true)
     public UserResponseCommand getUserById(String userId) throws ServiceException {
         return userServiceImpl.getUserById(userId);
+    }
+
+    @Override
+    public UserResponseCommand updateUser(String userId, UpdateUserRequestCommand command) throws ServiceException {
+        return userServiceImpl.updateUser(userId, command);
+    }
+
+    @Override
+    @Transactional
+    public void updateAvatar(String userId, String tempKey) throws ServiceException {
+        userServiceImpl.updateAvatar(userId, tempKey);
     }
 
     @Override
