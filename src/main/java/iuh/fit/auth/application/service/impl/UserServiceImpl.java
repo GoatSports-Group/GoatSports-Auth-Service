@@ -1,8 +1,10 @@
 package iuh.fit.auth.application.service.impl;
 
 import iuh.fit.auth.application.dto.PageFilter;
+import iuh.fit.auth.application.dto.request.user.UpdatePasswordRequestCommand;
 import iuh.fit.auth.application.dto.request.file.FileMoveRequest;
 import iuh.fit.auth.application.dto.request.file.MoveFileRequest;
+import iuh.fit.auth.application.dto.request.user.AdminUpdatePasswordRequestCommand;
 import iuh.fit.auth.application.dto.request.user.AssignRoleRequestCommand;
 import iuh.fit.auth.application.dto.request.user.CreateUserRequestCommand;
 import iuh.fit.auth.application.dto.request.user.UpdateUserRequestCommand;
@@ -11,9 +13,11 @@ import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.mapper.UserMapper;
 import iuh.fit.auth.application.port.client.StoragePort;
+import iuh.fit.auth.application.port.notification.EmailNotificationPort;
 import iuh.fit.auth.application.port.event.UserRegistrationEventPublisher;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.application.port.persistence.UserRepository;
+import iuh.fit.auth.application.port.security.CurrentUserProvider;
 import iuh.fit.auth.application.port.security.JwtPort;
 import iuh.fit.auth.application.service.UserService;
 import iuh.fit.auth.application.util.BaseUtil;
@@ -36,13 +40,17 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final UserRegistrationEventPublisher userRegistrationEventPublisher;
     private final StoragePort storagePort;
+    private final CurrentUserProvider currentUserProvider;
+    private final EmailNotificationPort emailNotificationPort;
 
     public UserServiceImpl(
             JwtPort jwtPort,
             UserRepository userRepository, RoleRepository roleRepository,
             UserMapper userMapper,
             UserRegistrationEventPublisher userRegistrationEventPublisher,
-            StoragePort storagePort
+            StoragePort storagePort,
+            CurrentUserProvider currentUserProvider,
+            EmailNotificationPort emailNotificationPort
     ) {
         this.jwtPort = jwtPort;
         this.userRepository = userRepository;
@@ -50,6 +58,8 @@ public class UserServiceImpl implements UserService {
         this.userMapper = userMapper;
         this.userRegistrationEventPublisher = userRegistrationEventPublisher;
         this.storagePort = storagePort;
+        this.currentUserProvider = currentUserProvider;
+        this.emailNotificationPort = emailNotificationPort;
     }
 
     @Override
@@ -162,5 +172,46 @@ public class UserServiceImpl implements UserService {
         user.setAvatarUrl(avatarUrl);
 
         userRepository.save(user);
+    }
+
+    @Override
+    public void updatePassword(UpdatePasswordRequestCommand command) throws ServiceException {
+        User currentUser = currentUserProvider.getCurrentUser();
+
+        if (currentUser.getPassword() == null) {
+            throw new ServiceException("Tài khoản được đăng nhập bằng mạng xã hội, không thể cập nhật mật khẩu");
+        }
+
+        if (command.currentPassword() == null || command.currentPassword().isBlank()) {
+            throw new ServiceException("Mật khẩu hiện tại không được để trống");
+        }
+
+        if (!jwtPort.matchesPassword(command.currentPassword(), currentUser.getPassword())) {
+            throw new ServiceException("Mật khẩu hiện tại không chính xác");
+        }
+
+        String hashedNewPassword = jwtPort.hashPassword(command.newPassword());
+        currentUser.setPassword(hashedNewPassword);
+
+        User savedUser = userRepository.save(currentUser);
+
+        userRegistrationEventPublisher.publishUserPasswordUpdated(savedUser, command.newPassword());
+    }
+
+    @Override
+    public void updatePasswordByAdmin(AdminUpdatePasswordRequestCommand command) throws ServiceException {
+        UUID userUUID = BaseUtil.uuid(command.userId());
+
+        User user = userRepository.findById(userUUID)
+                .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
+
+        String hashedNewPassword = jwtPort.hashPassword(command.newPassword());
+        user.setPassword(hashedNewPassword);
+
+        User savedUser = userRepository.save(user);
+
+        emailNotificationPort.sendPasswordUpdateEmail(savedUser.getEmail(), savedUser.getFullName(), command.newPassword());
+
+        userRegistrationEventPublisher.publishUserPasswordUpdated(savedUser, command.newPassword());
     }
 }

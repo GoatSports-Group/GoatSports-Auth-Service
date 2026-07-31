@@ -1,6 +1,8 @@
 package iuh.fit.auth.infrastructure.decorator;
 
 import iuh.fit.auth.application.dto.PageFilter;
+import iuh.fit.auth.application.dto.request.user.UpdatePasswordRequestCommand;
+import iuh.fit.auth.application.dto.request.user.AdminUpdatePasswordRequestCommand;
 import iuh.fit.auth.application.dto.request.user.AssignRoleRequestCommand;
 import iuh.fit.auth.application.dto.request.user.CreateUserRequestCommand;
 import iuh.fit.auth.application.dto.request.user.UpdateUserRequestCommand;
@@ -46,6 +48,18 @@ public class UserDecorator implements UserService {
     @Transactional
     public void updateAvatar(String userId, String tempKey) throws ServiceException {
         userServiceImpl.updateAvatar(userId, tempKey);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updatePassword(UpdatePasswordRequestCommand command) throws ServiceException {
+        userServiceImpl.updatePassword(command);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updatePasswordByAdmin(AdminUpdatePasswordRequestCommand command) throws ServiceException {
+        userServiceImpl.updatePasswordByAdmin(command);
     }
 
     @Override

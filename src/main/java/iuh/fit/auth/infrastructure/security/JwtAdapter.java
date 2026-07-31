@@ -80,6 +80,11 @@ public class JwtAdapter implements JwtPort {
     }
 
     @Override
+    public boolean matchesPassword(String rawPassword, String encodedPassword) {
+        return passwordEncoder.matches(rawPassword, encodedPassword);
+    }
+
+    @Override
     public KeycloakParseCommand decodeKeycloakToken(String token) throws ServiceException {
         SignedJWT signedJWT;
         KeycloakParseCommand response;

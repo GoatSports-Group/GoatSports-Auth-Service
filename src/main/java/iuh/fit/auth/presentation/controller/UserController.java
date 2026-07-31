@@ -1,10 +1,12 @@
 package iuh.fit.auth.presentation.controller;
 
+import iuh.fit.auth.application.dto.request.user.UpdatePasswordRequestCommand;
 import iuh.fit.auth.application.dto.request.user.UpdateUserRequestCommand;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.service.UserService;
 import iuh.fit.auth.presentation.converter.UserConverter;
+import iuh.fit.auth.presentation.request.auth.UpdatePasswordRequest;
 import iuh.fit.auth.presentation.request.user.UpdateUserRequest;
 import iuh.fit.auth.presentation.response.user.UserResponse;
 import jakarta.validation.Valid;
@@ -51,5 +53,21 @@ public class UserController {
     {
         userService.updateAvatar(userId, tempKey);
         return ResponseEntity.status(HttpStatus.OK).body(null);
+    }
+
+    @PutMapping("/password")
+    public ResponseEntity<Void> updatePassword(
+            @Valid @RequestBody UpdatePasswordRequest updatePasswordRequest
+    ) throws ServiceException
+    {
+        userService.updatePassword(
+                new UpdatePasswordRequestCommand(
+                        updatePasswordRequest.getCurrentPassword(),
+                        updatePasswordRequest.getNewPassword(),
+                        updatePasswordRequest.getConfirmPassword()
+                )
+        );
+
+        return ResponseEntity.ok().build();
     }
 }

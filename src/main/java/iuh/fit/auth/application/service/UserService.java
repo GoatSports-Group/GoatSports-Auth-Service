@@ -1,6 +1,8 @@
 package iuh.fit.auth.application.service;
 
 import iuh.fit.auth.application.dto.PageFilter;
+import iuh.fit.auth.application.dto.request.user.UpdatePasswordRequestCommand;
+import iuh.fit.auth.application.dto.request.user.AdminUpdatePasswordRequestCommand;
 import iuh.fit.auth.application.dto.request.user.AssignRoleRequestCommand;
 import iuh.fit.auth.application.dto.request.user.CreateUserRequestCommand;
 import iuh.fit.auth.application.dto.request.user.UpdateUserRequestCommand;
@@ -19,6 +21,10 @@ public interface UserService {
     UserResponseCommand updateUser(String userId, UpdateUserRequestCommand command) throws ServiceException;
 
     void updateAvatar(String userId, String tempKey) throws ServiceException;
+
+    void updatePassword(UpdatePasswordRequestCommand command) throws ServiceException;
+
+    void updatePasswordByAdmin(AdminUpdatePasswordRequestCommand command) throws ServiceException;
 
     PageResult<User> getAllUsers(PageFilter filter);
 }

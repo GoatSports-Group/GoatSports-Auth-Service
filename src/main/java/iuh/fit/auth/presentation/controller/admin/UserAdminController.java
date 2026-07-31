@@ -1,6 +1,7 @@
 package iuh.fit.auth.presentation.controller.admin;
 
 import iuh.fit.auth.application.dto.PageFilter;
+import iuh.fit.auth.application.dto.request.user.AdminUpdatePasswordRequestCommand;
 import iuh.fit.auth.application.dto.request.user.AssignRoleRequestCommand;
 import iuh.fit.auth.application.dto.request.user.CreateUserRequestCommand;
 import iuh.fit.auth.application.dto.response.base.PageResult;
@@ -9,6 +10,7 @@ import iuh.fit.auth.application.mapper.UserMapper;
 import iuh.fit.auth.application.service.UserService;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.presentation.converter.UserConverter;
+import iuh.fit.auth.presentation.request.auth.UpdatePasswordRequest;
 import iuh.fit.auth.presentation.request.user.AssignRoleRequest;
 import iuh.fit.auth.application.dto.response.base.BaseListResponse;
 import iuh.fit.auth.presentation.request.user.CreateUserRequest;
@@ -90,5 +92,22 @@ public class UserAdminController {
         );
 
         return ResponseEntity.status(HttpStatus.OK).body(userConverter.toResponse(user));
+    }
+
+    @PutMapping("/{userId}/password")
+    public ResponseEntity<Void> updatePassword(
+            @PathVariable("userId") String userId,
+            @Valid @RequestBody UpdatePasswordRequest request
+    ) throws ServiceException
+    {
+        userService.updatePasswordByAdmin(
+                new AdminUpdatePasswordRequestCommand(
+                        userId,
+                        request.getNewPassword(),
+                        request.getConfirmPassword()
+                )
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

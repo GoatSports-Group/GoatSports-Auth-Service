@@ -22,4 +22,15 @@ public class EmailNotificationAdapter implements EmailNotificationPort {
 
         this.asyncEmailPort.sendEmailSync(email, subject, content, false, true);
     }
+
+    @Override
+    public void sendPasswordUpdateEmail(String email, String fullName, String newPassword) {
+        String subject = "Thông báo cập nhật mật khẩu - Goat Sports";
+        Context context = new Context();
+        context.setVariable("fullName", fullName);
+        context.setVariable("newPassword", newPassword);
+        String content = this.templateEngine.process("update-password", context);
+
+        this.asyncEmailPort.sendEmailSync(email, subject, content, false, true);
+    }
 }

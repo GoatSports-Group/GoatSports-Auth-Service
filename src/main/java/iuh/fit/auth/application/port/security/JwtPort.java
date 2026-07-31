@@ -18,6 +18,8 @@ public interface JwtPort {
 
     String hashPassword(String password);
 
+    boolean matchesPassword(String rawPassword, String encodedPassword);
+
     KeycloakParseCommand decodeKeycloakToken(String token) throws ServiceException;
 
     AuthProperties getAuthProperties();

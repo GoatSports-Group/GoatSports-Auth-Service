@@ -39,11 +39,13 @@ public class ApplicationServiceConfig {
     public UserServiceImpl userService(
             JwtPort jwtPort, UserRepository userRepository, RoleRepository roleRepository,
             UserMapper userMapper, UserRegistrationEventPublisher userRegistrationEventPublisher,
-            StoragePort storagePort
+            StoragePort storagePort, CurrentUserProvider currentUserProvider,
+            EmailNotificationPort emailNotificationPort
     ) {
         return new UserServiceImpl(
                 jwtPort, userRepository, roleRepository,
-                userMapper, userRegistrationEventPublisher, storagePort
+                userMapper, userRegistrationEventPublisher, storagePort,
+                currentUserProvider, emailNotificationPort
         );
     }
 
