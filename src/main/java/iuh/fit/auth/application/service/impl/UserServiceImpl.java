@@ -214,4 +214,19 @@ public class UserServiceImpl implements UserService {
 
         userRegistrationEventPublisher.publishUserPasswordUpdated(savedUser, command.newPassword());
     }
+
+    @Override
+    public void verifyUser(String userId, boolean verified) throws ServiceException {
+        UUID userUUID = BaseUtil.uuid(userId);
+
+        User user = userRepository.findById(userUUID)
+                .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
+
+        user.setStatus(verified ? UserStatusEnum.ACTIVE : UserStatusEnum.INACTIVE);
+        User savedUser = userRepository.save(user);
+
+        emailNotificationPort.sendDeactivateEmail(savedUser.getEmail(), savedUser.getFullName(), verified);
+
+        userRegistrationEventPublisher.publishUserVerified(savedUser);
+    }
 }

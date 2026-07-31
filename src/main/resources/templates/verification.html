@@ -1,22 +1,24 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-
 <head>
-    <title>Goat Grocery</title>
+    <title>Goat Sports</title>
     <meta charset="UTF-8">
 </head>
-
 <body style="font-family: Arial, sans-serif;">
     <table style="max-width: 80rem; min-height: 100vh; padding: 2rem; margin: 0 auto; background-color: #f5f5f5;">
         <tr>
             <td align="center">
-                <table style="background-color: white; border-radius: 5px; padding: 20px;">
+                <table style="background-color: white; border-radius: 5px; padding: 20px; text-align: left; width: 100%; max-width: 600px;">
                     <tr>
                         <td>
-                            <div style="text-align: left; font-size: 20px;">Goat Grocery</div>
+                            <div style="text-align: left; font-size: 20px; font-weight: bold; color: #333;">Goat Sports</div>
                         </td>
-                        <td>
-                            <div style="text-align: right; font-size: 20px;">Fresh and healthy</div>
+                        <td style="text-align: right;">
+                            <div style="font-size: 16px; font-weight: bold;" 
+                                 th:styleappend="${verified} ? 'color: #28a745;' : 'color: #dc3545;'"
+                                 th:text="${verified} ? 'Thông báo kích hoạt tài khoản' : 'Thông báo hủy xác thực tài khoản'">
+                                Thông báo tài khoản
+                            </div>
                         </td>
                     </tr>
                     <tr>
@@ -24,20 +26,37 @@
                     </tr>
                     <tr>
                         <td colspan="2">
-                            <h2 style="color: #333;">Welcome to our app!</h2>
-                            <p style="font-size: 16px;">Please enter the verification code below to continue:</p>
-                            <div
-                                style="background-color: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-                                <h3 style="color: #333;">Verification Code:</h3>
-                                <p style="font-size: 18px; font-weight: bold; color: #007bff;"
-                                    th:text="${verificationCode}"></p>
+                            <h2 style="color: #333;">Xin chào <span th:text="${fullName}">Người dùng</span>!</h2>
+                            
+                            <!-- Case: verified = true -->
+                            <div th:if="${verified}">
+                                <p style="font-size: 16px; line-height: 1.5; color: #555;">
+                                    Tài khoản của bạn đã được quản trị viên (admin) xác thực và kích hoạt thành công.
+                                </p>
+                                <div style="background-color: #f8fff8; padding: 20px; border-radius: 5px; border-left: 4px solid #28a745; margin: 20px 0;">
+                                    <p style="font-size: 15px; color: #1e7e34; margin: 0; font-weight: bold; line-height: 1.6;">
+                                        Hiện tại bạn đã có thể đăng nhập vào trang web và sử dụng đầy đủ các dịch vụ của Goat Sports.
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Case: verified = false -->
+                            <div th:if="${!verified}">
+                                <p style="font-size: 16px; line-height: 1.5; color: #555;">
+                                    Tài khoản của bạn đã bị hủy xác thực (chuyển sang trạng thái không hoạt động) do phát hiện vi phạm quy định sử dụng trang web của chúng tôi.
+                                </p>
+                                <div style="background-color: #fff8f8; padding: 20px; border-radius: 5px; border-left: 4px solid #dc3545; margin: 20px 0;">
+                                    <p style="font-size: 15px; color: #c12a36; margin: 0; font-weight: bold; line-height: 1.6;">
+                                        Vui lòng phản hồi email này để trao đổi, sau đó quản trị viên (admin) sẽ xem xét và kích hoạt lại tài khoản cho bạn.
+                                    </p>
+                                </div>
                             </div>
                         </td>
                     </tr>
                     <tr>
                         <td colspan="2">
-                            <div style="padding-top: 20px; text-align: left; font-size: 16px;">Cheers,</div>
-                            <div style="text-align: left; font-size: 16px;">Goat Grocery.</div>
+                            <div style="padding-top: 20px; text-align: left; font-size: 16px;">Trân trọng,</div>
+                            <div style="text-align: left; font-size: 16px; font-weight: bold; color: #007bff;">Ban quản trị Goat Sports.</div>
                         </td>
                     </tr>
                 </table>
@@ -45,5 +64,4 @@
         </tr>
     </table>
 </body>
-
 </html>

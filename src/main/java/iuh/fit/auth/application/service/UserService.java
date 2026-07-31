@@ -27,4 +27,6 @@ public interface UserService {
     void updatePasswordByAdmin(AdminUpdatePasswordRequestCommand command) throws ServiceException;
 
     PageResult<User> getAllUsers(PageFilter filter);
+
+    void verifyUser(String userId, boolean verified) throws ServiceException;
 }

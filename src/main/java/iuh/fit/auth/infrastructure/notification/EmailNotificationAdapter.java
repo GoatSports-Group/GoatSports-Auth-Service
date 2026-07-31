@@ -18,7 +18,7 @@ public class EmailNotificationAdapter implements EmailNotificationPort {
         String subject = "Xác thực người dùng";
         Context context = new Context();
         context.setVariable("verificationCode", verificationCode);
-        String content = this.templateEngine.process("verification", context);
+        String content = this.templateEngine.process("otp", context);
 
         this.asyncEmailPort.sendEmailSync(email, subject, content, false, true);
     }
@@ -30,6 +30,17 @@ public class EmailNotificationAdapter implements EmailNotificationPort {
         context.setVariable("fullName", fullName);
         context.setVariable("newPassword", newPassword);
         String content = this.templateEngine.process("update-password", context);
+
+        this.asyncEmailPort.sendEmailSync(email, subject, content, false, true);
+    }
+
+    @Override
+    public void sendDeactivateEmail(String email, String fullName, boolean verified) {
+        String subject = verified ? "Thông báo kích hoạt tài khoản - Goat Sports" : "Thông báo hủy xác thực tài khoản - Goat Sports";
+        Context context = new Context();
+        context.setVariable("fullName", fullName);
+        context.setVariable("verified", verified);
+        String content = this.templateEngine.process("verification", context);
 
         this.asyncEmailPort.sendEmailSync(email, subject, content, false, true);
     }

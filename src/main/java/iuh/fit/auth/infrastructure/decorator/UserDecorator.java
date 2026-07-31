@@ -67,4 +67,10 @@ public class UserDecorator implements UserService {
     public PageResult<User> getAllUsers(PageFilter filter) {
         return userServiceImpl.getAllUsers(filter);
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void verifyUser(String userId, boolean verified) throws ServiceException {
+        userServiceImpl.verifyUser(userId, verified);
+    }
 }

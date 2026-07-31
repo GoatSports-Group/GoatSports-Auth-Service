@@ -110,4 +110,14 @@ public class UserAdminController {
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    @PutMapping("/{userId}/verify")
+    public ResponseEntity<Void> verifyUser(
+            @PathVariable("userId") String userId,
+            @RequestParam("verified") boolean verified
+    ) throws ServiceException
+    {
+        userService.verifyUser(userId, verified);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
 }

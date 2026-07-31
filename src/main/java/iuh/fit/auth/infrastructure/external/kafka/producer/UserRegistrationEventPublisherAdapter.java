@@ -4,6 +4,7 @@ import iuh.fit.auth.application.dto.event.UserRegistrationEvent;
 import iuh.fit.auth.application.dto.event.UserRegistrationEventType;
 import iuh.fit.auth.application.port.event.UserRegistrationEventPublisher;
 import iuh.fit.auth.domain.entity.User;
+import iuh.fit.auth.domain.enums.UserStatusEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,6 +47,7 @@ public class UserRegistrationEventPublisherAdapter implements UserRegistrationEv
                         .username(user.getUsername())
                         .email(user.getEmail())
                         .fullName(user.getFullName())
+                        .verified(user.getStatus() == UserStatusEnum.ACTIVE)
                         .build())
                 .build();
         try {
