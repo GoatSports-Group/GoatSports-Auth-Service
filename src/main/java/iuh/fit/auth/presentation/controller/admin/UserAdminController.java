@@ -30,13 +30,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/admin/users")
 @RequiredArgsConstructor
-@PreAuthorize("hasAuthority('ADMIN')")
 public class UserAdminController {
     private final UserService userService;
     private final UserMapper userMapper;
     private final UserConverter userConverter;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('CREATE_USER')")
     public ResponseEntity<UserResponse> createUser(
             @Valid @RequestBody CreateUserRequest request
     ) throws ServiceException
@@ -52,6 +52,7 @@ public class UserAdminController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('GET_USERS')")
     public ResponseEntity<BaseListResponse> getAllUsers(
             @RequestParam(value = "filter", required = false) String filter,
             Pageable pageable
@@ -83,6 +84,7 @@ public class UserAdminController {
     }
 
     @PutMapping("/role")
+    @PreAuthorize("hasAuthority('ASSIGN_ROLE_USER')")
     public ResponseEntity<UserResponse> assignRoleForUser(
             @Valid @RequestBody AssignRoleRequest request
     ) throws ServiceException
@@ -95,6 +97,7 @@ public class UserAdminController {
     }
 
     @PutMapping("/{userId}/password")
+    @PreAuthorize("hasAuthority('CHANGE_PASSWORD_USER')")
     public ResponseEntity<Void> updatePassword(
             @PathVariable("userId") String userId,
             @Valid @RequestBody UpdatePasswordRequest request
@@ -112,6 +115,7 @@ public class UserAdminController {
     }
 
     @PutMapping("/{userId}/verify")
+    @PreAuthorize("hasAuthority('VERIFY_USER')")
     public ResponseEntity<Void> verifyUser(
             @PathVariable("userId") String userId,
             @RequestParam("verified") boolean verified

@@ -1,8 +1,6 @@
 package iuh.fit.auth.infrastructure.decorator;
 
 import iuh.fit.auth.application.dto.PageFilter;
-import iuh.fit.auth.application.dto.request.permission.CreatePermissionRequestCommand;
-import iuh.fit.auth.application.dto.request.permission.UpdatePermissionRequestCommand;
 import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.service.PermissionService;
@@ -16,21 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PermissionDecorator implements PermissionService {
     private final PermissionServiceImpl permissionServiceImpl;
-
-    @Override
-    public Permission createPermission(CreatePermissionRequestCommand command) throws ServiceException {
-        return permissionServiceImpl.createPermission(command);
-    }
-
-    @Override
-    public Permission updatePermission(UpdatePermissionRequestCommand command) throws ServiceException {
-        return permissionServiceImpl.updatePermission(command);
-    }
-
-    @Override
-    public void deletePermission(String permissionId) throws ServiceException {
-        permissionServiceImpl.deletePermission(permissionId);
-    }
 
     @Override
     @Transactional(readOnly = true)

@@ -5,12 +5,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 @Repository
 public interface JpaPermissionRepository extends JpaRepository<PermissionEntity, UUID>, JpaSpecificationExecutor<PermissionEntity> {
     boolean existsByApiPathAndModuleAndMethod(String apiPath, String module, String method);
+
+    Optional<PermissionEntity> findByName(String name);
 
     Set<PermissionEntity> findByPermissionIdIn(Set<UUID> permissionIds);
 }

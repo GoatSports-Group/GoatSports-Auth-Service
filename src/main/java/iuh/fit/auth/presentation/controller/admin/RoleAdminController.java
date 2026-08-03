@@ -26,7 +26,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/admin/roles")
 @RequiredArgsConstructor
-@PreAuthorize("hasAuthority('ADMIN')")
 public class RoleAdminController {
 
     private final RoleService roleService;
@@ -34,6 +33,7 @@ public class RoleAdminController {
     private final RoleConverter roleConverter;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('CREATE_ROLE')")
     public ResponseEntity<RoleResponse> createRole(@Valid @RequestBody RoleCreateRequest request) throws ServiceException {
         CreateRoleRequestCommand command = new CreateRoleRequestCommand(request.getName(), request.getDescription());
         RoleResponseCommand resDto = roleMapper.toRoleResponseCommand(roleService.createRole(command));
@@ -41,6 +41,7 @@ public class RoleAdminController {
     }
 
     @PutMapping
+    @PreAuthorize("hasAuthority('UPDATE_ROLE')")
     public ResponseEntity<RoleResponse> updateRole(@Valid @RequestBody RoleUpdateRequest request) throws ServiceException {
         UpdateRoleRequestCommand command = new UpdateRoleRequestCommand(
                 request.getRoleId(),
@@ -54,30 +55,35 @@ public class RoleAdminController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('DELETE_ROLE')")
     public ResponseEntity<Void> deleteRole(@PathVariable("id") String id) throws ServiceException {
         roleService.deleteRole(id);
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 
     @PutMapping("/{id}/activate")
+    @PreAuthorize("hasAuthority('ACTIVATE_ROLE')")
     public ResponseEntity<RoleResponse> activateRole(@PathVariable("id") String id) throws ServiceException {
         RoleResponseCommand role = roleMapper.toRoleResponseCommand(roleService.activateRole(id));
         return ResponseEntity.status(HttpStatus.OK).body(roleConverter.toResponse(role));
     }
 
     @PutMapping("/{id}/deactivate")
+    @PreAuthorize("hasAuthority('DEACTIVE_ROLE')")
     public ResponseEntity<RoleResponse> deactivateRole(@PathVariable("id") String id) throws ServiceException {
         RoleResponseCommand role = roleMapper.toRoleResponseCommand(roleService.deactivateRole(id));
         return ResponseEntity.status(HttpStatus.OK).body(roleConverter.toResponse(role));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('GET_ROLE')")
     public ResponseEntity<RoleResponse> getRoleById(@PathVariable("id") String id) throws ServiceException {
         RoleResponseCommand role = roleMapper.toRoleResponseCommand(roleService.getRoleById(id));
         return ResponseEntity.status(HttpStatus.OK).body(roleConverter.toResponse(role));
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('GET_ROLES')")
     public ResponseEntity<BaseListResponse> getAllRoles(
             @RequestParam(value = "filter", required = false) String filter,
             Pageable pageable

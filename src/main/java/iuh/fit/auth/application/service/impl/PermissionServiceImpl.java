@@ -6,8 +6,6 @@ import iuh.fit.auth.domain.entity.Permission;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.dto.PageFilter;
-import iuh.fit.auth.application.dto.request.permission.CreatePermissionRequestCommand;
-import iuh.fit.auth.application.dto.request.permission.UpdatePermissionRequestCommand;
 
 import java.util.UUID;
 
@@ -16,35 +14,6 @@ public class PermissionServiceImpl implements PermissionService {
 
     public PermissionServiceImpl(PermissionRepository permissionRepository) {
         this.permissionRepository = permissionRepository;
-    }
-
-    @Override
-    public Permission createPermission(CreatePermissionRequestCommand command) throws ServiceException {
-        Permission permission = new Permission();
-        permission.setName(command.name().toUpperCase().replace(" ", "_"));
-        permission.setApiPath(command.apiPath());
-        permission.setMethod(command.method().toUpperCase());
-        permission.setModule(command.module().toUpperCase());
-
-        return permissionRepository.save(permission);
-    }
-
-    @Override
-    public Permission updatePermission(UpdatePermissionRequestCommand command) throws ServiceException {
-        Permission resPermission = getPermissionById(command.permissionId());
-
-        resPermission.setName(command.name());
-        resPermission.setApiPath(command.apiPath());
-        resPermission.setMethod(command.method());
-        resPermission.setModule(command.module());
-
-        return this.permissionRepository.save(resPermission);
-    }
-
-    @Override
-    public void deletePermission(String permissionId) throws ServiceException {
-        Permission permission = getPermissionById(permissionId);
-        permissionRepository.delete(permission);
     }
 
     @Override
