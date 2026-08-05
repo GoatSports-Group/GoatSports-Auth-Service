@@ -5,6 +5,7 @@ import iuh.fit.auth.application.dto.request.user.UpdateUserRequestCommand;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.service.UserService;
+import iuh.fit.shared.annotation.AuditLog;
 import iuh.fit.auth.presentation.converter.UserConverter;
 import iuh.fit.auth.presentation.request.auth.UpdatePasswordRequest;
 import iuh.fit.auth.presentation.request.user.UpdateUserRequest;
@@ -56,6 +57,7 @@ public class UserController {
     }
 
     @PutMapping("/password")
+    @AuditLog(action = "CHANGE_PASSWORD", description = "Đổi mật khẩu")
     public ResponseEntity<Void> updatePassword(
             @Valid @RequestBody UpdatePasswordRequest updatePasswordRequest
     ) throws ServiceException

@@ -6,6 +6,7 @@ import iuh.fit.auth.application.service.AuthenticationService;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.dto.response.auth.LoginResponseCommand;
 import iuh.fit.auth.application.dto.response.auth.RefreshResponseCommand;
+import iuh.fit.shared.annotation.AuditLog;
 import iuh.fit.auth.presentation.converter.UserConverter;
 import iuh.fit.auth.presentation.request.auth.*;
 import iuh.fit.auth.presentation.response.user.UserResponse;
@@ -45,6 +46,7 @@ public class AuthenticationController {
     private boolean cookieSecure;
 
     @PostMapping("/login")
+    @AuditLog(action = "LOGIN", description = "Đăng nhập")
     public ResponseEntity<UserResponse> login(
             @Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response
     ) throws ServiceException
@@ -66,6 +68,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
+    @AuditLog(action = "REGISTER", description = "Đăng ký tài khoản")
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest registerRequest) throws ServiceException {
         UserResponseCommand userResponse = authenticationService.register(
                 new RegisterRequestCommand(
@@ -77,6 +80,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/verify")
+    @AuditLog(action = "VERIFY_OTP", description = "Xác thực tài khoản OTP")
     public ResponseEntity<Void> verifyAccount(@RequestBody VerificationRequest verificationRequest) throws ServiceException {
         authenticationService.verifyUser(
                 new VerificationRequestCommand(verificationRequest.getEmail(), verificationRequest.getVerificationCode())
@@ -91,6 +95,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/logout")
+    @AuditLog(action = "LOGOUT", description = "Đăng xuất")
     public ResponseEntity<Void> logout(
             @CookieValue("accessToken") String accessToken,
             @CookieValue("refreshToken") String refreshToken,
@@ -135,6 +140,7 @@ public class AuthenticationController {
     }
 
     @PutMapping("/forgot-password")
+    @AuditLog(action = "FORGOT_PASSWORD", description = "Yêu cầu khôi phục mật khẩu")
     public ResponseEntity<Void> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequest forgotPasswordRequest
     ) throws ServiceException

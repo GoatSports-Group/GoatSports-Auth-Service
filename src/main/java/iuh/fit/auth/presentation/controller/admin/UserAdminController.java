@@ -11,6 +11,7 @@ import iuh.fit.auth.application.service.UserService;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.presentation.converter.UserConverter;
 import iuh.fit.auth.presentation.request.auth.UpdatePasswordRequest;
+import iuh.fit.shared.annotation.AuditLog;
 import iuh.fit.auth.presentation.request.user.AssignRoleRequest;
 import iuh.fit.auth.application.dto.response.base.BaseListResponse;
 import iuh.fit.auth.presentation.request.user.CreateUserRequest;
@@ -37,6 +38,7 @@ public class UserAdminController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('CREATE_USER')")
+    @AuditLog(action = "ADMIN_CREATE_USER", description = "Admin tạo tài khoản mới")
     public ResponseEntity<UserResponse> createUser(
             @Valid @RequestBody CreateUserRequest request
     ) throws ServiceException
@@ -85,6 +87,7 @@ public class UserAdminController {
 
     @PutMapping("/role")
     @PreAuthorize("hasAuthority('ASSIGN_ROLE_USER')")
+    @AuditLog(action = "ADMIN_ASSIGN_ROLE", description = "Admin gán vai trò người dùng")
     public ResponseEntity<UserResponse> assignRoleForUser(
             @Valid @RequestBody AssignRoleRequest request
     ) throws ServiceException
@@ -98,6 +101,7 @@ public class UserAdminController {
 
     @PutMapping("/{userId}/password")
     @PreAuthorize("hasAuthority('CHANGE_PASSWORD_USER')")
+    @AuditLog(action = "ADMIN_RESET_PASSWORD", description = "Admin đặt lại mật khẩu")
     public ResponseEntity<Void> updatePassword(
             @PathVariable("userId") String userId,
             @Valid @RequestBody UpdatePasswordRequest request
@@ -116,6 +120,7 @@ public class UserAdminController {
 
     @PutMapping("/{userId}/verify")
     @PreAuthorize("hasAuthority('VERIFY_USER')")
+    @AuditLog(action = "ADMIN_TOGGLE_VERIFY", description = "Admin thay đổi trạng thái xác thực tài khoản")
     public ResponseEntity<Void> verifyUser(
             @PathVariable("userId") String userId,
             @RequestParam("verified") boolean verified
