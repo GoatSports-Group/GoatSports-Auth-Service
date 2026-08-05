@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -73,7 +74,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
     public PageResult<Permission> findAll(PageFilter filter) {
         int pageNum = Math.max(0, filter.page() - 1);
         int pageSize = filter.size() > 0 ? filter.size() : 10;
-        Pageable pageable = PageRequest.of(pageNum, pageSize);
+        Pageable pageable = PageRequest.of(pageNum, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         Specification<PermissionEntity> spec = (root, query, cb) -> cb.conjunction();
         if (filter.filter() != null && !filter.filter().trim().isEmpty()) {
