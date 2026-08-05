@@ -12,6 +12,9 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
+      - name: Build Shared Kernel
+        run: mvn -f shared-kernel/pom.xml clean install -DskipTests
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
