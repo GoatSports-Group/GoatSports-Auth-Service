@@ -55,7 +55,9 @@ public class DatabaseInitializer implements CommandLineRunner {
             new PermissionSeed("GET_OWNER_APPLICATION", "/api/v1/admin/owner-applications/{id}", "GET", "OWNER_APPLICATION"),
 
             new PermissionSeed("EXPORT_USERS", "/api/v1/reports/export/users", "GET", "REPORT"),
-            new PermissionSeed("EXPORT_USER", "/api/v1/reports/export/users/{userId}", "GET", "REPORT")
+            new PermissionSeed("EXPORT_USER", "/api/v1/reports/export/users/{userId}", "GET", "REPORT"),
+
+            new PermissionSeed("GET_LOGS", "/api/v1/logs", "GET", "AUDIT")
     };
 
     @Override
