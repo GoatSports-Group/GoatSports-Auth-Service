@@ -13,6 +13,7 @@ import iuh.fit.auth.presentation.request.role.RoleCreateRequest;
 import iuh.fit.auth.presentation.request.role.RoleUpdateRequest;
 import iuh.fit.auth.application.dto.response.base.BaseListResponse;
 import iuh.fit.auth.presentation.response.role.RoleResponse;
+import iuh.fit.shared.annotation.AuditLog;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +35,7 @@ public class RoleAdminController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('CREATE_ROLE')")
+    @AuditLog(action = "CREATE_ROLE", description = "Tạo vai trò")
     public ResponseEntity<RoleResponse> createRole(@Valid @RequestBody RoleCreateRequest request) throws ServiceException {
         CreateRoleRequestCommand command = new CreateRoleRequestCommand(request.getName(), request.getDescription());
         RoleResponseCommand resDto = roleMapper.toRoleResponseCommand(roleService.createRole(command));
@@ -42,6 +44,7 @@ public class RoleAdminController {
 
     @PutMapping
     @PreAuthorize("hasAuthority('UPDATE_ROLE')")
+    @AuditLog(action = "UPDATE_ROLE", description = "Cập nhật vai trò")
     public ResponseEntity<RoleResponse> updateRole(@Valid @RequestBody RoleUpdateRequest request) throws ServiceException {
         UpdateRoleRequestCommand command = new UpdateRoleRequestCommand(
                 request.getRoleId(),
@@ -56,6 +59,7 @@ public class RoleAdminController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('DELETE_ROLE')")
+    @AuditLog(action = "DELETE_ROLE", description = "Xóa vai trò")
     public ResponseEntity<Void> deleteRole(@PathVariable("id") String id) throws ServiceException {
         roleService.deleteRole(id);
         return ResponseEntity.status(HttpStatus.OK).body(null);
@@ -63,6 +67,7 @@ public class RoleAdminController {
 
     @PutMapping("/{id}/activate")
     @PreAuthorize("hasAuthority('ACTIVATE_ROLE')")
+    @AuditLog(action = "ACTIVATE_ROLE", description = "Bật vai trò")
     public ResponseEntity<RoleResponse> activateRole(@PathVariable("id") String id) throws ServiceException {
         RoleResponseCommand role = roleMapper.toRoleResponseCommand(roleService.activateRole(id));
         return ResponseEntity.status(HttpStatus.OK).body(roleConverter.toResponse(role));
@@ -70,6 +75,7 @@ public class RoleAdminController {
 
     @PutMapping("/{id}/deactivate")
     @PreAuthorize("hasAuthority('DEACTIVE_ROLE')")
+    @AuditLog(action = "DEACTIVE_ROLE", description = "Tắt vai trò")
     public ResponseEntity<RoleResponse> deactivateRole(@PathVariable("id") String id) throws ServiceException {
         RoleResponseCommand role = roleMapper.toRoleResponseCommand(roleService.deactivateRole(id));
         return ResponseEntity.status(HttpStatus.OK).body(roleConverter.toResponse(role));

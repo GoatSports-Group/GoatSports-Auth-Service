@@ -24,12 +24,14 @@ public class UserController {
     private final UserConverter userConverter;
 
     @GetMapping("/{userId}")
+    @AuditLog(action = "GET_USER", description = "Lấy thông tin nguười dùng")
     public ResponseEntity<UserResponse> getUserById(@PathVariable("userId") String userId) throws ServiceException {
         UserResponseCommand user = userService.getUserById(userId);
         return ResponseEntity.status(HttpStatus.OK).body(userConverter.toResponse(user));
     }
 
     @PutMapping("/{userId}")
+    @AuditLog(action = "UPDATE_USER", description = "Cập nhật người dùng")
     public ResponseEntity<UserResponse> updateUser(
             @PathVariable("userId") String userId,
             @Valid @RequestBody UpdateUserRequest request
@@ -47,6 +49,7 @@ public class UserController {
     }
 
     @PutMapping("/{userId}/avatar")
+    @AuditLog(action = "UPDATE_AVATAR", description = "Cập nhật avatar")
     public ResponseEntity<Void> updateAvatar(
             @PathVariable("userId") String userId,
             @RequestParam("tempKey") String tempKey
