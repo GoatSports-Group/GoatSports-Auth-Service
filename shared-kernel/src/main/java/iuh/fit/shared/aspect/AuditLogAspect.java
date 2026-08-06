@@ -126,9 +126,9 @@ public class AuditLogAspect {
 
     private String getUserId(ProceedingJoinPoint joinPoint, Object result) {
         if (result != null) {
-            String val = getFieldValue(result, "username");
+            String val = getFieldValue(result, "userId");
             if (val != null) return val;
-            val = getFieldValue(result, "userId");
+            val = getFieldValue(result, "username");
             if (val != null) return val;
             val = getNestedUserFieldValue(result);
             if (val != null) return val;
@@ -143,9 +143,48 @@ public class AuditLogAspect {
             // Ignore
         }
 
+        // Try checking HTTP headers (e.g. X-User-Id, X-Username)
+        try {
+            HttpServletRequest request = getRequest();
+            if (request != null) {
+                String headerUserId = request.getHeader("X-User-Id");
+                if (headerUserId != null && !headerUserId.trim().isEmpty()) {
+                    return headerUserId;
+                }
+                String headerUsername = request.getHeader("X-Username");
+                if (headerUsername != null && !headerUsername.trim().isEmpty()) {
+                    return headerUsername;
+                }
+            }
+        } catch (Exception e) {
+            // Ignore
+        }
+
+        // Try checking parameter names first (for direct String userId / String username / String email args)
+        try {
+            String[] parameterNames = ((org.aspectj.lang.reflect.MethodSignature) joinPoint.getSignature()).getParameterNames();
+            Object[] args = joinPoint.getArgs();
+            if (parameterNames != null && args != null) {
+                for (int i = 0; i < Math.min(parameterNames.length, args.length); i++) {
+                    String paramName = parameterNames[i];
+                    Object arg = args[i];
+                    if (arg != null) {
+                        if ("userId".equalsIgnoreCase(paramName) || "username".equalsIgnoreCase(paramName) || "email".equalsIgnoreCase(paramName)) {
+                            return arg.toString();
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Ignore reflection issues on signature
+        }
+
+        // Try checking custom request DTO fields
         for (Object arg : joinPoint.getArgs()) {
             if (arg != null) {
-                String val = getFieldValue(arg, "username");
+                String val = getFieldValue(arg, "userId");
+                if (val != null) return val;
+                val = getFieldValue(arg, "username");
                 if (val != null) return val;
                 val = getFieldValue(arg, "email");
                 if (val != null) return val;

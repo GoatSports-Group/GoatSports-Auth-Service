@@ -9,6 +9,7 @@ import iuh.fit.auth.presentation.converter.UserConverter;
 import iuh.fit.auth.presentation.response.report.UserDetailReportResponse;
 import iuh.fit.auth.presentation.response.report.UserReportResponse;
 import iuh.fit.auth.presentation.response.user.UserPermissionResponse;
+import iuh.fit.shared.annotation.AuditLog;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -60,6 +61,7 @@ public class UserInternalController {
     }
 
     @PostMapping("/{userId}/roles/venue-owner")
+    @AuditLog(action = "ASSIGN_ROLE", description = "Gán quyền Chủ sân cho người dùng")
     public ResponseEntity<Void> assignVenueOwnerRole(@PathVariable String userId) throws ServiceException {
         internalService.assignVenueOwnerRole(userId);
         return ResponseEntity.status(HttpStatus.OK).build();
