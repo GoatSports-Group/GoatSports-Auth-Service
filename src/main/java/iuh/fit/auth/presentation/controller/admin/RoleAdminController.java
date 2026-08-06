@@ -44,7 +44,7 @@ public class RoleAdminController {
 
     @PutMapping
     @PreAuthorize("hasAuthority('UPDATE_ROLE')")
-    @AuditLog(action = "UPDATE_ROLE", description = "Cập nhật vai trò")
+    @AuditLog(action = "UPDATE_ROLE", description = "Cập nhật vai trò #{#request.roleId}")
     public ResponseEntity<RoleResponse> updateRole(@Valid @RequestBody RoleUpdateRequest request) throws ServiceException {
         UpdateRoleRequestCommand command = new UpdateRoleRequestCommand(
                 request.getRoleId(),
@@ -59,7 +59,7 @@ public class RoleAdminController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('DELETE_ROLE')")
-    @AuditLog(action = "DELETE_ROLE", description = "Xóa vai trò")
+    @AuditLog(action = "DELETE_ROLE", description = "Xóa vai trò #{#id}")
     public ResponseEntity<Void> deleteRole(@PathVariable("id") String id) throws ServiceException {
         roleService.deleteRole(id);
         return ResponseEntity.status(HttpStatus.OK).body(null);
@@ -67,7 +67,7 @@ public class RoleAdminController {
 
     @PutMapping("/{id}/activate")
     @PreAuthorize("hasAuthority('ACTIVATE_ROLE')")
-    @AuditLog(action = "ACTIVATE_ROLE", description = "Bật vai trò")
+    @AuditLog(action = "ACTIVATE_ROLE", description = "Bật vai trò #{#id}")
     public ResponseEntity<RoleResponse> activateRole(@PathVariable("id") String id) throws ServiceException {
         RoleResponseCommand role = roleMapper.toRoleResponseCommand(roleService.activateRole(id));
         return ResponseEntity.status(HttpStatus.OK).body(roleConverter.toResponse(role));
@@ -75,7 +75,7 @@ public class RoleAdminController {
 
     @PutMapping("/{id}/deactivate")
     @PreAuthorize("hasAuthority('DEACTIVE_ROLE')")
-    @AuditLog(action = "DEACTIVE_ROLE", description = "Tắt vai trò")
+    @AuditLog(action = "DEACTIVE_ROLE", description = "Tắt vai trò #{#id}")
     public ResponseEntity<RoleResponse> deactivateRole(@PathVariable("id") String id) throws ServiceException {
         RoleResponseCommand role = roleMapper.toRoleResponseCommand(roleService.deactivateRole(id));
         return ResponseEntity.status(HttpStatus.OK).body(roleConverter.toResponse(role));

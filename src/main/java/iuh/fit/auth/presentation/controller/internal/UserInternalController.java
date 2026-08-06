@@ -61,7 +61,7 @@ public class UserInternalController {
     }
 
     @PostMapping("/{userId}/roles/venue-owner")
-    @AuditLog(action = "ASSIGN_ROLE", description = "Gán quyền Chủ sân cho người dùng")
+    @AuditLog(action = "ASSIGN_ROLE", description = "Gán quyền Chủ sân cho người dùng #{#userId}")
     public ResponseEntity<Void> assignVenueOwnerRole(@PathVariable String userId) throws ServiceException {
         internalService.assignVenueOwnerRole(userId);
         return ResponseEntity.status(HttpStatus.OK).build();
