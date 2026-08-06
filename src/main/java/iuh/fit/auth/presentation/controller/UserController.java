@@ -31,7 +31,7 @@ public class UserController {
     }
 
     @PutMapping("/{userId}")
-    @AuditLog(action = "UPDATE_USER", description = "Cập nhật người dùng")
+    @AuditLog(action = "UPDATE_USER", description = "Cập nhật người dùng #{#userId}")
     public ResponseEntity<UserResponse> updateUser(
             @PathVariable("userId") String userId,
             @Valid @RequestBody UpdateUserRequest request
@@ -49,7 +49,7 @@ public class UserController {
     }
 
     @PutMapping("/{userId}/avatar")
-    @AuditLog(action = "UPDATE_AVATAR", description = "Cập nhật avatar")
+    @AuditLog(action = "UPDATE_AVATAR", description = "Cập nhật avatar cho người dùng #{#userId}")
     public ResponseEntity<Void> updateAvatar(
             @PathVariable("userId") String userId,
             @RequestParam("tempKey") String tempKey
@@ -60,7 +60,7 @@ public class UserController {
     }
 
     @PutMapping("/password")
-    @AuditLog(action = "CHANGE_PASSWORD", description = "Đổi mật khẩu")
+    @AuditLog(action = "CHANGE_PASSWORD", description = "Đổi mật khẩu cho người dùng #{#userId}")
     public ResponseEntity<Void> updatePassword(
             @Valid @RequestBody UpdatePasswordRequest updatePasswordRequest
     ) throws ServiceException

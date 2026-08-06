@@ -87,7 +87,7 @@ public class UserAdminController {
 
     @PutMapping("/role")
     @PreAuthorize("hasAuthority('ASSIGN_ROLE_USER')")
-    @AuditLog(action = "ADMIN_ASSIGN_ROLE", description = "Admin gán vai trò #{#request.roleId} người dùng #{#request.userId}")
+    @AuditLog(action = "ADMIN_ASSIGN_ROLE", description = "Gán vai trò #{#request.roleId} người dùng #{#request.userId}")
     public ResponseEntity<UserResponse> assignRoleForUser(
             @Valid @RequestBody AssignRoleRequest request
     ) throws ServiceException
@@ -101,7 +101,7 @@ public class UserAdminController {
 
     @PutMapping("/{userId}/password")
     @PreAuthorize("hasAuthority('CHANGE_PASSWORD_USER')")
-    @AuditLog(action = "ADMIN_RESET_PASSWORD", description = "Admin đặt lại mật khẩu cho người dùng #{#userId}")
+    @AuditLog(action = "ADMIN_RESET_PASSWORD", description = "Đặt lại mật khẩu cho người dùng #{#userId}")
     public ResponseEntity<Void> updatePassword(
             @PathVariable("userId") String userId,
             @Valid @RequestBody UpdatePasswordRequest request
@@ -120,7 +120,7 @@ public class UserAdminController {
 
     @PutMapping("/{userId}/verify")
     @PreAuthorize("hasAuthority('VERIFY_USER')")
-    @AuditLog(action = "ADMIN_TOGGLE_VERIFY", description = "Admin thay đổi trạng thái xác thực tài khoản #{#userId}")
+    @AuditLog(action = "ADMIN_TOGGLE_VERIFY", description = "Thay đổi trạng thái xác thực tài khoản #{#userId}")
     public ResponseEntity<Void> verifyUser(
             @PathVariable("userId") String userId,
             @RequestParam("verified") boolean verified
