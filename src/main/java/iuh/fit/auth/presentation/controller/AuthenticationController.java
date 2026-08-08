@@ -165,6 +165,7 @@ public class AuthenticationController {
         ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(name, value)
                 .httpOnly(true)
                 .secure(cookieSecure)
+                .domain(cookieDomain)
                 .sameSite("Lax")
                 .path("/")
                 .maxAge(maxAge);
