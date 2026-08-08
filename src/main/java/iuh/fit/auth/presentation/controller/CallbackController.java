@@ -29,6 +29,8 @@ public class CallbackController {
     private long accessTokenExpirationSecond;
     @Value("${app.cookie.secure}")
     private boolean cookieSecure;
+    @Value("${app.cookie.domain}")
+    private String cookieDomain;
 
     @GetMapping("/callback")
     public void callback(
@@ -64,6 +66,7 @@ public class CallbackController {
         return ResponseCookie.from(name, value)
                 .httpOnly(true)
                 .secure(cookieSecure)
+                .domain(cookieDomain)
                 .sameSite("Lax")
                 .path("/")
                 .maxAge(maxAge)
