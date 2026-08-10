@@ -2,6 +2,7 @@ package iuh.fit.auth.presentation.controller;
 
 import iuh.fit.auth.application.service.AuthenticationService;
 import iuh.fit.auth.application.dto.response.auth.LoginResponseCommand;
+import iuh.fit.shared.annotation.AuditLog;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +34,7 @@ public class CallbackController {
     private String cookieDomain;
 
     @GetMapping("/callback")
+    @AuditLog(action = "LOGIN", description = "Đăng nhập")
     public void callback(
             @RequestParam String code,
             @RequestParam String state,
