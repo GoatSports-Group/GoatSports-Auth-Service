@@ -19,7 +19,7 @@ public class KafkaConfig {
     public NewTopic userRegistrationTopic() {
         return TopicBuilder.name(registrationTopic)
                 .partitions(3)
-                .replicas(2)
+                .replicas(1)
                 .build();
     }
 
