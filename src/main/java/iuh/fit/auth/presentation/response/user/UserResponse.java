@@ -26,6 +26,7 @@ public class UserResponse {
     private UserRole role;
     private UUID keycloakId;
     private Set<String> authProviders;
+    private Boolean hasPassword;
 
     @Getter
     @Setter

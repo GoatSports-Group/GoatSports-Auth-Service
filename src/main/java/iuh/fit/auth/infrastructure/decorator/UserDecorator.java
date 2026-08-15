@@ -58,6 +58,12 @@ public class UserDecorator implements UserService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public void createPassword(CreatePasswordRequestCommand command) throws ServiceException {
+        userServiceImpl.createPassword(command);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public void updatePasswordByAdmin(AdminUpdatePasswordRequestCommand command) throws ServiceException {
         userServiceImpl.updatePasswordByAdmin(command);
     }

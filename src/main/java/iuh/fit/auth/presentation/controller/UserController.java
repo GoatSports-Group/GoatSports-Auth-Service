@@ -75,4 +75,20 @@ public class UserController {
 
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/password")
+    @AuditLog(action = "CREATE_PASSWORD", description = "Tạo mật khẩu cho người dùng #{#userId}")
+    public ResponseEntity<Void> createPassword(
+            @Valid @RequestBody iuh.fit.auth.presentation.request.auth.CreatePasswordRequest createPasswordRequest
+    ) throws ServiceException
+    {
+        userService.createPassword(
+                new iuh.fit.auth.application.dto.request.user.CreatePasswordRequestCommand(
+                        createPasswordRequest.getNewPassword(),
+                        createPasswordRequest.getConfirmPassword()
+                )
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
 }

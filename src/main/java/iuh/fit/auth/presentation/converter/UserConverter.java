@@ -12,6 +12,7 @@ import org.mapstruct.Mapping;
 public interface UserConverter {
 
     @Mapping(target = "role", source = "role")
+    @Mapping(target = "hasPassword", expression = "java(user.password() != null && !user.password().isBlank())")
     UserResponse toResponse(UserResponseCommand user);
 
     UserReportResponse toResponse(UserReportResponseCommand user);

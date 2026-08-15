@@ -199,6 +199,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void createPassword(CreatePasswordRequestCommand command) throws ServiceException {
+        User currentUser = currentUserProvider.getCurrentUser();
+
+        if (currentUser.getPassword() != null && !currentUser.getPassword().isBlank()) {
+            throw new ServiceException("Tài khoản đã có mật khẩu, vui lòng sử dụng chức năng đổi mật khẩu");
+        }
+
+        if (command.newPassword() == null || command.newPassword().isBlank()) {
+            throw new ServiceException("Mật khẩu mới không được để trống");
+        }
+
+        String hashedNewPassword = jwtPort.hashPassword(command.newPassword());
+        currentUser.setPassword(hashedNewPassword);
+
+        User savedUser = userRepository.save(currentUser);
+
+        userRegistrationEventPublisher.publishUserPasswordUpdated(savedUser, command.newPassword());
+    }
+
+    @Override
     public void updatePasswordByAdmin(AdminUpdatePasswordRequestCommand command) throws ServiceException {
         UUID userUUID = BaseUtil.uuid(command.userId());
 
