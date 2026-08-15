@@ -44,13 +44,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
+    private final iuh.fit.auth.application.port.security.RsaPort rsaPort;
 
     public AuthenticationServiceImpl(
             JwtPort jwtPort, RedisPort redisPort, KeycloakPort keycloakPort,
             EmailNotificationPort emailNotificationPort, CurrentUserProvider currentUserProvider,
             UserRegistrationEventPublisher userRegistrationEventPublisher,
             UserRepository userRepository, RoleRepository roleRepository,
-            UserMapper userMapper
+            UserMapper userMapper,
+            iuh.fit.auth.application.port.security.RsaPort rsaPort
     ) {
         this.jwtPort = jwtPort;
         this.redisPort = redisPort;
@@ -61,6 +63,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userMapper = userMapper;
+        this.rsaPort = rsaPort;
     }
 
     @Override
@@ -70,7 +73,22 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (existed)
             throw new ServiceException("Người dùng đã tồn tại");
 
-        String hashedPassword = jwtPort.hashPassword(registerRequestCommand.password());
+        String rawPassword = rsaPort.decrypt(registerRequestCommand.password());
+        String rawConfirmPassword = rsaPort.decrypt(registerRequestCommand.confirmPassword());
+
+        if (rawPassword == null || rawPassword.isBlank()) {
+            throw new ServiceException("Mật khẩu không được để trống");
+        }
+
+        if (!rawPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$")) {
+            throw new ServiceException("Mật khẩu phải có ít nhất 8 ký tự, chữ hoa, chữ thường, số và ký tự đặc biệt");
+        }
+
+        if (!rawPassword.equals(rawConfirmPassword)) {
+            throw new ServiceException("Mật khẩu và xác nhận mật khẩu không khớp");
+        }
+
+        String hashedPassword = jwtPort.hashPassword(rawPassword);
 
         User user = new User();
         user.setUsername(registerRequestCommand.username());
@@ -86,7 +104,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         User createdUser = userRepository.save(user);
 
-        userRegistrationEventPublisher.publishUserRegistered(createdUser, registerRequestCommand.password());
+        userRegistrationEventPublisher.publishUserRegistered(createdUser, rawPassword);
 
         String verificationCode = BaseUtil.generateVerificationCode();
         this.redisPort.saveWithTTL(
@@ -282,12 +300,27 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (user.getStatus() == UserStatusEnum.INACTIVE)
             throw new ServiceException("Người dùng bị khóa");
 
-        String hashedPassword = jwtPort.hashPassword(forgotPasswordRequestCommand.password());
+        String rawPassword = rsaPort.decrypt(forgotPasswordRequestCommand.password());
+        String rawConfirmPassword = rsaPort.decrypt(forgotPasswordRequestCommand.confirmPassword());
+
+        if (rawPassword == null || rawPassword.isBlank()) {
+            throw new ServiceException("Mật khẩu không được để trống");
+        }
+
+        if (!rawPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$")) {
+            throw new ServiceException("Mật khẩu phải có ít nhất 8 ký tự, chữ hoa, chữ thường, số và ký tự đặc biệt");
+        }
+
+        if (!rawPassword.equals(rawConfirmPassword)) {
+            throw new ServiceException("Mật khẩu và xác nhận mật khẩu không khớp");
+        }
+
+        String hashedPassword = jwtPort.hashPassword(rawPassword);
         user.setPassword(hashedPassword);
         user.setStatus(UserStatusEnum.INACTIVE);
         User savedUser = this.userRepository.save(user);
 
-        userRegistrationEventPublisher.publishUserPasswordUpdated(savedUser, forgotPasswordRequestCommand.password());
+        userRegistrationEventPublisher.publishUserPasswordUpdated(savedUser, rawPassword);
 
         String verificationCode = BaseUtil.generateVerificationCode();
         redisPort.saveWithTTL(

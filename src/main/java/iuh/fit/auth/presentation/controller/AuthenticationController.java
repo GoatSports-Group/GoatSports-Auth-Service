@@ -59,17 +59,19 @@ public class AuthenticationController {
             @Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response
     ) throws ServiceException
     {
+        String rawPassword = rsaPort.decrypt(loginRequest.getPassword());
+
         Authentication authentication = authenticationManagerBuilder.getObject()
                 .authenticate(
                         new UsernamePasswordAuthenticationToken(
                                 loginRequest.getUsername(),
-                                loginRequest.getPassword()
+                                rawPassword
                         )
                 );
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         LoginResponseCommand result = authenticationService.login(
-                new LoginRequestCommand(loginRequest.getUsername(), loginRequest.getPassword())
+                new LoginRequestCommand(loginRequest.getUsername(), rawPassword)
         );
 
         return setCookie(response, result);

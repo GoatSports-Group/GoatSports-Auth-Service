@@ -67,7 +67,8 @@ public class UserServiceImpl implements UserService {
         boolean existed = userRepository.existsByUsernameOrEmail(command.username(), command.email());
         if (existed) throw new ServiceException("Người dùng đã tồn tại");
 
-        String hashedPassword = jwtPort.hashPassword(command.password());
+        String rawPassword = rsaPort.decrypt(command.password());
+        String hashedPassword = jwtPort.hashPassword(rawPassword);
 
         User user = new User();
         user.setUsername(command.username());
@@ -84,7 +85,7 @@ public class UserServiceImpl implements UserService {
 
         User createdUser = userRepository.save(user);
 
-        userRegistrationEventPublisher.publishUserRegistered(createdUser, command.password());
+        userRegistrationEventPublisher.publishUserRegistered(createdUser, rawPassword);
         userRegistrationEventPublisher.publishUserVerified(createdUser);
 
         return userMapper.toUserResponseCommand(createdUser);
@@ -252,14 +253,24 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userUUID)
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
 
-        String hashedNewPassword = jwtPort.hashPassword(command.newPassword());
+        String rawNewPassword = rsaPort.decrypt(command.newPassword());
+
+        if (rawNewPassword == null || rawNewPassword.isBlank()) {
+            throw new ServiceException("Mật khẩu mới không được để trống");
+        }
+
+        if (!rawNewPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$")) {
+            throw new ServiceException("Mật khẩu phải có ít nhất 8 ký tự, chữ hoa, chữ thường, số và ký tự đặc biệt");
+        }
+
+        String hashedNewPassword = jwtPort.hashPassword(rawNewPassword);
         user.setPassword(hashedNewPassword);
 
         User savedUser = userRepository.save(user);
 
-        emailNotificationPort.sendPasswordUpdateEmail(savedUser.getEmail(), savedUser.getFullName(), command.newPassword());
+        emailNotificationPort.sendPasswordUpdateEmail(savedUser.getEmail(), savedUser.getFullName(), rawNewPassword);
 
-        userRegistrationEventPublisher.publishUserPasswordUpdated(savedUser, command.newPassword());
+        userRegistrationEventPublisher.publishUserPasswordUpdated(savedUser, rawNewPassword);
     }
 
     @Override

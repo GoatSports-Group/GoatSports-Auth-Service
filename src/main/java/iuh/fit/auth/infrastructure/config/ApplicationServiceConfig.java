@@ -25,14 +25,14 @@ public class ApplicationServiceConfig {
             EmailNotificationPort emailNotificationPort, CurrentUserProvider currentUserProvider,
             UserRegistrationEventPublisher userRegistrationEventPublisher,
             UserRepository userRepository, RoleRepository roleRepository,
-            UserMapper userMapper
+            UserMapper userMapper, RsaPort rsaPort
     ) {
         return new AuthenticationServiceImpl(
                 jwtPort, redisPort, keycloakPort,
                 emailNotificationPort, currentUserProvider,
                 userRegistrationEventPublisher,
                 userRepository, roleRepository,
-                userMapper
+                userMapper, rsaPort
         );
     }
 
