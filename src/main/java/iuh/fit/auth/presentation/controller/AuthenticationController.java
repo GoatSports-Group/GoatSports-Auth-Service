@@ -2,10 +2,12 @@ package iuh.fit.auth.presentation.controller;
 
 import iuh.fit.auth.application.dto.request.auth.*;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
+import iuh.fit.auth.application.port.security.RsaPort;
 import iuh.fit.auth.application.service.AuthenticationService;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.dto.response.auth.LoginResponseCommand;
 import iuh.fit.auth.application.dto.response.auth.RefreshResponseCommand;
+import iuh.fit.auth.presentation.response.auth.PublicKeyResponse;
 import iuh.fit.shared.annotation.AuditLog;
 import iuh.fit.auth.presentation.converter.UserConverter;
 import iuh.fit.auth.presentation.request.auth.*;
@@ -35,7 +37,7 @@ public class AuthenticationController {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final AuthenticationService authenticationService;
     private final UserConverter userConverter;
-    private final iuh.fit.auth.application.port.security.RsaPort rsaPort;
+    private final RsaPort rsaPort;
 
     @Value("${app.jwt.refresh-token.expiration-second}")
     private long refreshTokenExpirationSecond;
@@ -47,8 +49,8 @@ public class AuthenticationController {
     private boolean cookieSecure;
 
     @GetMapping("/public-key")
-    public ResponseEntity<iuh.fit.auth.presentation.response.auth.PublicKeyResponse> getPublicKey() {
-        return ResponseEntity.ok(new iuh.fit.auth.presentation.response.auth.PublicKeyResponse(rsaPort.getPublicKey()));
+    public ResponseEntity<PublicKeyResponse> getPublicKey() {
+        return ResponseEntity.ok(new PublicKeyResponse(rsaPort.getPublicKey()));
     }
 
     @PostMapping("/login")

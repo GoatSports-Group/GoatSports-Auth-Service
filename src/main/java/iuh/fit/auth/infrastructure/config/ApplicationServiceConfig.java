@@ -11,6 +11,7 @@ import iuh.fit.auth.application.port.security.CurrentUserProvider;
 import iuh.fit.auth.application.port.security.JwtPort;
 import iuh.fit.auth.application.port.event.UserRegistrationEventPublisher;
 import iuh.fit.auth.application.port.security.KeycloakPort;
+import iuh.fit.auth.application.port.security.RsaPort;
 import iuh.fit.auth.application.service.impl.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,12 +41,12 @@ public class ApplicationServiceConfig {
             JwtPort jwtPort, UserRepository userRepository, RoleRepository roleRepository,
             UserMapper userMapper, UserRegistrationEventPublisher userRegistrationEventPublisher,
             StoragePort storagePort, CurrentUserProvider currentUserProvider,
-            EmailNotificationPort emailNotificationPort
+            EmailNotificationPort emailNotificationPort, RsaPort rsaPort
     ) {
         return new UserServiceImpl(
                 jwtPort, userRepository, roleRepository,
                 userMapper, userRegistrationEventPublisher, storagePort,
-                currentUserProvider, emailNotificationPort
+                currentUserProvider, emailNotificationPort, rsaPort
         );
     }
 

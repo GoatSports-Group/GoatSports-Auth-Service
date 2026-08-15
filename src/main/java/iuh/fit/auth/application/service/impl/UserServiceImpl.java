@@ -15,6 +15,7 @@ import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.application.port.security.CurrentUserProvider;
 import iuh.fit.auth.application.port.security.JwtPort;
+import iuh.fit.auth.application.port.security.RsaPort;
 import iuh.fit.auth.application.service.UserService;
 import iuh.fit.auth.application.util.BaseUtil;
 import iuh.fit.auth.domain.entity.Role;
@@ -38,7 +39,7 @@ public class UserServiceImpl implements UserService {
     private final StoragePort storagePort;
     private final CurrentUserProvider currentUserProvider;
     private final EmailNotificationPort emailNotificationPort;
-    private final iuh.fit.auth.application.port.security.RsaPort rsaPort;
+    private final RsaPort rsaPort;
 
     public UserServiceImpl(
             JwtPort jwtPort,
@@ -48,7 +49,7 @@ public class UserServiceImpl implements UserService {
             StoragePort storagePort,
             CurrentUserProvider currentUserProvider,
             EmailNotificationPort emailNotificationPort,
-            iuh.fit.auth.application.port.security.RsaPort rsaPort
+            RsaPort rsaPort
     ) {
         this.jwtPort = jwtPort;
         this.userRepository = userRepository;
