@@ -38,6 +38,7 @@ public class UserServiceImpl implements UserService {
     private final StoragePort storagePort;
     private final CurrentUserProvider currentUserProvider;
     private final EmailNotificationPort emailNotificationPort;
+    private final iuh.fit.auth.application.port.security.RsaPort rsaPort;
 
     public UserServiceImpl(
             JwtPort jwtPort,
@@ -46,7 +47,8 @@ public class UserServiceImpl implements UserService {
             UserRegistrationEventPublisher userRegistrationEventPublisher,
             StoragePort storagePort,
             CurrentUserProvider currentUserProvider,
-            EmailNotificationPort emailNotificationPort
+            EmailNotificationPort emailNotificationPort,
+            iuh.fit.auth.application.port.security.RsaPort rsaPort
     ) {
         this.jwtPort = jwtPort;
         this.userRepository = userRepository;
@@ -56,6 +58,7 @@ public class UserServiceImpl implements UserService {
         this.storagePort = storagePort;
         this.currentUserProvider = currentUserProvider;
         this.emailNotificationPort = emailNotificationPort;
+        this.rsaPort = rsaPort;
     }
 
     @Override
@@ -178,20 +181,36 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException("Tài khoản được đăng nhập bằng mạng xã hội, không thể cập nhật mật khẩu");
         }
 
-        if (command.currentPassword() == null || command.currentPassword().isBlank()) {
+        String rawCurrentPassword = rsaPort.decrypt(command.currentPassword());
+        String rawNewPassword = rsaPort.decrypt(command.newPassword());
+        String rawConfirmPassword = rsaPort.decrypt(command.confirmPassword());
+
+        if (rawCurrentPassword == null || rawCurrentPassword.isBlank()) {
             throw new ServiceException("Mật khẩu hiện tại không được để trống");
         }
 
-        if (!jwtPort.matchesPassword(command.currentPassword(), currentUser.getPassword())) {
+        if (rawNewPassword == null || rawNewPassword.isBlank()) {
+            throw new ServiceException("Mật khẩu mới không được để trống");
+        }
+
+        if (!rawNewPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$")) {
+            throw new ServiceException("Mật khẩu phải có ít nhất 8 ký tự, chữ hoa, chữ thường, số và ký tự đặc biệt");
+        }
+
+        if (!rawNewPassword.equals(rawConfirmPassword)) {
+            throw new ServiceException("Mật khẩu mới và xác nhận mật khẩu không khớp");
+        }
+
+        if (!jwtPort.matchesPassword(rawCurrentPassword, currentUser.getPassword())) {
             throw new ServiceException("Mật khẩu hiện tại không chính xác");
         }
 
-        String hashedNewPassword = jwtPort.hashPassword(command.newPassword());
+        String hashedNewPassword = jwtPort.hashPassword(rawNewPassword);
         currentUser.setPassword(hashedNewPassword);
 
         User savedUser = userRepository.save(currentUser);
 
-        userRegistrationEventPublisher.publishUserPasswordUpdated(savedUser, command.newPassword());
+        userRegistrationEventPublisher.publishUserPasswordUpdated(savedUser, rawNewPassword);
     }
 
     @Override
@@ -202,16 +221,27 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException("Tài khoản đã có mật khẩu, vui lòng sử dụng chức năng đổi mật khẩu");
         }
 
-        if (command.newPassword() == null || command.newPassword().isBlank()) {
+        String rawNewPassword = rsaPort.decrypt(command.newPassword());
+        String rawConfirmPassword = rsaPort.decrypt(command.confirmPassword());
+
+        if (rawNewPassword == null || rawNewPassword.isBlank()) {
             throw new ServiceException("Mật khẩu mới không được để trống");
         }
 
-        String hashedNewPassword = jwtPort.hashPassword(command.newPassword());
+        if (!rawNewPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$")) {
+            throw new ServiceException("Mật khẩu phải có ít nhất 8 ký tự, chữ hoa, chữ thường, số và ký tự đặc biệt");
+        }
+
+        if (!rawNewPassword.equals(rawConfirmPassword)) {
+            throw new ServiceException("Mật khẩu mới và xác nhận mật khẩu không khớp");
+        }
+
+        String hashedNewPassword = jwtPort.hashPassword(rawNewPassword);
         currentUser.setPassword(hashedNewPassword);
 
         User savedUser = userRepository.save(currentUser);
 
-        userRegistrationEventPublisher.publishUserPasswordUpdated(savedUser, command.newPassword());
+        userRegistrationEventPublisher.publishUserPasswordUpdated(savedUser, rawNewPassword);
     }
 
     @Override

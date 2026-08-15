@@ -35,6 +35,7 @@ public class AuthenticationController {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final AuthenticationService authenticationService;
     private final UserConverter userConverter;
+    private final iuh.fit.auth.application.port.security.RsaPort rsaPort;
 
     @Value("${app.jwt.refresh-token.expiration-second}")
     private long refreshTokenExpirationSecond;
@@ -44,6 +45,11 @@ public class AuthenticationController {
     private String cookieDomain;
     @Value("${app.cookie.secure}")
     private boolean cookieSecure;
+
+    @GetMapping("/public-key")
+    public ResponseEntity<iuh.fit.auth.presentation.response.auth.PublicKeyResponse> getPublicKey() {
+        return ResponseEntity.ok(new iuh.fit.auth.presentation.response.auth.PublicKeyResponse(rsaPort.getPublicKey()));
+    }
 
     @PostMapping("/login")
     @AuditLog(action = "LOGIN", description = "Đăng nhập")
