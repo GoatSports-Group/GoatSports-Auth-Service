@@ -5,6 +5,7 @@ import iuh.fit.auth.application.dto.request.user.UpdateUserRequestCommand;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.service.UserService;
+import iuh.fit.auth.presentation.request.auth.CreatePasswordRequest;
 import iuh.fit.shared.annotation.AuditLog;
 import iuh.fit.auth.presentation.converter.UserConverter;
 import iuh.fit.auth.presentation.request.auth.UpdatePasswordRequest;
@@ -77,9 +78,9 @@ public class UserController {
     }
 
     @PostMapping("/password")
-    @AuditLog(action = "CREATE_PASSWORD", description = "Tạo mật khẩu cho người dùng #{#userId}")
+    @AuditLog(action = "CREATE_PASSWORD", description = "Tạo mật khẩu cho tài khoản")
     public ResponseEntity<Void> createPassword(
-            @Valid @RequestBody iuh.fit.auth.presentation.request.auth.CreatePasswordRequest createPasswordRequest
+            @Valid @RequestBody CreatePasswordRequest createPasswordRequest
     ) throws ServiceException
     {
         userService.createPassword(

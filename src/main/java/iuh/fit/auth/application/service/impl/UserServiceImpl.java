@@ -1,13 +1,9 @@
 package iuh.fit.auth.application.service.impl;
 
 import iuh.fit.auth.application.dto.PageFilter;
-import iuh.fit.auth.application.dto.request.user.UpdatePasswordRequestCommand;
+import iuh.fit.auth.application.dto.request.user.*;
 import iuh.fit.auth.application.dto.request.file.FileMoveRequest;
 import iuh.fit.auth.application.dto.request.file.MoveFileRequest;
-import iuh.fit.auth.application.dto.request.user.AdminUpdatePasswordRequestCommand;
-import iuh.fit.auth.application.dto.request.user.AssignRoleRequestCommand;
-import iuh.fit.auth.application.dto.request.user.CreateUserRequestCommand;
-import iuh.fit.auth.application.dto.request.user.UpdateUserRequestCommand;
 import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
