@@ -17,7 +17,7 @@ import iuh.fit.auth.application.service.AuthenticationService;
 import iuh.fit.auth.domain.entity.Role;
 import iuh.fit.auth.domain.entity.User;
 import iuh.fit.auth.domain.enums.AuthProviderEnum;
-import iuh.fit.auth.domain.enums.GenderEnum;
+import iuh.fit.auth.application.port.security.RsaPort;
 import iuh.fit.auth.domain.enums.RoleEnum;
 import iuh.fit.auth.domain.enums.UserStatusEnum;
 import iuh.fit.auth.application.exception.ServiceException;
@@ -44,7 +44,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
-    private final iuh.fit.auth.application.port.security.RsaPort rsaPort;
+    private final RsaPort rsaPort;
 
     public AuthenticationServiceImpl(
             JwtPort jwtPort, RedisPort redisPort, KeycloakPort keycloakPort,
@@ -52,8 +52,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             UserRegistrationEventPublisher userRegistrationEventPublisher,
             UserRepository userRepository, RoleRepository roleRepository,
             UserMapper userMapper,
-            iuh.fit.auth.application.port.security.RsaPort rsaPort
-    ) {
+            RsaPort rsaPort) {
         this.jwtPort = jwtPort;
         this.redisPort = redisPort;
         this.keycloakPort = keycloakPort;
@@ -135,8 +134,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 "user:" + user.getUserId() + ":refresh",
                 refreshToken,
                 jwtPort.getAuthProperties().refreshTokenExpirationSecond(),
-                TimeUnit.SECONDS
-        );
+                TimeUnit.SECONDS);
 
         return new LoginResponseCommand(userMapper.toUserResponseCommand(user), accessToken, refreshToken);
     }
@@ -176,8 +174,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 key,
                 verificationCode,
                 jwtPort.getAuthProperties().verificationCodeValidityInSecond(),
-                TimeUnit.SECONDS
-        );
+                TimeUnit.SECONDS);
 
         emailNotificationPort.sendVerificationEmail(email, verificationCode);
     }
@@ -193,8 +190,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 "blacklist:" + accessToken,
                 "revoked",
                 jwtPort.getRemainingTime(accessToken),
-                TimeUnit.SECONDS
-        );
+                TimeUnit.SECONDS);
 
         if (redisPort.hasKey("user:" + userId + ":keycloakRefresh")) {
             String keycloakRefresh = redisPort.getValue("user:" + userId + ":keycloakRefresh");
@@ -250,8 +246,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                             keycloakRefreshKey,
                             keycloakResponseCommand.refreshToken(),
                             keycloakResponseCommand.refreshExpiresIn(),
-                            TimeUnit.SECONDS
-                    );
+                            TimeUnit.SECONDS);
                 } else {
                     log.warn("Keycloak session expired during refresh. Proceeding with local token refresh only.");
                 }
@@ -275,8 +270,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 "user:" + userId + ":refresh",
                 newRefreshToken,
                 jwtPort.getAuthProperties().refreshTokenExpirationSecond(),
-                TimeUnit.SECONDS
-        );
+                TimeUnit.SECONDS);
 
         long remainingTime = jwtPort.getRemainingTime(refreshToken);
         if (remainingTime > 0) {
@@ -284,11 +278,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     blacklistKey,
                     "used",
                     remainingTime,
-                    TimeUnit.SECONDS
-            );
+                    TimeUnit.SECONDS);
         }
 
-        return new RefreshResponseCommand(userMapper.toUserResponseCommand(currentUser), role, newAccessToken, newRefreshToken);
+        return new RefreshResponseCommand(userMapper.toUserResponseCommand(currentUser), role, newAccessToken,
+                newRefreshToken);
     }
 
     @Override
@@ -327,8 +321,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 savedUser.getUserId().toString(),
                 verificationCode,
                 jwtPort.getAuthProperties().verificationCodeValidityInSecond(),
-                TimeUnit.SECONDS
-        );
+                TimeUnit.SECONDS);
 
         emailNotificationPort.sendVerificationEmail(savedUser.getEmail(), verificationCode);
     }
@@ -358,8 +351,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         User user = userRepository.findByKeycloakId(keycloakId)
                 .orElseGet(() -> userRepository.findByUsernameOrEmailWithRole(
-                        username, email
-                ).orElse(null));
+                        username, email).orElse(null));
 
         if (user == null) {
             user = new User();
@@ -368,7 +360,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             user.setEmail(email);
             user.setKeycloakId(keycloakId);
             user.setStatus(UserStatusEnum.ACTIVE);
-            
+
             Role defualtRole = roleRepository.findByName(RoleEnum.PLAYER.name())
                     .orElseThrow(() -> new ServiceException("Default role PLAYER not found"));
             user.setRole(defualtRole);
@@ -384,16 +376,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             }
         }
 
-         String oldKeycloakRefresh = redisPort.getValue("user:" + user.getUserId() + ":keycloakRefresh");
-         if (oldKeycloakRefresh != null) {
-             redisPort.deleteKey("user:" + user.getUserId() + ":keycloakRefresh");
-         }
+        String oldKeycloakRefresh = redisPort.getValue("user:" + user.getUserId() + ":keycloakRefresh");
+        if (oldKeycloakRefresh != null) {
+            redisPort.deleteKey("user:" + user.getUserId() + ":keycloakRefresh");
+        }
         redisPort.saveWithTTL(
                 "user:" + user.getUserId() + ":keycloakRefresh",
                 keycloakResponse.refreshToken(),
                 keycloakResponse.refreshExpiresIn(),
-                TimeUnit.SECONDS
-        );
+                TimeUnit.SECONDS);
 
         String accessToken = jwtPort.generateAccessToken(user);
         String refreshToken = jwtPort.generateRefreshToken(user);
@@ -402,8 +393,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 "user:" + user.getUserId() + ":refresh",
                 refreshToken,
                 jwtPort.getAuthProperties().refreshTokenExpirationSecond(),
-                TimeUnit.SECONDS
-        );
+                TimeUnit.SECONDS);
 
         return new LoginResponseCommand(userMapper.toUserResponseCommand(user), accessToken, refreshToken);
     }
