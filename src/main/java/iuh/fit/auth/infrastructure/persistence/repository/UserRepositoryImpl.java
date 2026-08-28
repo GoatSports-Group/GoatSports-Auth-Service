@@ -7,9 +7,10 @@ import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.domain.entity.User;
+import iuh.fit.auth.domain.enums.RoleEnum;
 import iuh.fit.auth.infrastructure.persistence.entity.UserEntity;
-import iuh.fit.auth.infrastructure.persistence.mapper.RoleEntityMapper;
 import iuh.fit.auth.infrastructure.persistence.mapper.UserEntityMapper;
+import iuh.fit.auth.infrastructure.persistence.repository.jpa.JpaRoleRepository;
 import iuh.fit.auth.infrastructure.persistence.repository.jpa.JpaUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,7 +31,7 @@ public class UserRepositoryImpl implements UserRepository {
     private final FilterParser filterParser;
     private final FilterSpecificationConverter filterSpecificationConverter;
     private final UserEntityMapper userEntityMapper;
-    private final RoleEntityMapper roleEntityMapper;
+    private final JpaRoleRepository jpaRoleRepository;
 
     @Override
     public Optional<User> findById(UUID id) {
@@ -64,16 +65,23 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User save(User user) throws ServiceException {
+        if (user.getRole() == null || user.getRole().getRoleId() == null) {
+            throw new ServiceException("Người dùng phải có vai trò hợp lệ.");
+        }
+        var roleEntity = jpaRoleRepository.findById(user.getRole().getRoleId())
+                .orElseThrow(() -> new ServiceException("Vai trò không tồn tại."));
+
         UserEntity entity;
         if (user.getUserId() != null) {
             entity = jpaUserRepository.findById(user.getUserId())
                     .map(existing -> {
-                        userEntityMapper.updateEntity(user, existing, roleEntityMapper.toEntity(user.getRole()));
+                        userEntityMapper.updateEntity(user, existing, roleEntity);
                         return existing;
                     })
                     .orElseThrow(() -> new ServiceException("Người dùng không tồn tại."));
         } else {
             entity = userEntityMapper.createEntity(user);
+            entity.setRole(roleEntity);
         }
         UserEntity savedEntity = jpaUserRepository.save(entity);
         return userEntityMapper.toDomain(savedEntity);
@@ -114,6 +122,11 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public Optional<User> findByRole_Name(String name) {
-        return jpaUserRepository.findByRole_Name(name).map(userEntityMapper::toDomain);
+        try {
+            return jpaUserRepository.findByRole_Name(RoleEnum.valueOf(name.toUpperCase()))
+                    .map(userEntityMapper::toDomain);
+        } catch (IllegalArgumentException exception) {
+            return Optional.empty();
+        }
     }
 }

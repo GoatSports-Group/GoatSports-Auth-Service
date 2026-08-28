@@ -7,6 +7,7 @@ import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.domain.entity.Role;
+import iuh.fit.auth.domain.enums.RoleEnum;
 import iuh.fit.auth.infrastructure.persistence.entity.RoleEntity;
 import iuh.fit.auth.infrastructure.persistence.mapper.RoleEntityMapper;
 import iuh.fit.auth.infrastructure.persistence.repository.jpa.JpaRoleRepository;
@@ -37,7 +38,12 @@ public class RoleRepositoryImpl implements RoleRepository {
 
     @Override
     public Optional<Role> findByName(String name) {
-        return jpaRoleRepository.findByName(name).map(roleEntityMapper::toDomain);
+        try {
+            return jpaRoleRepository.findByName(RoleEnum.valueOf(name.toUpperCase()))
+                    .map(roleEntityMapper::toDomain);
+        } catch (IllegalArgumentException exception) {
+            return Optional.empty();
+        }
     }
 
     @Override

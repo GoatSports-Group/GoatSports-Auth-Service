@@ -21,6 +21,4 @@ public interface RoleEntityMapper {
     void updateEntity(Role domain, @MappingTarget RoleEntity entity);
 
     Role toDomain(RoleEntity entity);
-
-    RoleEntity toEntity(Role domain);
 }

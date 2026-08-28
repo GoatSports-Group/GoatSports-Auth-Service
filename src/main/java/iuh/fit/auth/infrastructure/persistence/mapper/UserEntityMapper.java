@@ -7,14 +7,17 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = PlayerSportProfileEntityMapper.class)
 public interface UserEntityMapper {
 
+    @Mapping(target = "role", ignore = true)
+    @Mapping(target = "playerSportProfiles", ignore = true)
     UserEntity createEntity(User domain);
 
     @Mapping(target = "userId", ignore = true)
     @Mapping(target = "authProviders", ignore = true)
     @Mapping(target = "role", ignore = true)
+    @Mapping(target = "playerSportProfiles", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)

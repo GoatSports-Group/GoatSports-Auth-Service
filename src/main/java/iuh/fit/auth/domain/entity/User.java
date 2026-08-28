@@ -4,17 +4,19 @@ import iuh.fit.auth.domain.enums.AuthProviderEnum;
 import iuh.fit.auth.domain.enums.GenderEnum;
 import iuh.fit.auth.domain.enums.UserStatusEnum;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+public class User extends BaseEntity {
     private UUID userId;
     private UUID keycloakId;
     private String email;
@@ -22,13 +24,15 @@ public class User {
     private String password;
     private String fullName;
     private String avatarUrl;
+    private LocalDate dateOfBirth;
     private String phone;
     private String country;
     private UserStatusEnum status;
     private GenderEnum gender;
-    private Set<AuthProviderEnum> authProviders = new java.util.HashSet<>();
+    @Builder.Default
+    private Set<AuthProviderEnum> authProviders = new HashSet<>();
     private Role role;
-    
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+
+    @Builder.Default
+    private Set<PlayerSportProfile> playerSportProfiles = new HashSet<>();
 }

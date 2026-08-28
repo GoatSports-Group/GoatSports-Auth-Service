@@ -1,15 +1,16 @@
 package iuh.fit.auth.domain.entity;
 
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.UUID;
 
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Permission {
+public class Permission extends BaseEntity {
     private UUID permissionId;
     private String name;
     private String apiPath;

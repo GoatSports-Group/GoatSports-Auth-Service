@@ -46,7 +46,7 @@ public class InternalServiceImpl implements InternalService {
                 ? user.getRole().getPermissions().stream().map(Permission::getName).collect(Collectors.toSet())
                 : Collections.emptySet();
 
-        String role = user.getRole() != null ? user.getRole().getName() : "";
+        String role = user.getRole() != null ? user.getRole().getName().name() : "";
 
         return new UserPermissionsResponseCommand(user.getEmail(), role, permissions);
     }
@@ -90,7 +90,7 @@ public class InternalServiceImpl implements InternalService {
                         user.getUserId(),
                         user.getFullName(),
                         user.getEmail(),
-                        user.getRole().getName(),
+                        user.getRole().getName().name(),
                         user.getStatus().getValue(),
                         user.getCreatedAt()
                 ))

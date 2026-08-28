@@ -7,4 +7,5 @@
 >
     <include file="db.changelog/schema/07-07-2026/init-schema-db-user.xml"/>
     <include file="db.changelog/schema/29-07-2026/add-phone-country.xml"/>
+    <include file="db.changelog/schema/28-08-2026/align-auth-domain-model.xml"/>
 </databaseChangeLog>

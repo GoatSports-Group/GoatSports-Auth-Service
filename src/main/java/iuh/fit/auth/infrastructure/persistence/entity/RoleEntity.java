@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import iuh.fit.auth.domain.enums.RoleEnum;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -23,7 +24,9 @@ public class RoleEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(columnDefinition = "UUID")
     private UUID roleId;
-    private String name;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, unique = true)
+    private RoleEnum name;
     private String description;
     private boolean active;
 

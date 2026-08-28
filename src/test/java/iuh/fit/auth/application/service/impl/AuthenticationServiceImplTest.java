@@ -101,7 +101,7 @@ class AuthenticationServiceImplTest {
                 "encrypted-password",
                 "encrypted-confirm-password"
         );
-        Role venueOwnerRole = Role.builder().name(RoleEnum.VENUE_OWNER.name()).build();
+        Role venueOwnerRole = Role.builder().name(RoleEnum.VENUE_OWNER).build();
 
         when(userRepository.existsByUsernameOrEmail(command.username(), command.email())).thenReturn(false);
         when(rsaPort.decrypt(command.password())).thenReturn("Strong@123");

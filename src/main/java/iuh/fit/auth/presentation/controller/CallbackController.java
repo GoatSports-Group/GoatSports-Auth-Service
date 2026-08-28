@@ -63,7 +63,7 @@ public class CallbackController {
 
         String redirectUrl = state;
         if (result.user() != null && result.user().role() != null) {
-            String roleName = result.user().role().getName();
+            String roleName = result.user().role().getName().name();
             if ("ADMIN".equalsIgnoreCase(roleName)) {
                 if (
                     redirectUrl == null || redirectUrl.isEmpty() || redirectUrl.contains(clientUrl)

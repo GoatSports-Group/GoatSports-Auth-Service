@@ -7,6 +7,7 @@ import iuh.fit.auth.application.service.RoleService;
 import iuh.fit.auth.application.util.BaseUtil;
 import iuh.fit.auth.domain.entity.Permission;
 import iuh.fit.auth.domain.entity.Role;
+import iuh.fit.auth.domain.enums.RoleEnum;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.dto.request.role.CreateRoleRequestCommand;
@@ -27,7 +28,7 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public Role createRole(CreateRoleRequestCommand command) throws ServiceException {
         Role role = new Role();
-        role.setName(command.name().toUpperCase());
+        role.setName(parseRole(command.name()));
         if (command.description() != null) {
             role.setDescription(command.description());
         } else {
@@ -52,7 +53,7 @@ public class RoleServiceImpl implements RoleService {
 
         resRole.setDescription(command.description());
         resRole.setActive(command.active());
-        resRole.setName(command.name());
+        resRole.setName(parseRole(command.name()));
 
         return roleRepository.save(resRole);
     }
@@ -104,5 +105,13 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public PageResult<Role> getAllRoles(PageFilter filter) {
         return roleRepository.findAll(filter);
+    }
+
+    private RoleEnum parseRole(String name) throws ServiceException {
+        try {
+            return RoleEnum.valueOf(name.toUpperCase());
+        } catch (IllegalArgumentException exception) {
+            throw new ServiceException("Vai trò không hợp lệ: " + name);
+        }
     }
 }

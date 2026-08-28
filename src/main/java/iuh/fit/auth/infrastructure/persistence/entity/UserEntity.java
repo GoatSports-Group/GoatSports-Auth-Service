@@ -6,6 +6,7 @@ import iuh.fit.auth.domain.enums.UserStatusEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -32,6 +33,7 @@ public class UserEntity extends BaseEntity {
     private String password;
     private String fullName;
     private String avatarUrl;
+    private LocalDate dateOfBirth;
     private String phone;
     private String country;
     @Enumerated(EnumType.STRING)
@@ -46,9 +48,14 @@ public class UserEntity extends BaseEntity {
     )
     @Enumerated(EnumType.STRING)
     @Column(name = "auth_provider")
-    Set<AuthProviderEnum> authProviders = new HashSet<>();
+    @Builder.Default
+    private Set<AuthProviderEnum> authProviders = new HashSet<>();
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "role_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "role_id", nullable = false)
     private RoleEntity role;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private Set<PlayerSportProfileEntity> playerSportProfiles = new HashSet<>();
 }
