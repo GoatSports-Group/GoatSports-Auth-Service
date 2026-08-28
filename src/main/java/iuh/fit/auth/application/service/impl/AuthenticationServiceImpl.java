@@ -67,12 +67,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public UserResponseCommand register(RegisterRequestCommand registerRequestCommand) throws ServiceException {
-        return registerWithRole(registerRequestCommand, RoleEnum.PLAYER);
-    }
-
-    @Override
-    public UserResponseCommand registerVenueOwner(RegisterRequestCommand registerRequestCommand) throws ServiceException {
-        return registerWithRole(registerRequestCommand, RoleEnum.VENUE_OWNER);
+        RoleEnum registrationRole = registerRequestCommand.accountType();
+        if (registrationRole != RoleEnum.PLAYER && registrationRole != RoleEnum.VENUE_OWNER) {
+            throw new ServiceException("Loại tài khoản đăng ký không hợp lệ");
+        }
+        return registerWithRole(registerRequestCommand, registrationRole);
     }
 
     @Override

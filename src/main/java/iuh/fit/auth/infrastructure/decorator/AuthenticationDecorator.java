@@ -30,12 +30,6 @@ public class AuthenticationDecorator implements AuthenticationService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public UserResponseCommand registerVenueOwner(RegisterRequestCommand registerRequestCommand) throws ServiceException {
-        return authenticationServiceImpl.registerVenueOwner(registerRequestCommand);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
     public void verifyUser(VerificationRequestCommand verificationRequestCommand) throws ServiceException {
         authenticationServiceImpl.verifyUser(verificationRequestCommand);
     }

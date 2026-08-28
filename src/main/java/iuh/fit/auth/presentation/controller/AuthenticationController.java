@@ -82,11 +82,12 @@ public class AuthenticationController {
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest registerRequest) throws ServiceException {
         UserResponseCommand userResponse = authenticationService.register(
                 new RegisterRequestCommand(
+                        registerRequest.getAccountType(),
                         registerRequest.getUsername(), registerRequest.getFullName(), registerRequest.getEmail(),
                         registerRequest.getPassword(), registerRequest.getConfirmPassword()
                 )
         );
-        return ResponseEntity.status(HttpStatus.OK).body(userConverter.toResponse(userResponse));
+        return ResponseEntity.status(HttpStatus.CREATED).body(userConverter.toResponse(userResponse));
     }
 
     @PostMapping("/verify")

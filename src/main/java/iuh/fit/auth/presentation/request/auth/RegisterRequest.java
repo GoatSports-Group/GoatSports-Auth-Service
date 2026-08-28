@@ -1,7 +1,9 @@
 package iuh.fit.auth.presentation.request.auth;
 
+import iuh.fit.auth.domain.enums.RoleEnum;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,6 +12,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegisterRequest {
+    @NotNull(message = "Loại tài khoản không được để trống")
+    private RoleEnum accountType;
     @NotBlank(message = "Tên hiển thị không được để trống")
     private String username;
     @NotBlank(message = "Họ tên không được để trống")

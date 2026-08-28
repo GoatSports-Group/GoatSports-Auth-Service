@@ -9,8 +9,6 @@ import iuh.fit.auth.application.exception.ServiceException;
 public interface AuthenticationService {
     UserResponseCommand register(RegisterRequestCommand registerRequestCommand) throws ServiceException;
 
-    UserResponseCommand registerVenueOwner(RegisterRequestCommand registerRequestCommand) throws ServiceException;
-
     LoginResponseCommand login(LoginRequestCommand loginCommand) throws ServiceException;
 
     void verifyUser(VerificationRequestCommand verificationRequestCommand) throws ServiceException;

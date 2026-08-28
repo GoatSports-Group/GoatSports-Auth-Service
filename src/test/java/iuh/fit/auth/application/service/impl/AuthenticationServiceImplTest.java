@@ -25,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -75,6 +76,7 @@ class AuthenticationServiceImplTest {
     @Test
     void registerChecksDuplicateAgainstUsernameAndEmail() {
         RegisterRequestCommand command = new RegisterRequestCommand(
+                RoleEnum.PLAYER,
                 "goat.player",
                 "Nguyễn Minh",
                 "player@example.com",
@@ -93,8 +95,9 @@ class AuthenticationServiceImplTest {
     }
 
     @Test
-    void registerVenueOwnerCreatesAccountWithVenueOwnerRole() throws ServiceException {
+    void registerWithVenueOwnerAccountTypeCreatesVenueOwnerRole() throws ServiceException {
         RegisterRequestCommand command = new RegisterRequestCommand(
+                RoleEnum.VENUE_OWNER,
                 "goat.owner",
                 "Nguyễn Minh",
                 "owner@example.com",
@@ -114,7 +117,7 @@ class AuthenticationServiceImplTest {
             user.setUserId(java.util.UUID.randomUUID());
             return user;
         });
-        authenticationService.registerVenueOwner(command);
+        authenticationService.register(command);
 
         verify(roleRepository).findByName(RoleEnum.VENUE_OWNER.name());
         verify(userRepository).save(org.mockito.ArgumentMatchers.argThat(
@@ -127,5 +130,20 @@ class AuthenticationServiceImplTest {
                 eq(300L),
                 eq(java.util.concurrent.TimeUnit.SECONDS)
         );
+    }
+
+    @Test
+    void registerRejectsAccountTypesOutsidePublicRegistrationRoles() {
+        RegisterRequestCommand command = new RegisterRequestCommand(
+                RoleEnum.ADMIN,
+                "goat.admin",
+                "Goat Admin",
+                "admin@example.com",
+                "encrypted-password",
+                "encrypted-confirm-password"
+        );
+
+        assertThrows(ServiceException.class, () -> authenticationService.register(command));
+        verifyNoInteractions(userRepository, roleRepository);
     }
 }

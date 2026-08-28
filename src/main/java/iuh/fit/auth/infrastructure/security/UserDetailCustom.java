@@ -29,8 +29,12 @@ public class UserDetailCustom implements UserDetailsService {
             throw new DisabledException("Tài khoản được đăng nhập bằng mạng xã hội");
         }
 
+        if (user.getStatus() == UserStatusEnum.BLOCKED) {
+            throw new DisabledException("Tài khoản đã bị khóa");
+        }
+
         if (user.getStatus() == UserStatusEnum.INACTIVE) {
-            throw new DisabledException("Tài khoản chưa được kích hoạt hoặc đã bị khóa");
+            throw new DisabledException("Tài khoản chưa được kích hoạt");
         }
 
         if (user.getRole() == null || !user.getRole().isActive()) {
