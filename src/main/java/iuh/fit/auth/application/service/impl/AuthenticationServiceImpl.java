@@ -67,12 +67,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public UserResponseCommand register(RegisterRequestCommand registerRequestCommand) throws ServiceException {
-        return registerWithRole(registerRequestCommand, RoleEnum.PLAYER, true);
+        return registerWithRole(registerRequestCommand, RoleEnum.PLAYER);
     }
 
     @Override
     public UserResponseCommand registerVenueOwner(RegisterRequestCommand registerRequestCommand) throws ServiceException {
-        return registerWithRole(registerRequestCommand, RoleEnum.VENUE_OWNER, false);
+        return registerWithRole(registerRequestCommand, RoleEnum.VENUE_OWNER);
     }
 
     @Override
@@ -358,8 +358,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private UserResponseCommand registerWithRole(
             RegisterRequestCommand registerRequestCommand,
-            RoleEnum roleName,
-            boolean shouldSendVerificationEmail
+            RoleEnum roleName
     ) throws ServiceException {
         boolean existed = userRepository.existsByUsernameOrEmail(
                 registerRequestCommand.username(), registerRequestCommand.email());
@@ -399,16 +398,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         userRegistrationEventPublisher.publishUserRegistered(createdUser, rawPassword);
 
-        if (shouldSendVerificationEmail) {
-            String verificationCode = BaseUtil.generateVerificationCode();
-            this.redisPort.saveWithTTL(
-                    createdUser.getUserId().toString(),
-                    verificationCode,
-                    jwtPort.getAuthProperties().verificationCodeValidityInSecond(),
-                    TimeUnit.SECONDS);
+        String verificationCode = BaseUtil.generateVerificationCode();
+        this.redisPort.saveWithTTL(
+                createdUser.getUserId().toString(),
+                verificationCode,
+                jwtPort.getAuthProperties().verificationCodeValidityInSecond(),
+                TimeUnit.SECONDS);
 
-            emailNotificationPort.sendVerificationEmail(createdUser.getEmail(), verificationCode);
-        }
+        emailNotificationPort.sendVerificationEmail(createdUser.getEmail(), verificationCode);
 
         return userMapper.toUserResponseCommand(createdUser);
     }

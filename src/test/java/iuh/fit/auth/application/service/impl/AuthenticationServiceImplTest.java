@@ -1,5 +1,6 @@
 package iuh.fit.auth.application.service.impl;
 
+import iuh.fit.auth.application.dto.AuthProperties;
 import iuh.fit.auth.application.dto.request.auth.RegisterRequestCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.mapper.UserMapper;
@@ -24,11 +25,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 
 @ExtendWith(MockitoExtension.class)
 class AuthenticationServiceImplTest {
@@ -107,6 +107,7 @@ class AuthenticationServiceImplTest {
         when(rsaPort.decrypt(command.password())).thenReturn("Strong@123");
         when(rsaPort.decrypt(command.confirmPassword())).thenReturn("Strong@123");
         when(jwtPort.hashPassword("Strong@123")).thenReturn("hashed-password");
+        when(jwtPort.getAuthProperties()).thenReturn(new AuthProperties(300, 3600));
         when(roleRepository.findByName(RoleEnum.VENUE_OWNER.name())).thenReturn(java.util.Optional.of(venueOwnerRole));
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);
@@ -119,12 +120,12 @@ class AuthenticationServiceImplTest {
         verify(userRepository).save(org.mockito.ArgumentMatchers.argThat(
                 user -> user.getRole() == venueOwnerRole && user.getStatus() != null
         ));
-        verify(emailNotificationPort, never()).sendVerificationEmail(anyString(), anyString());
-        verify(redisPort, never()).saveWithTTL(
+        verify(emailNotificationPort).sendVerificationEmail(eq(command.email()), anyString());
+        verify(redisPort).saveWithTTL(
                 anyString(),
                 anyString(),
-                anyLong(),
-                any(java.util.concurrent.TimeUnit.class)
+                eq(300L),
+                eq(java.util.concurrent.TimeUnit.SECONDS)
         );
     }
 }
