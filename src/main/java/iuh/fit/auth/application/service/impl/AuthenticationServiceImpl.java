@@ -67,54 +67,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public UserResponseCommand register(RegisterRequestCommand registerRequestCommand) throws ServiceException {
-        boolean existed = userRepository.existsByUsernameOrEmail(
-                registerRequestCommand.username(), registerRequestCommand.username());
-        if (existed)
-            throw new ServiceException("Người dùng đã tồn tại");
+        return registerWithRole(registerRequestCommand, RoleEnum.PLAYER);
+    }
 
-        String rawPassword = rsaPort.decrypt(registerRequestCommand.password());
-        String rawConfirmPassword = rsaPort.decrypt(registerRequestCommand.confirmPassword());
-
-        if (rawPassword == null || rawPassword.isBlank()) {
-            throw new ServiceException("Mật khẩu không được để trống");
-        }
-
-        if (!rawPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$")) {
-            throw new ServiceException("Mật khẩu phải có ít nhất 8 ký tự, chữ hoa, chữ thường, số và ký tự đặc biệt");
-        }
-
-        if (!rawPassword.equals(rawConfirmPassword)) {
-            throw new ServiceException("Mật khẩu và xác nhận mật khẩu không khớp");
-        }
-
-        String hashedPassword = jwtPort.hashPassword(rawPassword);
-
-        User user = new User();
-        user.setUsername(registerRequestCommand.username());
-        user.setPassword(hashedPassword);
-        user.setFullName(registerRequestCommand.fullName());
-        user.setEmail(registerRequestCommand.email());
-        user.setStatus(UserStatusEnum.INACTIVE);
-        user.getAuthProviders().add(AuthProviderEnum.LOCAL);
-
-        Role role = roleRepository.findByName(RoleEnum.PLAYER.name())
-                .orElseThrow(() -> new ServiceException("Vai trò không tồn tại"));
-        user.setRole(role);
-
-        User createdUser = userRepository.save(user);
-
-        userRegistrationEventPublisher.publishUserRegistered(createdUser, rawPassword);
-
-        String verificationCode = BaseUtil.generateVerificationCode();
-        this.redisPort.saveWithTTL(
-                createdUser.getUserId().toString(),
-                verificationCode,
-                jwtPort.getAuthProperties().verificationCodeValidityInSecond(),
-                TimeUnit.SECONDS);
-
-        emailNotificationPort.sendVerificationEmail(createdUser.getEmail(), verificationCode);
-
-        return userMapper.toUserResponseCommand(createdUser);
+    @Override
+    public UserResponseCommand registerVenueOwner(RegisterRequestCommand registerRequestCommand) throws ServiceException {
+        return registerWithRole(registerRequestCommand, RoleEnum.VENUE_OWNER);
     }
 
     @Override
@@ -396,5 +354,59 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 TimeUnit.SECONDS);
 
         return new LoginResponseCommand(userMapper.toUserResponseCommand(user), accessToken, refreshToken);
+    }
+
+    private UserResponseCommand registerWithRole(
+            RegisterRequestCommand registerRequestCommand,
+            RoleEnum roleName
+    ) throws ServiceException {
+        boolean existed = userRepository.existsByUsernameOrEmail(
+                registerRequestCommand.username(), registerRequestCommand.email());
+        if (existed)
+            throw new ServiceException("Người dùng đã tồn tại");
+
+        String rawPassword = rsaPort.decrypt(registerRequestCommand.password());
+        String rawConfirmPassword = rsaPort.decrypt(registerRequestCommand.confirmPassword());
+
+        if (rawPassword == null || rawPassword.isBlank()) {
+            throw new ServiceException("Mật khẩu không được để trống");
+        }
+
+        if (!rawPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$")) {
+            throw new ServiceException("Mật khẩu phải có ít nhất 8 ký tự, chữ hoa, chữ thường, số và ký tự đặc biệt");
+        }
+
+        if (!rawPassword.equals(rawConfirmPassword)) {
+            throw new ServiceException("Mật khẩu và xác nhận mật khẩu không khớp");
+        }
+
+        String hashedPassword = jwtPort.hashPassword(rawPassword);
+
+        User user = new User();
+        user.setUsername(registerRequestCommand.username());
+        user.setPassword(hashedPassword);
+        user.setFullName(registerRequestCommand.fullName());
+        user.setEmail(registerRequestCommand.email());
+        user.setStatus(UserStatusEnum.INACTIVE);
+        user.getAuthProviders().add(AuthProviderEnum.LOCAL);
+
+        Role role = roleRepository.findByName(roleName.name())
+                .orElseThrow(() -> new ServiceException("Vai trò không tồn tại"));
+        user.setRole(role);
+
+        User createdUser = userRepository.save(user);
+
+        userRegistrationEventPublisher.publishUserRegistered(createdUser, rawPassword);
+
+        String verificationCode = BaseUtil.generateVerificationCode();
+        this.redisPort.saveWithTTL(
+                createdUser.getUserId().toString(),
+                verificationCode,
+                jwtPort.getAuthProperties().verificationCodeValidityInSecond(),
+                TimeUnit.SECONDS);
+
+        emailNotificationPort.sendVerificationEmail(createdUser.getEmail(), verificationCode);
+
+        return userMapper.toUserResponseCommand(createdUser);
     }
 }
