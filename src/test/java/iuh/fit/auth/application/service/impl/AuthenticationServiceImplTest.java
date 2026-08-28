@@ -1,7 +1,6 @@
 package iuh.fit.auth.application.service.impl;
 
 import iuh.fit.auth.application.dto.request.auth.RegisterRequestCommand;
-import iuh.fit.auth.application.dto.AuthProperties;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.mapper.UserMapper;
 import iuh.fit.auth.application.port.cache.RedisPort;
@@ -25,8 +24,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 
 @ExtendWith(MockitoExtension.class)
 class AuthenticationServiceImplTest {
@@ -111,13 +113,18 @@ class AuthenticationServiceImplTest {
             user.setUserId(java.util.UUID.randomUUID());
             return user;
         });
-        when(jwtPort.getAuthProperties()).thenReturn(new AuthProperties(300, 3600));
-
         authenticationService.registerVenueOwner(command);
 
         verify(roleRepository).findByName(RoleEnum.VENUE_OWNER.name());
         verify(userRepository).save(org.mockito.ArgumentMatchers.argThat(
                 user -> user.getRole() == venueOwnerRole && user.getStatus() != null
         ));
+        verify(emailNotificationPort, never()).sendVerificationEmail(anyString(), anyString());
+        verify(redisPort, never()).saveWithTTL(
+                anyString(),
+                anyString(),
+                anyLong(),
+                any(java.util.concurrent.TimeUnit.class)
+        );
     }
 }
