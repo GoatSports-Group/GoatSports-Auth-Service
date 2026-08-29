@@ -18,6 +18,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 @Component
@@ -31,34 +34,59 @@ public class DatabaseInitializer implements CommandLineRunner {
     private final JpaUserRepository userRepository;
     private final JpaPermissionRepository permissionRepository;
 
-    private record PermissionSeed(String name, String apiPath, String method, String module) {}
+    private record PermissionSeed(
+            String name,
+            String apiPath,
+            String method,
+            String module,
+            Set<RoleEnum> roles
+    ) {}
 
     private static final PermissionSeed[] PERMISSION_SEEDS = {
-            new PermissionSeed("CREATE_USER", "/api/v1/admin/users", "POST", "USER"),
-            new PermissionSeed("GET_USERS", "/api/v1/admin/users", "GET", "USER"),
-            new PermissionSeed("ASSIGN_ROLE_USER", "/api/v1/admin/users/role", "PUT", "USER"),
-            new PermissionSeed("CHANGE_PASSWORD_USER", "/api/v1/admin/users/{userId}/password", "PUT", "USER"),
-            new PermissionSeed("VERIFY_USER", "/api/v1/admin/users/{userId}/verify", "PUT", "USER"),
+            adminPermission("CREATE_USER", "/api/v1/admin/users", "POST", "USER"),
+            adminPermission("GET_USERS", "/api/v1/admin/users", "GET", "USER"),
+            adminPermission("ASSIGN_ROLE_USER", "/api/v1/admin/users/role", "PUT", "USER"),
+            adminPermission("CHANGE_PASSWORD_USER", "/api/v1/admin/users/{userId}/password", "PUT", "USER"),
+            adminPermission("VERIFY_USER", "/api/v1/admin/users/{userId}/verify", "PUT", "USER"),
 
-            new PermissionSeed("CREATE_ROLE", "/api/v1/admin/roles", "POST", "ROLE"),
-            new PermissionSeed("UPDATE_ROLE", "/api/v1/admin/roles", "PUT", "ROLE"),
-            new PermissionSeed("DELETE_ROLE", "/api/v1/admin/roles/{id}", "DELETE", "ROLE"),
-            new PermissionSeed("ACTIVATE_ROLE", "/api/v1/admin/roles/{id}/activate", "PUT", "ROLE"),
-            new PermissionSeed("DEACTIVE_ROLE", "/api/v1/admin/roles/{id}/deactivate", "PUT", "ROLE"),
-            new PermissionSeed("GET_ROLE", "/api/v1/admin/roles/{id}", "GET", "ROLE"),
-            new PermissionSeed("GET_ROLES", "/api/v1/admin/roles", "GET", "ROLE"),
+            adminPermission("CREATE_ROLE", "/api/v1/admin/roles", "POST", "ROLE"),
+            adminPermission("UPDATE_ROLE", "/api/v1/admin/roles", "PUT", "ROLE"),
+            adminPermission("DELETE_ROLE", "/api/v1/admin/roles/{id}", "DELETE", "ROLE"),
+            adminPermission("ACTIVATE_ROLE", "/api/v1/admin/roles/{id}/activate", "PUT", "ROLE"),
+            adminPermission("DEACTIVE_ROLE", "/api/v1/admin/roles/{id}/deactivate", "PUT", "ROLE"),
+            adminPermission("GET_ROLE", "/api/v1/admin/roles/{id}", "GET", "ROLE"),
+            adminPermission("GET_ROLES", "/api/v1/admin/roles", "GET", "ROLE"),
 
-            new PermissionSeed("GET_PERMISSION", "/api/v1/admin/permissions/{id}", "GET", "PERMISSION"),
-            new PermissionSeed("GET_PERMISSIONS", "/api/v1/admin/permissions", "GET", "PERMISSION"),
+            adminPermission("GET_PERMISSION", "/api/v1/admin/permissions/{id}", "GET", "PERMISSION"),
+            adminPermission("GET_PERMISSIONS", "/api/v1/admin/permissions", "GET", "PERMISSION"),
+            adminPermission("GET_OWNER_APPLICATIONS", "/api/v1/admin/owner-applications", "GET", "OWNER_APPLICATION"),
+            adminPermission("GET_OWNER_APPLICATION", "/api/v1/admin/owner-applications/{id}", "GET", "OWNER_APPLICATION"),
+            adminPermission("EXPORT_USERS", "/api/v1/reports/export/users", "GET", "REPORT"),
+            adminPermission("EXPORT_USER", "/api/v1/reports/export/users/{userId}", "GET", "REPORT"),
+            adminPermission("GET_LOGS", "/api/v1/logs", "GET", "AUDIT"),
 
-            new PermissionSeed("GET_OWNER_APPLICATIONS", "/api/v1/admin/owner-applications", "GET", "OWNER_APPLICATION"),
-            new PermissionSeed("GET_OWNER_APPLICATION", "/api/v1/admin/owner-applications/{id}", "GET", "OWNER_APPLICATION"),
+            adminPermission("GET_ALL_VENUES", "/api/v1/admin/venues", "GET", "VENUE"),
+            adminPermission("GET_ANY_VENUE", "/api/v1/admin/venues/{venueId}", "GET", "VENUE"),
+            adminPermission("GET_ANY_VENUE_COURTS", "/api/v1/admin/venues/{venueId}/courts", "GET", "VENUE_COURT"),
+            adminPermission("GET_ANY_VENUE_COURT", "/api/v1/admin/venue-courts/{venueCourtId}", "GET", "VENUE_COURT"),
 
-            new PermissionSeed("EXPORT_USERS", "/api/v1/reports/export/users", "GET", "REPORT"),
-            new PermissionSeed("EXPORT_USER", "/api/v1/reports/export/users/{userId}", "GET", "REPORT"),
-
-            new PermissionSeed("GET_LOGS", "/api/v1/logs", "GET", "AUDIT")
+            ownerPermission("GET_OWN_VENUES", "/api/v1/owner/venues", "GET", "VENUE"),
+            ownerPermission("GET_OWN_VENUE", "/api/v1/owner/venues/{venueId}", "GET", "VENUE"),
+            ownerPermission("UPDATE_OWN_VENUE", "/api/v1/owner/venues/{venueId}", "PUT", "VENUE"),
+            ownerPermission("GET_OWN_VENUE_COURTS", "/api/v1/owner/venues/{venueId}/courts", "GET", "VENUE_COURT"),
+            ownerPermission("CREATE_OWN_VENUE_COURT", "/api/v1/owner/venues/{venueId}/courts", "POST", "VENUE_COURT"),
+            ownerPermission("GET_OWN_VENUE_COURT", "/api/v1/owner/venue-courts/{venueCourtId}", "GET", "VENUE_COURT"),
+            ownerPermission("UPDATE_OWN_VENUE_COURT", "/api/v1/owner/venue-courts/{venueCourtId}", "PUT", "VENUE_COURT"),
+            ownerPermission("CHANGE_OWN_VENUE_COURT_STATUS", "/api/v1/owner/venue-courts/{venueCourtId}", "PATCH", "VENUE_COURT")
     };
+
+    private static PermissionSeed adminPermission(String name, String path, String method, String module) {
+        return new PermissionSeed(name, path, method, module, Set.of(RoleEnum.ADMIN));
+    }
+
+    private static PermissionSeed ownerPermission(String name, String path, String method, String module) {
+        return new PermissionSeed(name, path, method, module, Set.of(RoleEnum.VENUE_OWNER));
+    }
 
     @Override
     public void run(String... args) throws Exception {
@@ -104,7 +132,7 @@ public class DatabaseInitializer implements CommandLineRunner {
     }
 
     private void initializePermissions() {
-        Set<PermissionEntity> adminPermissions = new HashSet<>();
+        Map<String, PermissionEntity> managedPermissions = new HashMap<>();
         for (PermissionSeed seed : PERMISSION_SEEDS) {
             PermissionEntity permission = permissionRepository.findByName(seed.name())
                     .orElseGet(() -> {
@@ -118,24 +146,41 @@ public class DatabaseInitializer implements CommandLineRunner {
                         log.info("Đã khởi tạo quyền hạn: {}", seed.name());
                         return saved;
                     });
-            adminPermissions.add(permission);
+            if (!Objects.equals(permission.getApiPath(), seed.apiPath())
+                    || !Objects.equals(permission.getMethod(), seed.method())
+                    || !Objects.equals(permission.getModule(), seed.module())) {
+                permission.setApiPath(seed.apiPath());
+                permission.setMethod(seed.method());
+                permission.setModule(seed.module());
+                permission = permissionRepository.save(permission);
+            }
+            managedPermissions.put(seed.name(), permission);
         }
 
-        roleRepository.findByName(RoleEnum.ADMIN).ifPresent(adminRole -> {
-            boolean updated = false;
-            if (adminRole.getPermissions() == null) {
-                adminRole.setPermissions(new HashSet<>());
-            }
-            for (PermissionEntity perm : adminPermissions) {
-                if (adminRole.getPermissions().stream().noneMatch(p -> p.getName().equals(perm.getName()))) {
-                    adminRole.getPermissions().add(perm);
-                    updated = true;
+        for (RoleEnum roleName : RoleEnum.values()) {
+            roleRepository.findByName(roleName).ifPresent(role -> {
+                boolean updated = false;
+                if (role.getPermissions() == null) {
+                    role.setPermissions(new HashSet<>());
                 }
-            }
-            if (updated) {
-                roleRepository.save(adminRole);
-                log.info("Đã gán toàn bộ quyền hạn cho vai trò ADMIN");
-            }
-        });
+                for (PermissionSeed seed : PERMISSION_SEEDS) {
+                    PermissionEntity permission = managedPermissions.get(seed.name());
+                    boolean assigned = role.getPermissions().stream()
+                            .anyMatch(item -> item.getName().equals(seed.name()));
+                    boolean shouldBeAssigned = seed.roles().contains(roleName);
+                    if (shouldBeAssigned && !assigned) {
+                        role.getPermissions().add(permission);
+                        updated = true;
+                    } else if (!shouldBeAssigned && assigned) {
+                        role.getPermissions().removeIf(item -> item.getName().equals(seed.name()));
+                        updated = true;
+                    }
+                }
+                if (updated) {
+                    roleRepository.save(role);
+                    log.info("Đã đồng bộ quyền hạn cho vai trò {}", roleName);
+                }
+            });
+        }
     }
 }
