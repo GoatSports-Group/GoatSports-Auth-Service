@@ -90,7 +90,12 @@ public class DatabaseInitializer implements CommandLineRunner {
 
             ownerPermission("GET_OWN_BOOKINGS", "/api/v1/owner/bookings", "GET", "BOOKING"),
             ownerPermission("GET_OWN_BOOKING", "/api/v1/owner/bookings/{bookingId}", "GET", "BOOKING"),
-            ownerPermission("UPDATE_OWN_BOOKING_STATUS", "/api/v1/owner/bookings/{bookingId}/status", "PATCH", "BOOKING")
+            ownerPermission("UPDATE_OWN_BOOKING_STATUS", "/api/v1/owner/bookings/{bookingId}/status", "PATCH", "BOOKING"),
+
+            ownerPermission("LOOKUP_OWN_CHECK_IN", "/api/v1/owner/check-ins/lookup", "POST", "CHECK_IN"),
+            ownerPermission("GET_OWN_CHECK_INS", "/api/v1/owner/check-ins", "GET", "CHECK_IN"),
+            ownerPermission("CONFIRM_OWN_CHECK_IN", "/api/v1/owner/check-ins", "POST", "CHECK_IN"),
+            ownerPermission("CREATE_OWN_WALK_IN_BOOKING", "/api/v1/owner/check-ins/walk-ins", "POST", "CHECK_IN")
     };
 
     private static PermissionSeed adminPermission(String name, String path, String method, String module) {

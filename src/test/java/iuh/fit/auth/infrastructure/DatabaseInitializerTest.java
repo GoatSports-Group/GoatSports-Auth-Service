@@ -84,7 +84,11 @@ class DatabaseInitializerTest {
                 "DELETE_OWN_TIME_SLOT",
                 "GET_OWN_BOOKINGS",
                 "GET_OWN_BOOKING",
-                "UPDATE_OWN_BOOKING_STATUS"
+                "UPDATE_OWN_BOOKING_STATUS",
+                "LOOKUP_OWN_CHECK_IN",
+                "GET_OWN_CHECK_INS",
+                "CONFIRM_OWN_CHECK_IN",
+                "CREATE_OWN_WALK_IN_BOOKING"
         );
         assertThat(playerPermissions).isEmpty();
     }
