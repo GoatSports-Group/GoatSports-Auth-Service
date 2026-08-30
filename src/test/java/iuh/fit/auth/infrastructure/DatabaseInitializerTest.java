@@ -88,8 +88,10 @@ class DatabaseInitializerTest {
                 "LOOKUP_OWN_CHECK_IN",
                 "GET_OWN_CHECK_INS",
                 "CONFIRM_OWN_CHECK_IN",
-                "CREATE_OWN_WALK_IN_BOOKING"
+                "CREATE_OWN_WALK_IN_BOOKING",
+                "GET_OWN_REVENUE"
         );
+        assertThat(adminPermissions).doesNotContain("GET_OWN_REVENUE");
         assertThat(playerPermissions).isEmpty();
     }
 
