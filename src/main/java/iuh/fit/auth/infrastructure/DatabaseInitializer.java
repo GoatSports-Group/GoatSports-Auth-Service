@@ -97,7 +97,10 @@ public class DatabaseInitializer implements CommandLineRunner {
             ownerPermission("CONFIRM_OWN_CHECK_IN", "/api/v1/owner/check-ins", "POST", "CHECK_IN"),
             ownerPermission("CREATE_OWN_WALK_IN_BOOKING", "/api/v1/owner/check-ins/walk-ins", "POST", "CHECK_IN"),
 
-            ownerPermission("GET_OWN_REVENUE", "/api/v1/owner/revenue", "GET", "REVENUE")
+            ownerPermission("GET_OWN_REVENUE", "/api/v1/owner/revenue", "GET", "REVENUE"),
+
+            ownerPermission("GET_OWN_REVIEWS", "/api/v1/owner/reviews", "GET", "REVIEW"),
+            playerPermission("CREATE_OWN_REVIEW", "/api/v1/player/reviews", "POST", "REVIEW")
     };
 
     private static PermissionSeed adminPermission(String name, String path, String method, String module) {
@@ -106,6 +109,10 @@ public class DatabaseInitializer implements CommandLineRunner {
 
     private static PermissionSeed ownerPermission(String name, String path, String method, String module) {
         return new PermissionSeed(name, path, method, module, Set.of(RoleEnum.VENUE_OWNER));
+    }
+
+    private static PermissionSeed playerPermission(String name, String path, String method, String module) {
+        return new PermissionSeed(name, path, method, module, Set.of(RoleEnum.PLAYER));
     }
 
     @Override

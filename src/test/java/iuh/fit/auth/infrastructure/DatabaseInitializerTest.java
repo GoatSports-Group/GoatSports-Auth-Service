@@ -89,10 +89,14 @@ class DatabaseInitializerTest {
                 "GET_OWN_CHECK_INS",
                 "CONFIRM_OWN_CHECK_IN",
                 "CREATE_OWN_WALK_IN_BOOKING",
-                "GET_OWN_REVENUE"
+                "GET_OWN_REVENUE",
+                "GET_OWN_REVIEWS"
         );
-        assertThat(adminPermissions).doesNotContain("GET_OWN_REVENUE");
-        assertThat(playerPermissions).isEmpty();
+        assertThat(adminPermissions).doesNotContain(
+                "GET_OWN_REVENUE", "GET_OWN_REVIEWS", "CREATE_OWN_REVIEW"
+        );
+        assertThat(playerPermissions).containsExactly("CREATE_OWN_REVIEW");
+        assertThat(ownerPermissions).doesNotContain("CREATE_OWN_REVIEW");
     }
 
     private Set<String> names(RoleEntity role) {
