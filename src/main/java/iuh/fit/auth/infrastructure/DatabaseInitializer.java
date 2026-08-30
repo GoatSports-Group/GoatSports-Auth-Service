@@ -77,7 +77,20 @@ public class DatabaseInitializer implements CommandLineRunner {
             ownerPermission("CREATE_OWN_VENUE_COURT", "/api/v1/owner/venues/{venueId}/courts", "POST", "VENUE_COURT"),
             ownerPermission("GET_OWN_VENUE_COURT", "/api/v1/owner/venue-courts/{venueCourtId}", "GET", "VENUE_COURT"),
             ownerPermission("UPDATE_OWN_VENUE_COURT", "/api/v1/owner/venue-courts/{venueCourtId}", "PUT", "VENUE_COURT"),
-            ownerPermission("CHANGE_OWN_VENUE_COURT_STATUS", "/api/v1/owner/venue-courts/{venueCourtId}", "PATCH", "VENUE_COURT")
+            ownerPermission("CHANGE_OWN_VENUE_COURT_STATUS", "/api/v1/owner/venue-courts/{venueCourtId}", "PATCH", "VENUE_COURT"),
+
+            ownerPermission("GET_OWN_COURT_PRICING_RULES", "/api/v1/owner/venue-courts/{venueCourtId}/pricing-rules", "GET", "COURT_PRICING_RULE"),
+            ownerPermission("CREATE_OWN_COURT_PRICING_RULE", "/api/v1/owner/venue-courts/{venueCourtId}/pricing-rules", "POST", "COURT_PRICING_RULE"),
+            ownerPermission("UPDATE_OWN_COURT_PRICING_RULE", "/api/v1/owner/venue-courts/{venueCourtId}/pricing-rules/{pricingRuleId}", "PUT", "COURT_PRICING_RULE"),
+            ownerPermission("DELETE_OWN_COURT_PRICING_RULE", "/api/v1/owner/venue-courts/{venueCourtId}/pricing-rules/{pricingRuleId}", "DELETE", "COURT_PRICING_RULE"),
+            ownerPermission("GET_OWN_TIME_SLOTS", "/api/v1/owner/venue-courts/{venueCourtId}/time-slots", "GET", "TIME_SLOT"),
+            ownerPermission("CREATE_OWN_TIME_SLOTS", "/api/v1/owner/venue-courts/{venueCourtId}/time-slots", "POST", "TIME_SLOT"),
+            ownerPermission("UPDATE_OWN_TIME_SLOT_STATUS", "/api/v1/owner/time-slots/{timeSlotId}", "PATCH", "TIME_SLOT"),
+            ownerPermission("DELETE_OWN_TIME_SLOT", "/api/v1/owner/time-slots/{timeSlotId}", "DELETE", "TIME_SLOT"),
+
+            ownerPermission("GET_OWN_BOOKINGS", "/api/v1/owner/bookings", "GET", "BOOKING"),
+            ownerPermission("GET_OWN_BOOKING", "/api/v1/owner/bookings/{bookingId}", "GET", "BOOKING"),
+            ownerPermission("UPDATE_OWN_BOOKING_STATUS", "/api/v1/owner/bookings/{bookingId}/status", "PATCH", "BOOKING")
     };
 
     private static PermissionSeed adminPermission(String name, String path, String method, String module) {

@@ -73,7 +73,18 @@ class DatabaseInitializerTest {
                 "CREATE_OWN_VENUE_COURT",
                 "GET_OWN_VENUE_COURT",
                 "UPDATE_OWN_VENUE_COURT",
-                "CHANGE_OWN_VENUE_COURT_STATUS"
+                "CHANGE_OWN_VENUE_COURT_STATUS",
+                "GET_OWN_COURT_PRICING_RULES",
+                "CREATE_OWN_COURT_PRICING_RULE",
+                "UPDATE_OWN_COURT_PRICING_RULE",
+                "DELETE_OWN_COURT_PRICING_RULE",
+                "GET_OWN_TIME_SLOTS",
+                "CREATE_OWN_TIME_SLOTS",
+                "UPDATE_OWN_TIME_SLOT_STATUS",
+                "DELETE_OWN_TIME_SLOT",
+                "GET_OWN_BOOKINGS",
+                "GET_OWN_BOOKING",
+                "UPDATE_OWN_BOOKING_STATUS"
         );
         assertThat(playerPermissions).isEmpty();
     }
