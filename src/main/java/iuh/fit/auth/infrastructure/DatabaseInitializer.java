@@ -78,6 +78,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             ownerPermission("GET_OWN_VENUE_COURT", "/api/v1/owner/venue-courts/{venueCourtId}", "GET", "VENUE_COURT"),
             ownerPermission("UPDATE_OWN_VENUE_COURT", "/api/v1/owner/venue-courts/{venueCourtId}", "PUT", "VENUE_COURT"),
             ownerPermission("CHANGE_OWN_VENUE_COURT_STATUS", "/api/v1/owner/venue-courts/{venueCourtId}", "PATCH", "VENUE_COURT"),
+            ownerPermission("DELETE_OWN_VENUE_COURT", "/api/v1/owner/venue-courts/{venueCourtId}", "DELETE", "VENUE_COURT"),
 
             ownerPermission("GET_OWN_COURT_PRICING_RULES", "/api/v1/owner/venue-courts/{venueCourtId}/pricing-rules", "GET", "COURT_PRICING_RULE"),
             ownerPermission("CREATE_OWN_COURT_PRICING_RULE", "/api/v1/owner/venue-courts/{venueCourtId}/pricing-rules", "POST", "COURT_PRICING_RULE"),
