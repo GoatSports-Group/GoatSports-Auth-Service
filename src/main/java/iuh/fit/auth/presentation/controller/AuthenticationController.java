@@ -146,7 +146,7 @@ public class AuthenticationController {
             response.addHeader(HttpHeaders.SET_COOKIE, deleteAccessCookie.toString());
             response.addHeader(HttpHeaders.SET_COOKIE, deleteRefreshCookie.toString());
 
-            return ResponseEntity.status(HttpStatus.OK).body(null);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
     }
 
