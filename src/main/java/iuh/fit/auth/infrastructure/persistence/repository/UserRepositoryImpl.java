@@ -8,6 +8,7 @@ import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.domain.entity.User;
 import iuh.fit.auth.domain.enums.RoleEnum;
+import iuh.fit.auth.domain.enums.UserStatusEnum;
 import iuh.fit.auth.infrastructure.persistence.entity.UserEntity;
 import iuh.fit.auth.infrastructure.persistence.mapper.UserEntityMapper;
 import iuh.fit.auth.infrastructure.persistence.repository.jpa.JpaRoleRepository;
@@ -116,6 +117,20 @@ public class UserRepositoryImpl implements UserRepository {
     public List<User> findAllUsers() {
         List<UserEntity> userEntities = jpaUserRepository.findAll();
         return userEntities.stream()
+                .map(userEntityMapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<User> searchActivePlayers(String keyword, UUID excludedUserId, int limit) {
+        int safeLimit = Math.max(1, Math.min(limit, 20));
+        return jpaUserRepository.searchActivePlayers(
+                        keyword.trim(),
+                        excludedUserId,
+                        UserStatusEnum.ACTIVE,
+                        RoleEnum.PLAYER,
+                        PageRequest.of(0, safeLimit)
+                ).stream()
                 .map(userEntityMapper::toDomain)
                 .toList();
     }

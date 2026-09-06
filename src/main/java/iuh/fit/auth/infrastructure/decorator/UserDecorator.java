@@ -12,6 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class UserDecorator implements UserService {
@@ -68,6 +71,12 @@ public class UserDecorator implements UserService {
     @Transactional(readOnly = true)
     public PageResult<User> getAllUsers(PageFilter filter) {
         return userServiceImpl.getAllUsers(filter);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponseCommand> searchPlayers(String keyword, UUID excludedUserId, int limit) {
+        return userServiceImpl.searchPlayers(keyword, excludedUserId, limit);
     }
 
     @Override

@@ -127,6 +127,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<UserResponseCommand> searchPlayers(String keyword, UUID excludedUserId, int limit) {
+        if (keyword == null || keyword.trim().length() < 2) {
+            return List.of();
+        }
+        return userMapper.toUserResponseCommandList(
+                userRepository.searchActivePlayers(keyword, excludedUserId, limit)
+        );
+    }
+
+    @Override
     public UserResponseCommand updateUser(String userId, UpdateUserRequestCommand command) throws ServiceException {
         UUID userUUID = BaseUtil.uuid(userId);
 

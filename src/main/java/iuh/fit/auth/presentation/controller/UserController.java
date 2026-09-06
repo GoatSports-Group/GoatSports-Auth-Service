@@ -11,11 +11,15 @@ import iuh.fit.auth.presentation.converter.UserConverter;
 import iuh.fit.auth.presentation.request.auth.UpdatePasswordRequest;
 import iuh.fit.auth.presentation.request.user.UpdateUserRequest;
 import iuh.fit.auth.presentation.response.user.UserResponse;
+import iuh.fit.auth.presentation.response.user.PlayerSummaryResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -23,6 +27,24 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserService userService;
     private final UserConverter userConverter;
+
+    @GetMapping("/search")
+    public ResponseEntity<List<PlayerSummaryResponse>> searchPlayers(
+            @RequestParam("query") String query,
+            @RequestParam("excludeUserId") UUID excludeUserId,
+            @RequestParam(value = "limit", defaultValue = "12") int limit
+    ) {
+        List<PlayerSummaryResponse> players = userService.searchPlayers(query, excludeUserId, limit)
+                .stream()
+                .map(user -> PlayerSummaryResponse.builder()
+                        .userId(user.userId())
+                        .username(user.username())
+                        .fullName(user.fullName())
+                        .avatarUrl(user.avatarUrl())
+                        .build())
+                .toList();
+        return ResponseEntity.ok(players);
+    }
 
     @GetMapping("/{userId}")
     @AuditLog(action = "GET_USER", description = "Lấy thông tin người dùng #{#userId}")

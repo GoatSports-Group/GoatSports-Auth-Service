@@ -12,6 +12,9 @@ import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.domain.entity.User;
 
+import java.util.List;
+import java.util.UUID;
+
 public interface UserService {
     UserResponseCommand createUser(CreateUserRequestCommand command) throws ServiceException;
 
@@ -30,6 +33,8 @@ public interface UserService {
     void updatePasswordByAdmin(AdminUpdatePasswordRequestCommand command) throws ServiceException;
 
     PageResult<User> getAllUsers(PageFilter filter);
+
+    List<UserResponseCommand> searchPlayers(String keyword, UUID excludedUserId, int limit);
 
     void verifyUser(String userId, boolean verified) throws ServiceException;
 }

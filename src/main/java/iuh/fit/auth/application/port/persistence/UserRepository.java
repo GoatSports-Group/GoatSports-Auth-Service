@@ -28,5 +28,7 @@ public interface UserRepository {
 
     List<User> findAllUsers();
 
+    List<User> searchActivePlayers(String keyword, UUID excludedUserId, int limit);
+
     Optional<User> findByRole_Name(String name);
 }
