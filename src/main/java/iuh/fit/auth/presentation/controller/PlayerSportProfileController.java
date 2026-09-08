@@ -1,0 +1,94 @@
+package iuh.fit.auth.presentation.controller;
+
+import iuh.fit.auth.application.dto.request.user.SaveAvailabilityCommand;
+import iuh.fit.auth.application.dto.request.user.SavePlayerSportProfileCommand;
+import iuh.fit.auth.application.exception.ServiceException;
+import iuh.fit.auth.application.service.PlayerSportProfileService;
+import iuh.fit.auth.presentation.converter.PlayerSportProfileConverter;
+import iuh.fit.auth.presentation.request.user.AvailabilityRequest;
+import iuh.fit.auth.presentation.request.user.SavePlayerSportProfileRequest;
+import iuh.fit.auth.presentation.response.user.PlayerSportProfileResponse;
+import iuh.fit.shared.annotation.AuditLog;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/v1/users/me/sport-profiles")
+@RequiredArgsConstructor
+public class PlayerSportProfileController {
+    private final PlayerSportProfileService profileService;
+    private final PlayerSportProfileConverter profileConverter;
+
+    @GetMapping
+    @AuditLog(action = "GET_MY_SPORT_PROFILES", description = "Lấy hồ sơ thể thao của người dùng hiện tại")
+    public ResponseEntity<List<PlayerSportProfileResponse>> getMyProfiles() throws ServiceException {
+        return ResponseEntity.ok(profileConverter.toResponse(profileService.getMyProfiles()));
+    }
+
+    @PostMapping
+    @AuditLog(action = "CREATE_SPORT_PROFILE", description = "Tạo hồ sơ thể thao")
+    public ResponseEntity<PlayerSportProfileResponse> createMyProfile(
+            @Valid @RequestBody SavePlayerSportProfileRequest request
+    ) throws ServiceException {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(profileConverter.toResponse(profileService.createMyProfile(toCommand(request))));
+    }
+
+    @PutMapping("/{profileId}")
+    @AuditLog(action = "UPDATE_SPORT_PROFILE", description = "Cập nhật hồ sơ thể thao #{#profileId}")
+    public ResponseEntity<PlayerSportProfileResponse> updateMyProfile(
+            @PathVariable UUID profileId,
+            @Valid @RequestBody SavePlayerSportProfileRequest request
+    ) throws ServiceException {
+        return ResponseEntity.ok(profileConverter.toResponse(
+                profileService.updateMyProfile(profileId, toCommand(request))
+        ));
+    }
+
+    @DeleteMapping("/{profileId}")
+    @AuditLog(action = "DELETE_SPORT_PROFILE", description = "Xóa hồ sơ thể thao #{#profileId}")
+    public ResponseEntity<Void> deleteMyProfile(@PathVariable UUID profileId) throws ServiceException {
+        profileService.deleteMyProfile(profileId);
+        return ResponseEntity.noContent().build();
+    }
+
+    private SavePlayerSportProfileCommand toCommand(SavePlayerSportProfileRequest request) {
+        List<SaveAvailabilityCommand> availabilities = request.getAvailabilities() == null
+                ? List.of()
+                : request.getAvailabilities().stream().map(this::toCommand).toList();
+        return new SavePlayerSportProfileCommand(
+                request.getSportType(),
+                request.getSkillLevel(),
+                request.getPreferredPositions(),
+                request.getPlayStyle(),
+                request.getLatitude(),
+                request.getLongitude(),
+                request.getPlayRadiusKm(),
+                availabilities
+        );
+    }
+
+    private SaveAvailabilityCommand toCommand(AvailabilityRequest request) {
+        return new SaveAvailabilityCommand(
+                request.getAvailabilityId(),
+                request.getDayOfWeek(),
+                request.getStartTime(),
+                request.getEndTime(),
+                request.getTimezone(),
+                request.getActive()
+        );
+    }
+}

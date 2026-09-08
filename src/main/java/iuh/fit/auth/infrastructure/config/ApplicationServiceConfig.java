@@ -5,6 +5,7 @@ import iuh.fit.auth.application.port.cache.RedisPort;
 import iuh.fit.auth.application.port.client.StoragePort;
 import iuh.fit.auth.application.port.notification.EmailNotificationPort;
 import iuh.fit.auth.application.port.persistence.PermissionRepository;
+import iuh.fit.auth.application.port.persistence.PlayerSportProfileRepository;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.application.port.security.CurrentUserProvider;
@@ -60,6 +61,14 @@ public class ApplicationServiceConfig {
     @Bean
     public PermissionServiceImpl permissionService(PermissionRepository permissionRepository) {
         return new PermissionServiceImpl(permissionRepository);
+    }
+
+    @Bean
+    public PlayerSportProfileServiceImpl playerSportProfileService(
+            PlayerSportProfileRepository profileRepository,
+            CurrentUserProvider currentUserProvider
+    ) {
+        return new PlayerSportProfileServiceImpl(profileRepository, currentUserProvider);
     }
 
     @Bean
