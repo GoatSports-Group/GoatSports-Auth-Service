@@ -176,7 +176,7 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException("Xác nhận tải ảnh đại diện thất bại");
         }
 
-        storagePort.moveFile(new MoveFileRequest(List.of(confirmRequest), 0L));
+        storagePort.moveFile(new MoveFileRequest(List.of(confirmRequest), "avatar:" + userUUID));
 
         String avatarUrl = storagePort.getFileUrl(permanentKeys.getFirst());
 
