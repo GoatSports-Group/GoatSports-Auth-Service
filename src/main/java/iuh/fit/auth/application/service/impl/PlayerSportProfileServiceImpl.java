@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -49,7 +48,7 @@ public class PlayerSportProfileServiceImpl implements PlayerSportProfileService 
             SavePlayerSportProfileCommand command
     ) throws ServiceException {
         UUID userId = currentUserId();
-        validateCommand(command);
+        command.validate();
         if (profileRepository.existsByUserIdAndSportType(userId, command.sportType())) {
             throw new ServiceException("Bạn đã có hồ sơ cho môn thể thao này");
         }
@@ -81,7 +80,7 @@ public class PlayerSportProfileServiceImpl implements PlayerSportProfileService 
             SavePlayerSportProfileCommand command
     ) throws ServiceException {
         UUID userId = currentUserId();
-        validateCommand(command);
+        command.validate();
         PlayerSportProfile profile = profileRepository.findByIdAndUserId(profileId, userId)
                 .orElseThrow(() -> new ServiceException("Không tìm thấy hồ sơ thể thao"));
 
@@ -118,66 +117,6 @@ public class PlayerSportProfileServiceImpl implements PlayerSportProfileService 
             throw new ServiceException("Không tìm thấy người dùng hiện tại");
         }
         return currentUser.getUserId();
-    }
-
-    private void validateCommand(SavePlayerSportProfileCommand command) throws ServiceException {
-        if (command == null || command.sportType() == null || command.skillLevel() == null) {
-            throw new ServiceException("Môn thể thao và trình độ không được để trống");
-        }
-        if ((command.latitude() == null) != (command.longitude() == null)) {
-            throw new ServiceException("Vĩ độ và kinh độ phải được cung cấp cùng nhau");
-        }
-        if (command.latitude() != null && (command.latitude() < -90 || command.latitude() > 90)) {
-            throw new ServiceException("Vĩ độ phải nằm trong khoảng từ -90 đến 90");
-        }
-        if (command.longitude() != null && (command.longitude() < -180 || command.longitude() > 180)) {
-            throw new ServiceException("Kinh độ phải nằm trong khoảng từ -180 đến 180");
-        }
-        if (command.playRadiusKm() != null
-                && (command.playRadiusKm() <= 0 || command.playRadiusKm() > 200)) {
-            throw new ServiceException("Bán kính chơi phải lớn hơn 0 và không vượt quá 200 km");
-        }
-        if (command.playStyle() != null && command.playStyle().trim().length() > 255) {
-            throw new ServiceException("Phong cách chơi không được vượt quá 255 ký tự");
-        }
-
-        Set<String> positions = normalizePositions(command.preferredPositions());
-        if (positions.size() > 10 || positions.stream().anyMatch(position -> position.length() > 50)) {
-            throw new ServiceException("Tối đa 10 vị trí yêu thích, mỗi vị trí không quá 50 ký tự");
-        }
-        validateAvailabilities(command.availabilities());
-    }
-
-    private void validateAvailabilities(List<SaveAvailabilityCommand> commands) throws ServiceException {
-        if (commands == null) return;
-
-        for (SaveAvailabilityCommand command : commands) {
-            if (command == null || command.dayOfWeek() == null
-                    || command.startTime() == null || command.endTime() == null) {
-                throw new ServiceException("Lịch rảnh phải có thứ, giờ bắt đầu và giờ kết thúc");
-            }
-            if (!command.startTime().isBefore(command.endTime())) {
-                throw new ServiceException("Giờ bắt đầu phải sớm hơn giờ kết thúc");
-            }
-            String timezone = normalizeTimezone(command.timezone());
-            if (timezone.length() > 100) {
-                throw new ServiceException("Múi giờ không được vượt quá 100 ký tự");
-            }
-        }
-
-        Map<Object, List<SaveAvailabilityCommand>> activeByDay = commands.stream()
-                .filter(command -> command != null && !Boolean.FALSE.equals(command.active()))
-                .collect(Collectors.groupingBy(SaveAvailabilityCommand::dayOfWeek));
-        for (List<SaveAvailabilityCommand> dailySlots : activeByDay.values()) {
-            List<SaveAvailabilityCommand> sorted = dailySlots.stream()
-                    .sorted(Comparator.comparing(SaveAvailabilityCommand::startTime))
-                    .toList();
-            for (int index = 1; index < sorted.size(); index++) {
-                if (sorted.get(index).startTime().isBefore(sorted.get(index - 1).endTime())) {
-                    throw new ServiceException("Các khung giờ rảnh trong cùng một ngày không được chồng nhau");
-                }
-            }
-        }
     }
 
     private Set<Availability> toAvailabilities(

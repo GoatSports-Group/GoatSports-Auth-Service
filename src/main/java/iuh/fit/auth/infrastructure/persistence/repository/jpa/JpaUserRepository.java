@@ -1,6 +1,7 @@
 package iuh.fit.auth.infrastructure.persistence.repository.jpa;
 
 import iuh.fit.auth.domain.enums.RoleEnum;
+import iuh.fit.auth.domain.enums.UserStatusEnum;
 import iuh.fit.auth.infrastructure.persistence.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -43,7 +44,7 @@ public interface JpaUserRepository extends JpaRepository<UserEntity, UUID>, JpaS
     List<UserEntity> searchActivePlayers(
             @Param("keyword") String keyword,
             @Param("excludedUserId") UUID excludedUserId,
-            @Param("status") iuh.fit.auth.domain.enums.UserStatusEnum status,
+            @Param("status") UserStatusEnum status,
             @Param("roleName") RoleEnum roleName,
             Pageable pageable
     );

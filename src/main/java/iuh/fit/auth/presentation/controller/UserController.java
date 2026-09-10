@@ -1,5 +1,6 @@
 package iuh.fit.auth.presentation.controller;
 
+import iuh.fit.auth.application.dto.request.user.CreatePasswordRequestCommand;
 import iuh.fit.auth.application.dto.request.user.UpdatePasswordRequestCommand;
 import iuh.fit.auth.application.dto.request.user.UpdateUserRequestCommand;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
@@ -106,7 +107,7 @@ public class UserController {
     ) throws ServiceException
     {
         userService.createPassword(
-                new iuh.fit.auth.application.dto.request.user.CreatePasswordRequestCommand(
+                new CreatePasswordRequestCommand(
                         createPasswordRequest.getNewPassword(),
                         createPasswordRequest.getConfirmPassword()
                 )
