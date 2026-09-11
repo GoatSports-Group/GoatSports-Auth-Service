@@ -2,6 +2,7 @@ package iuh.fit.auth.presentation.controller;
 
 import iuh.fit.auth.application.service.AuthenticationService;
 import iuh.fit.auth.application.dto.response.auth.LoginResponseCommand;
+import iuh.fit.auth.domain.enums.RoleEnum;
 import iuh.fit.shared.dto.ApiLogEvent;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -61,15 +62,11 @@ public class CallbackController {
         response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
-        String redirectUrl = state;
+        String redirectUrl = state == null || state.isBlank() ? clientUrl : state;
         if (result.user() != null && result.user().role() != null) {
-            String roleName = result.user().role().getName().name();
-            if ("ADMIN".equalsIgnoreCase(roleName)) {
-                if (
-                    redirectUrl == null || redirectUrl.isEmpty() || redirectUrl.contains(clientUrl)
-                ) {
-                    redirectUrl = adminUrl;
-                }
+            RoleEnum roleName = result.user().role().getName();
+            if (roleName == RoleEnum.ADMIN || roleName == RoleEnum.VENUE_OWNER) {
+                redirectUrl = adminUrl.replaceAll("/+$", "") + "/admin/dashboard";
             }
         }
 
