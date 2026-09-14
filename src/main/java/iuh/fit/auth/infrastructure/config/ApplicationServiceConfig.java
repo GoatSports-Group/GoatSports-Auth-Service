@@ -6,6 +6,7 @@ import iuh.fit.auth.application.port.client.StoragePort;
 import iuh.fit.auth.application.port.notification.EmailNotificationPort;
 import iuh.fit.auth.application.port.persistence.PermissionRepository;
 import iuh.fit.auth.application.port.persistence.PlayerSportProfileRepository;
+import iuh.fit.auth.application.port.persistence.AppliedMatchResultRepository;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.application.port.security.CurrentUserProvider;
@@ -69,6 +70,14 @@ public class ApplicationServiceConfig {
             CurrentUserProvider currentUserProvider
     ) {
         return new PlayerSportProfileServiceImpl(profileRepository, currentUserProvider);
+    }
+
+    @Bean
+    public MatchResultServiceImpl matchResultService(
+            PlayerSportProfileRepository profileRepository,
+            AppliedMatchResultRepository resultRepository
+    ) {
+        return new MatchResultServiceImpl(profileRepository, resultRepository);
     }
 
     @Bean

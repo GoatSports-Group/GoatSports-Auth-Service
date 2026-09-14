@@ -45,6 +45,13 @@ public class PlayerSportProfileRepositoryImpl implements PlayerSportProfileRepos
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Optional<PlayerSportProfile> findByUserIdAndSportType(UUID userId, SportType sportType) {
+        return jpaProfileRepository.findByUser_UserIdAndSportType(userId, sportType)
+                .map(profileMapper::toDomain);
+    }
+
+    @Override
     public boolean existsByUserIdAndSportType(UUID userId, SportType sportType) {
         return jpaProfileRepository.existsByUser_UserIdAndSportType(userId, sportType);
     }

@@ -13,6 +13,8 @@ public interface PlayerSportProfileRepository {
 
     Optional<PlayerSportProfile> findByIdAndUserId(UUID profileId, UUID userId);
 
+    Optional<PlayerSportProfile> findByUserIdAndSportType(UUID userId, SportType sportType);
+
     boolean existsByUserIdAndSportType(UUID userId, SportType sportType);
 
     PlayerSportProfile save(PlayerSportProfile profile) throws ServiceException;

@@ -18,5 +18,8 @@ public interface JpaPlayerSportProfileRepository extends JpaRepository<PlayerSpo
     @EntityGraph(attributePaths = {"preferredPositions", "availabilities"})
     Optional<PlayerSportProfileEntity> findByProfileIdAndUser_UserId(UUID profileId, UUID userId);
 
+    @EntityGraph(attributePaths = {"preferredPositions", "availabilities"})
+    Optional<PlayerSportProfileEntity> findByUser_UserIdAndSportType(UUID userId, SportType sportType);
+
     boolean existsByUser_UserIdAndSportType(UUID userId, SportType sportType);
 }
