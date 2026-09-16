@@ -49,10 +49,29 @@ class MatchResultServiceImplTest {
                 sessionId, userId, SportType.FOOTBALL, 1200, "WIN"
         ));
 
-        assertEquals(1216, result.getNewElo());
+        assertEquals(1220, result.getNewElo());
         assertEquals(1, profile.getMatchCount());
         assertEquals(1, profile.getWinCount());
         assertEquals(1.0, profile.getWinRate());
+    }
+
+    @Test
+    void usesLowerEstablishedKFactorForTeamSports() throws ServiceException {
+        var sessionId = UUID.randomUUID();
+        var userId = UUID.randomUUID();
+        var profile = PlayerSportProfile.builder()
+                .profileId(UUID.randomUUID()).userId(userId).sportType(SportType.FOOTBALL)
+                .eloRating(1200).winCount(7).lossCount(5).drawCount(0).matchCount(12).build();
+        when(resultRepository.findBySessionIdAndUserId(sessionId, userId)).thenReturn(Optional.empty());
+        when(profileRepository.findByUserIdAndSportType(userId, SportType.FOOTBALL)).thenReturn(Optional.of(profile));
+        when(profileRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(resultRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var result = service.apply(new ApplyMatchResultCommand(
+                sessionId, userId, SportType.FOOTBALL, 1200, "WIN"
+        ));
+
+        assertEquals(1212, result.getNewElo());
     }
 
     @Test

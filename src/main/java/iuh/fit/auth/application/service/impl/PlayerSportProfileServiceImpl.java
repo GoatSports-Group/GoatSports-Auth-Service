@@ -11,6 +11,7 @@ import iuh.fit.auth.application.service.PlayerSportProfileService;
 import iuh.fit.auth.domain.entity.Availability;
 import iuh.fit.auth.domain.entity.PlayerSportProfile;
 import iuh.fit.auth.domain.entity.User;
+import iuh.fit.auth.domain.service.EloRatingPolicy;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -21,7 +22,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class PlayerSportProfileServiceImpl implements PlayerSportProfileService {
-    private static final int DEFAULT_ELO_RATING = 1000;
     private static final String DEFAULT_TIMEZONE = "Asia/Ho_Chi_Minh";
 
     private final PlayerSportProfileRepository profileRepository;
@@ -57,7 +57,7 @@ public class PlayerSportProfileServiceImpl implements PlayerSportProfileService 
                 .userId(userId)
                 .sportType(command.sportType())
                 .skillLevel(command.skillLevel())
-                .eloRating(DEFAULT_ELO_RATING)
+                .eloRating(EloRatingPolicy.initialRating(command.sportType(), command.skillLevel()))
                 .preferredPositions(normalizePositions(command.preferredPositions()))
                 .playStyle(normalizeOptional(command.playStyle()))
                 .latitude(command.latitude())

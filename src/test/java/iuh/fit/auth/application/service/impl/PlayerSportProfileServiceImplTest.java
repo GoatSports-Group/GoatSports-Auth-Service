@@ -59,11 +59,31 @@ class PlayerSportProfileServiceImplTest {
 
         var response = service.createMyProfile(command);
 
-        assertEquals(1000, response.eloRating());
+        assertEquals(1200, response.eloRating());
         assertEquals(0, response.matchCount());
         assertEquals(0.0, response.winRate());
         assertEquals("Asia/Ho_Chi_Minh", response.availabilities().getFirst().timezone());
         verify(profileRepository).save(any(PlayerSportProfile.class));
+    }
+
+    @Test
+    void createProfileUsesDeclaredSkillForInitialElo() throws ServiceException {
+        SavePlayerSportProfileCommand command = new SavePlayerSportProfileCommand(
+                SportType.TENNIS,
+                SkillLevel.PRO,
+                Set.of(),
+                "COMPETITIVE",
+                10.762622,
+                106.660172,
+                15.0,
+                List.of()
+        );
+        when(profileRepository.existsByUserIdAndSportType(userId, SportType.TENNIS)).thenReturn(false);
+        when(profileRepository.save(any(PlayerSportProfile.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var response = service.createMyProfile(command);
+
+        assertEquals(1800, response.eloRating());
     }
 
     @Test

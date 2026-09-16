@@ -9,4 +9,5 @@
     <include file="db.changelog/schema/29-07-2026/add-phone-country.xml"/>
     <include file="db.changelog/schema/28-08-2026/align-auth-domain-model.xml"/>
     <include file="db.changelog/schema/14-09-2026/add-applied-match-results.xml"/>
+    <include file="db.changelog/schema/16-09-2026/align-initial-sport-elo.xml"/>
 </databaseChangeLog>
