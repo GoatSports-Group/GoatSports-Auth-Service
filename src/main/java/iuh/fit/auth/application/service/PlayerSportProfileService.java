@@ -10,6 +10,9 @@ import java.util.UUID;
 public interface PlayerSportProfileService {
     List<PlayerSportProfileResponseCommand> getMyProfiles() throws ServiceException;
 
+    /** Hồ sơ thể thao công khai của một người chơi khác, dùng khi xem thông tin đối phương. */
+    List<PlayerSportProfileResponseCommand> getProfilesOf(UUID userId);
+
     PlayerSportProfileResponseCommand createMyProfile(SavePlayerSportProfileCommand command) throws ServiceException;
 
     PlayerSportProfileResponseCommand updateMyProfile(

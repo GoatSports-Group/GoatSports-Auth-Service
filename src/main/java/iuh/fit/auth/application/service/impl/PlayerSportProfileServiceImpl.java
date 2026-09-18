@@ -44,6 +44,14 @@ public class PlayerSportProfileServiceImpl implements PlayerSportProfileService 
     }
 
     @Override
+    public List<PlayerSportProfileResponseCommand> getProfilesOf(UUID userId) {
+        if (userId == null) return List.of();
+        return profileRepository.findAllByUserId(userId).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
     public PlayerSportProfileResponseCommand createMyProfile(
             SavePlayerSportProfileCommand command
     ) throws ServiceException {
