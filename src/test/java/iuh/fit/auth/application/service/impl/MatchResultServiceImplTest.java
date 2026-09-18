@@ -46,7 +46,7 @@ class MatchResultServiceImplTest {
         when(resultRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         var result = service.apply(new ApplyMatchResultCommand(
-                sessionId, userId, SportType.FOOTBALL, 1200, "WIN"
+                sessionId, userId, SportType.FOOTBALL, 1200, "WIN", null
         ));
 
         assertEquals(1220, result.getNewElo());
@@ -68,10 +68,54 @@ class MatchResultServiceImplTest {
         when(resultRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         var result = service.apply(new ApplyMatchResultCommand(
-                sessionId, userId, SportType.FOOTBALL, 1200, "WIN"
+                sessionId, userId, SportType.FOOTBALL, 1200, "WIN", null
         ));
 
         assertEquals(1212, result.getNewElo());
+    }
+
+    @Test
+    void createsTheMissingSportProfileSeededWithTheEloTheMatchWasPlayedAt() throws ServiceException {
+        var sessionId = UUID.randomUUID();
+        var userId = UUID.randomUUID();
+        when(resultRepository.findBySessionIdAndUserId(sessionId, userId)).thenReturn(Optional.empty());
+        when(profileRepository.findByUserIdAndSportType(userId, SportType.BADMINTON)).thenReturn(Optional.empty());
+        when(profileRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(resultRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var result = service.apply(new ApplyMatchResultCommand(
+                sessionId, userId, SportType.BADMINTON, 1200, "WIN", 1500
+        ));
+
+        var captor = org.mockito.ArgumentCaptor.forClass(PlayerSportProfile.class);
+        verify(profileRepository).save(captor.capture());
+        var created = captor.getValue();
+        assertEquals(SportType.BADMINTON, created.getSportType());
+        assertEquals(1500, result.getOldElo());
+        assertEquals(1, created.getMatchCount());
+        // Elo tăng sau trận thắng nên trình độ phải tự lên ADVANCED, không giữ INTERMEDIATE mặc định.
+        assertEquals(iuh.fit.auth.domain.enums.SkillLevel.ADVANCED, created.getSkillLevel());
+    }
+
+    @Test
+    void movesTheSkillLevelUpWhenEloCrossesTheThreshold() throws ServiceException {
+        var sessionId = UUID.randomUUID();
+        var userId = UUID.randomUUID();
+        var profile = PlayerSportProfile.builder()
+                .profileId(UUID.randomUUID()).userId(userId).sportType(SportType.BADMINTON)
+                .skillLevel(iuh.fit.auth.domain.enums.SkillLevel.INTERMEDIATE)
+                .eloRating(1340).winCount(3).lossCount(1).drawCount(0).matchCount(4).build();
+        when(resultRepository.findBySessionIdAndUserId(sessionId, userId)).thenReturn(Optional.empty());
+        when(profileRepository.findByUserIdAndSportType(userId, SportType.BADMINTON)).thenReturn(Optional.of(profile));
+        when(profileRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(resultRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.apply(new ApplyMatchResultCommand(
+                sessionId, userId, SportType.BADMINTON, 1340, "WIN", 1340
+        ));
+
+        assertEquals(1360, profile.getEloRating());
+        assertEquals(iuh.fit.auth.domain.enums.SkillLevel.ADVANCED, profile.getSkillLevel());
     }
 
     @Test
@@ -83,7 +127,7 @@ class MatchResultServiceImplTest {
         when(resultRepository.findBySessionIdAndUserId(sessionId, userId)).thenReturn(Optional.of(existing));
 
         var result = service.apply(new ApplyMatchResultCommand(
-                sessionId, userId, SportType.FOOTBALL, 1200, "WIN"
+                sessionId, userId, SportType.FOOTBALL, 1200, "WIN", null
         ));
 
         assertEquals(1216, result.getNewElo());

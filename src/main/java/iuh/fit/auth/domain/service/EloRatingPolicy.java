@@ -29,6 +29,18 @@ public final class EloRatingPolicy {
         return rating;
     }
 
+    /**
+     * Suy trình độ từ Elo hiện tại. Ngưỡng là điểm giữa của các mốc Elo khởi tạo
+     * ({@link #initialRatings()}), nên một người tự khai đúng trình độ sẽ được xếp
+     * lại đúng bậc đó, còn Elo thay đổi sau các trận sẽ tự kéo trình độ đi theo.
+     */
+    public static SkillLevel skillLevelFor(int eloRating) {
+        if (eloRating < 1100) return SkillLevel.BEGINNER;
+        if (eloRating < 1350) return SkillLevel.INTERMEDIATE;
+        if (eloRating < 1650) return SkillLevel.ADVANCED;
+        return SkillLevel.PRO;
+    }
+
     public static int calculateNewRating(
             SportType sportType,
             int currentRating,

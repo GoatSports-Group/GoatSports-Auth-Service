@@ -26,7 +26,7 @@ public class MatchResultInternalController {
     ) throws ServiceException {
         var result = matchResultService.apply(new ApplyMatchResultCommand(
                 request.sessionId(), request.userId(), request.sportType(),
-                request.opponentElo(), request.outcome()
+                request.opponentElo(), request.outcome(), request.playerElo()
         ));
         return ResponseEntity.ok(Map.of(
                 "userId", result.getUserId(),

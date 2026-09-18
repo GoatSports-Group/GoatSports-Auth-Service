@@ -9,6 +9,7 @@ public record ApplyMatchResultCommand(
         UUID userId,
         SportType sportType,
         Integer opponentElo,
-        String outcome
+        String outcome,
+        Integer playerElo
 ) {
 }

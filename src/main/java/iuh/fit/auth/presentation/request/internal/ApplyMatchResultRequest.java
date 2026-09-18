@@ -13,6 +13,8 @@ public record ApplyMatchResultRequest(
         @NotNull UUID userId,
         @NotNull SportType sportType,
         @NotNull @Min(0) @Max(5000) Integer opponentElo,
-        @NotBlank String outcome
+        @NotBlank String outcome,
+        /** Elo mà người chơi thực sự thi đấu ở trận này; dùng để khởi tạo hồ sơ mới cho đúng. */
+        @Min(0) @Max(5000) Integer playerElo
 ) {
 }

@@ -95,7 +95,14 @@ public class PlayerSportProfileServiceImpl implements PlayerSportProfileService 
                 .collect(Collectors.toSet());
 
         profile.setSportType(command.sportType());
-        profile.setSkillLevel(command.skillLevel());
+        // Đã có trận thì trình độ do Elo quyết định, không nhận giá trị tự khai nữa —
+        // nếu không, người chơi có thể để Elo 1000 mà vẫn khai trình độ PRO.
+        profile.setSkillLevel(hasPlayed(profile)
+                ? EloRatingPolicy.skillLevelFor(currentElo(profile))
+                : command.skillLevel());
+        if (!hasPlayed(profile)) {
+            profile.setEloRating(EloRatingPolicy.initialRating(command.sportType(), command.skillLevel()));
+        }
         profile.setPreferredPositions(normalizePositions(command.preferredPositions()));
         profile.setPlayStyle(normalizeOptional(command.playStyle()));
         profile.setLatitude(command.latitude());
@@ -109,6 +116,16 @@ public class PlayerSportProfileServiceImpl implements PlayerSportProfileService 
     @Override
     public void deleteMyProfile(UUID profileId) throws ServiceException {
         profileRepository.deleteByIdAndUserId(profileId, currentUserId());
+    }
+
+    private static boolean hasPlayed(PlayerSportProfile profile) {
+        return profile.getMatchCount() != null && profile.getMatchCount() > 0;
+    }
+
+    private static int currentElo(PlayerSportProfile profile) {
+        return profile.getEloRating() == null
+                ? EloRatingPolicy.initialRating(profile.getSportType(), profile.getSkillLevel())
+                : profile.getEloRating();
     }
 
     private UUID currentUserId() throws ServiceException {
