@@ -64,6 +64,9 @@ class DatabaseInitializerTest {
         assertThat(adminPermissions).contains(
                 "GET_ALL_VENUES", "GET_ANY_VENUE", "GET_ANY_VENUE_COURTS", "GET_ANY_VENUE_COURT"
         );
+        assertThat(adminPermissions).contains("MODERATE_SOCIAL_CONTENT", "REVIEW_CONTENT_APPEAL");
+        assertThat(playerPermissions).doesNotContain("MODERATE_SOCIAL_CONTENT", "REVIEW_CONTENT_APPEAL");
+        assertThat(ownerPermissions).doesNotContain("MODERATE_SOCIAL_CONTENT", "REVIEW_CONTENT_APPEAL");
         assertThat(adminPermissions).doesNotContain("UPDATE_OWN_VENUE", "CREATE_OWN_VENUE_COURT");
         assertThat(ownerPermissions).containsExactlyInAnyOrder(
                 "GET_OWN_VENUES",
