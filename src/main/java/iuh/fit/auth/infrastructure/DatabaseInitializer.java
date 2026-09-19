@@ -67,6 +67,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             adminPermission("EXPORT_USERS", "/api/v1/reports/export/users", "GET", "REPORT"),
             adminPermission("EXPORT_USER", "/api/v1/reports/export/users/{userId}", "GET", "REPORT"),
             adminPermission("GET_LOGS", "/api/v1/logs", "GET", "AUDIT"),
+            adminPermission("MODERATE_REVIEW", "/api/v1/admin/reviews/{reviewId}/status", "PATCH", "REVIEW"),
 
             adminPermission("GET_ALL_VENUES", "/api/v1/admin/venues", "GET", "VENUE"),
             adminPermission("GET_ANY_VENUE", "/api/v1/admin/venues/{venueId}", "GET", "VENUE"),

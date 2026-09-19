@@ -6,6 +6,7 @@ import iuh.fit.auth.infrastructure.persistence.repository.jpa.JpaRoleRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
@@ -17,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         "eureka.client.enabled=false",
         "spring.cloud.discovery.enabled=false"
 })
+@ActiveProfiles("test")
 class GoatSportsAuthApplicationTests {
 
     @Autowired

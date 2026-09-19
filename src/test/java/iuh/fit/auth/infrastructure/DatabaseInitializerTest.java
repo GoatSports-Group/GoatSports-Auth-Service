@@ -74,6 +74,7 @@ class DatabaseInitializerTest {
                 "GET_OWN_VENUE_COURT",
                 "UPDATE_OWN_VENUE_COURT",
                 "CHANGE_OWN_VENUE_COURT_STATUS",
+                "DELETE_OWN_VENUE_COURT",
                 "GET_OWN_COURT_PRICING_RULES",
                 "CREATE_OWN_COURT_PRICING_RULE",
                 "UPDATE_OWN_COURT_PRICING_RULE",
