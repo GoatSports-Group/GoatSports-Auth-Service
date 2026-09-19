@@ -16,4 +16,6 @@ public interface RedisPort {
     void updateValue(String key, String value);
 
     void deleteByPattern(String pattern);
+
+    long incrementWithTtl(String key, long ttl, TimeUnit timeUnit);
 }

@@ -3,11 +3,14 @@ package iuh.fit.auth.presentation.controller.internal;
 import iuh.fit.auth.application.dto.report.UserReportResponseCommand;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.service.InternalService;
+import iuh.fit.auth.application.service.PlayerSportProfileService;
 import iuh.fit.auth.application.dto.response.user.UserPermissionsResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
+import iuh.fit.auth.presentation.converter.PlayerSportProfileConverter;
 import iuh.fit.auth.presentation.converter.UserConverter;
 import iuh.fit.auth.presentation.response.report.UserDetailReportResponse;
 import iuh.fit.auth.presentation.response.report.UserReportResponse;
+import iuh.fit.auth.presentation.response.user.PlayerSportProfileResponse;
 import iuh.fit.auth.presentation.response.user.UserPermissionResponse;
 import iuh.fit.shared.annotation.AuditLog;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,6 +32,8 @@ public class UserInternalController {
 
     private final InternalService internalService;
     private final UserConverter userConverter;
+    private final PlayerSportProfileService playerSportProfileService;
+    private final PlayerSportProfileConverter playerSportProfileConverter;
 
     @GetMapping
     public ResponseEntity<List<UserReportResponse>> getAllUsers() {
@@ -65,6 +71,13 @@ public class UserInternalController {
     public ResponseEntity<Void> assignVenueOwnerRole(@PathVariable String userId) throws ServiceException {
         internalService.assignVenueOwnerRole(userId);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @GetMapping("/{userId}/sport-profiles")
+    public ResponseEntity<List<PlayerSportProfileResponse>> getSportProfiles(@PathVariable UUID userId) {
+        return ResponseEntity.ok(
+                playerSportProfileConverter.toResponse(playerSportProfileService.getProfilesOf(userId))
+        );
     }
 
     @GetMapping("/admin")

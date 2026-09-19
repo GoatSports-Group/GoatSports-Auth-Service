@@ -5,6 +5,7 @@ import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.port.security.RsaPort;
 import iuh.fit.auth.application.service.AuthenticationService;
 import iuh.fit.auth.application.exception.ServiceException;
+import iuh.fit.auth.application.service.AuthRateLimiter;
 import iuh.fit.auth.application.dto.response.auth.LoginResponseCommand;
 import iuh.fit.auth.application.dto.response.auth.RefreshResponseCommand;
 import iuh.fit.auth.presentation.response.auth.PublicKeyResponse;
@@ -38,6 +39,7 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final UserConverter userConverter;
     private final RsaPort rsaPort;
+    private final AuthRateLimiter authRateLimiter;
 
     @Value("${app.jwt.refresh-token.expiration-second}")
     private long refreshTokenExpirationSecond;
@@ -59,6 +61,8 @@ public class AuthenticationController {
             @Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response
     ) throws ServiceException
     {
+        authRateLimiter.checkLogin(loginRequest.getUsername());
+
         String rawPassword = rsaPort.decrypt(loginRequest.getPassword());
 
         Authentication authentication = authenticationManagerBuilder.getObject()
@@ -101,6 +105,7 @@ public class AuthenticationController {
 
     @PostMapping("/resend")
     public ResponseEntity<Void> resendVerificationCode(@RequestParam String email) throws ServiceException {
+        authRateLimiter.checkOtpResend(email);
         authenticationService.resendVerificationCode(email);
         return ResponseEntity.ok().build();
     }
@@ -156,6 +161,8 @@ public class AuthenticationController {
             @Valid @RequestBody ForgotPasswordRequest forgotPasswordRequest
     ) throws ServiceException
     {
+        authRateLimiter.checkPasswordReset(forgotPasswordRequest.getEmail());
+
         authenticationService.forgotPassword(
                 new ForgotPasswordRequestCommand(
                         forgotPasswordRequest.getEmail(),

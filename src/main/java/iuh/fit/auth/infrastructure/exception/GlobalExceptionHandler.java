@@ -1,5 +1,6 @@
 package iuh.fit.auth.infrastructure.exception;
 
+import iuh.fit.auth.application.exception.RateLimitExceededException;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.dto.response.base.BaseResponse;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -30,6 +31,17 @@ public class GlobalExceptionHandler {
         response.setError("Có lỗi xảy ra");
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    ResponseEntity<Object> handleRateLimitExceeded(RateLimitExceededException e) {
+        BaseResponse<Object> response = new BaseResponse<>();
+
+        response.setStatusCode(HttpStatus.TOO_MANY_REQUESTS.value());
+        response.setMessage(e.getMessage());
+        response.setError("Vượt ngưỡng số lần thử");
+
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(response);
     }
 
     @ExceptionHandler(value = {

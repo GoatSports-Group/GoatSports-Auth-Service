@@ -62,4 +62,14 @@ public class RedisAdapter implements RedisPort {
             this.redisTemplate.delete(keys);
         }
     }
+
+    @Override
+    public long incrementWithTtl(String key, long ttl, TimeUnit timeUnit) {
+        Long value = this.redisTemplate.opsForValue().increment(key);
+        long current = value == null ? 1L : value;
+        if (current == 1L) {
+            this.redisTemplate.expire(key, ttl, timeUnit);
+        }
+        return current;
+    }
 }

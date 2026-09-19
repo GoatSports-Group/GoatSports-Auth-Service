@@ -63,6 +63,10 @@ public class InternalServiceImpl implements InternalService {
         User user = userRepository.findById(userUUID)
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
 
+        if (user.getRole() != null && user.getRole().getName() == RoleEnum.VENUE_OWNER) {
+            return;
+        }
+
         Role venueOwnerRole = roleRepository.findByName(RoleEnum.VENUE_OWNER.name())
                 .orElseThrow(() -> new ServiceException(
                         String.format("Vai trò %s không tồn tại trong hệ thống", RoleEnum.VENUE_OWNER.getValue())
