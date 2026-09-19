@@ -5,6 +5,7 @@ import iuh.fit.auth.domain.enums.AuthProviderEnum;
 import iuh.fit.auth.domain.enums.GenderEnum;
 import iuh.fit.auth.domain.enums.UserStatusEnum;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
@@ -17,6 +18,7 @@ public record UserResponseCommand(
         String password,
         String fullName,
         String avatarUrl,
+        LocalDate dateOfBirth,
         String phone,
         String country,
         UserStatusEnum status,
