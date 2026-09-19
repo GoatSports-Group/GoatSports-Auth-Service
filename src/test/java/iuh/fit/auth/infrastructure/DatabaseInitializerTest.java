@@ -82,6 +82,8 @@ class DatabaseInitializerTest {
                 "CREATE_OWN_TIME_SLOTS",
                 "UPDATE_OWN_TIME_SLOT_STATUS",
                 "DELETE_OWN_TIME_SLOT",
+                "CREATE_OWN_OWNER_APPLICATION",
+                "GET_OWN_OWNER_APPLICATION",
                 "GET_OWN_BOOKINGS",
                 "GET_OWN_BOOKING",
                 "UPDATE_OWN_BOOKING_STATUS",

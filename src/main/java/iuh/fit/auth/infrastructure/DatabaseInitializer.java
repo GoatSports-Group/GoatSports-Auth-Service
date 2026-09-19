@@ -92,6 +92,9 @@ public class DatabaseInitializer implements CommandLineRunner {
             ownerPermission("UPDATE_OWN_TIME_SLOT_STATUS", "/api/v1/owner/time-slots/{timeSlotId}", "PATCH", "TIME_SLOT"),
             ownerPermission("DELETE_OWN_TIME_SLOT", "/api/v1/owner/time-slots/{timeSlotId}", "DELETE", "TIME_SLOT"),
 
+            ownerPermission("CREATE_OWN_OWNER_APPLICATION", "/api/v1/owner-applications", "POST", "OWNER_APPLICATION"),
+            ownerPermission("GET_OWN_OWNER_APPLICATION", "/api/v1/owner-applications/me", "GET", "OWNER_APPLICATION"),
+
             ownerPermission("GET_OWN_BOOKINGS", "/api/v1/owner/bookings", "GET", "BOOKING"),
             ownerPermission("GET_OWN_BOOKING", "/api/v1/owner/bookings/{bookingId}", "GET", "BOOKING"),
             ownerPermission("UPDATE_OWN_BOOKING_STATUS", "/api/v1/owner/bookings/{bookingId}/status", "PATCH", "BOOKING"),
