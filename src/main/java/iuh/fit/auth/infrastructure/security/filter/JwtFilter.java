@@ -30,8 +30,9 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        return uri.startsWith("/internal/")
-                || uri.startsWith("/actuator")
+        // `/internal/**` KHÔNG được bỏ qua: lời gọi service-to-service vẫn phải chứng minh
+        // service identity bằng X-Gateway-Secret (PLAT-03).
+        return uri.startsWith("/actuator")
                 || uri.startsWith("/callback");
     }
 
