@@ -101,7 +101,31 @@ public class DemoDataSeeder implements CommandLineRunner {
                     LocalDate.of(2001, 1, 26), GenderEnum.FEMALE, "Đà Nẵng"),
             new UserSeed(RoleEnum.PLAYER, "ngoccb", "Cao Bảo Ngọc",
                     "ngoc.caobao@goatsports.vn", "0796150482",
-                    LocalDate.of(1995, 10, 11), GenderEnum.FEMALE, "Đà Nẵng")
+                    LocalDate.of(1995, 10, 11), GenderEnum.FEMALE, "Đà Nẵng"),
+            new UserSeed(RoleEnum.PLAYER, "annv", "Nguyễn Văn An",
+                    "an.nguyenvan@goatsports.vn", "0902457813",
+                    LocalDate.of(1998, 6, 17), GenderEnum.MALE, "Hồ Chí Minh"),
+            new UserSeed(RoleEnum.PLAYER, "quanmt", "Trần Minh Quân",
+                    "quan.tranminh@goatsports.vn", "0936172845",
+                    LocalDate.of(1997, 9, 4), GenderEnum.MALE, "Hồ Chí Minh"),
+            new UserSeed(RoleEnum.PLAYER, "namlh", "Lê Hoàng Nam",
+                    "nam.lehoang@goatsports.vn", "0962847153",
+                    LocalDate.of(2000, 1, 22), GenderEnum.MALE, "Hồ Chí Minh"),
+            new UserSeed(RoleEnum.PLAYER, "huypg", "Phạm Gia Huy",
+                    "huy.phamgia@goatsports.vn", "0983157246",
+                    LocalDate.of(1996, 12, 9), GenderEnum.MALE, "Hồ Chí Minh"),
+            new UserSeed(RoleEnum.PLAYER, "kietdt", "Đỗ Tuấn Kiệt",
+                    "kiet.dotuan@goatsports.vn", "0324815967",
+                    LocalDate.of(1999, 3, 28), GenderEnum.MALE, "Hồ Chí Minh"),
+            new UserSeed(RoleEnum.PLAYER, "minhnv", "Nguyễn Văn Minh",
+                    "minh.nguyenvan@goatsports.vn", "0357281946",
+                    LocalDate.of(1995, 7, 13), GenderEnum.MALE, "Hồ Chí Minh"),
+            new UserSeed(RoleEnum.PLAYER, "phucth", "Trần Hoàng Phúc",
+                    "phuc.tranhoang@goatsports.vn", "0374192865",
+                    LocalDate.of(1998, 10, 2), GenderEnum.MALE, "Hồ Chí Minh"),
+            new UserSeed(RoleEnum.PLAYER, "ducnm", "Ngô Minh Đức",
+                    "duc.ngominh@goatsports.vn", "0792846135",
+                    LocalDate.of(2001, 5, 19), GenderEnum.MALE, "Hồ Chí Minh")
     );
 
     private static final List<ProfileSeed> PROFILES = List.of(
@@ -122,7 +146,29 @@ public class DemoDataSeeder implements CommandLineRunner {
             new ProfileSeed("trang.lythu@goatsports.vn", SportType.BADMINTON, SkillLevel.INTERMEDIATE,
                     1296, 11, 10, 3, 16.0544, 108.2022),
             new ProfileSeed("ngoc.caobao@goatsports.vn", SportType.PICKLEBALL, SkillLevel.INTERMEDIATE,
-                    1341, 14, 9, 1, 16.0678, 108.2208)
+                    1341, 14, 9, 1, 16.0678, 108.2208),
+            new ProfileSeed("an.nguyenvan@goatsports.vn", SportType.FOOTBALL, SkillLevel.INTERMEDIATE,
+                    1450, 18, 10, 4, 10.8021, 106.7102),
+            new ProfileSeed("an.nguyenvan@goatsports.vn", SportType.BADMINTON, SkillLevel.BEGINNER,
+                    1125, 5, 8, 1, 10.8021, 106.7102),
+            new ProfileSeed("quan.tranminh@goatsports.vn", SportType.FOOTBALL, SkillLevel.ADVANCED,
+                    1572, 27, 12, 5, 10.8084, 106.7076),
+            new ProfileSeed("nam.lehoang@goatsports.vn", SportType.FOOTBALL, SkillLevel.INTERMEDIATE,
+                    1390, 14, 11, 6, 10.7964, 106.6991),
+            new ProfileSeed("nam.lehoang@goatsports.vn", SportType.BADMINTON, SkillLevel.INTERMEDIATE,
+                    1312, 12, 9, 3, 10.7964, 106.6991),
+            new ProfileSeed("huy.phamgia@goatsports.vn", SportType.FOOTBALL, SkillLevel.ADVANCED,
+                    1610, 32, 13, 4, 10.8058, 106.7150),
+            new ProfileSeed("kiet.dotuan@goatsports.vn", SportType.FOOTBALL, SkillLevel.INTERMEDIATE,
+                    1432, 17, 13, 5, 10.7999, 106.7044),
+            new ProfileSeed("kiet.dotuan@goatsports.vn", SportType.BADMINTON, SkillLevel.INTERMEDIATE,
+                    1368, 16, 10, 2, 10.7999, 106.7044),
+            new ProfileSeed("minh.nguyenvan@goatsports.vn", SportType.FOOTBALL, SkillLevel.ADVANCED,
+                    1528, 24, 14, 6, 10.8037, 106.7138),
+            new ProfileSeed("phuc.tranhoang@goatsports.vn", SportType.FOOTBALL, SkillLevel.INTERMEDIATE,
+                    1466, 20, 15, 5, 10.8103, 106.7055),
+            new ProfileSeed("duc.ngominh@goatsports.vn", SportType.FOOTBALL, SkillLevel.INTERMEDIATE,
+                    1410, 15, 12, 7, 10.7982, 106.7087)
     );
 
     @Override
