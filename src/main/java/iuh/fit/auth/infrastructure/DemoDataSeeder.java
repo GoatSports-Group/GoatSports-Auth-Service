@@ -60,7 +60,12 @@ public class DemoDataSeeder implements CommandLineRunner {
 
     private record ProfileSeed(
             String email, SportType sportType, SkillLevel skillLevel, int elo,
-            int win, int loss, int draw, double latitude, double longitude) {}
+            int win, int loss, int draw, double latitude, double longitude, double playRadiusKm) {
+        ProfileSeed(String email, SportType sportType, SkillLevel skillLevel, int elo,
+                    int win, int loss, int draw, double latitude, double longitude) {
+            this(email, sportType, skillLevel, elo, win, loss, draw, latitude, longitude, 10);
+        }
+    }
 
     private static final List<UserSeed> USERS = List.of(
             // --- Chủ sân ---
@@ -128,6 +133,31 @@ public class DemoDataSeeder implements CommandLineRunner {
                     LocalDate.of(2001, 5, 19), GenderEnum.MALE, "Hồ Chí Minh")
     );
 
+    /**
+     * Nhom nguoi choi o Nha Trang. Truoc do moi tai khoan mau deu o TP.HCM, Ha Noi hoac Da Nang,
+     * nen scouting cua mot CLB Nha Trang khong bao gio tim ra ai trong ban kinh vai chuc km.
+     */
+    private static final List<UserSeed> NHA_TRANG_USERS = List.of(
+            new UserSeed(RoleEnum.PLAYER, "vynt", "Nguyễn Thảo Vy",
+                    "vy.nguyenthao@goatsports.vn", "0905311204",
+                    LocalDate.of(1998, 3, 19), GenderEnum.FEMALE, "Khánh Hòa"),
+            new UserSeed(RoleEnum.PLAYER, "khoalq", "Lê Quang Khoa",
+                    "khoa.lequang@goatsports.vn", "0905311205",
+                    LocalDate.of(1996, 7, 8), GenderEnum.MALE, "Khánh Hòa"),
+            new UserSeed(RoleEnum.PLAYER, "myth", "Trần Hà My",
+                    "my.tranha@goatsports.vn", "0905311206",
+                    LocalDate.of(2001, 11, 2), GenderEnum.FEMALE, "Khánh Hòa"),
+            new UserSeed(RoleEnum.PLAYER, "sonpt", "Phạm Thanh Sơn",
+                    "son.phamthanh@goatsports.vn", "0905311207",
+                    LocalDate.of(1994, 5, 27), GenderEnum.MALE, "Khánh Hòa"),
+            new UserSeed(RoleEnum.PLAYER, "chivt", "Võ Thị Chi",
+                    "chi.vothi@goatsports.vn", "0905311208",
+                    LocalDate.of(1999, 9, 14), GenderEnum.FEMALE, "Khánh Hòa"),
+            new UserSeed(RoleEnum.PLAYER, "longdh", "Đinh Hoàng Long",
+                    "long.dinhhoang@goatsports.vn", "0905311209",
+                    LocalDate.of(1993, 1, 30), GenderEnum.MALE, "Khánh Hòa")
+    );
+
     private static final List<ProfileSeed> PROFILES = List.of(
             new ProfileSeed("huy.danggia@goatsports.vn", SportType.FOOTBALL, SkillLevel.ADVANCED,
                     1580, 24, 11, 5, 10.8014, 106.7109),
@@ -168,7 +198,23 @@ public class DemoDataSeeder implements CommandLineRunner {
             new ProfileSeed("phuc.tranhoang@goatsports.vn", SportType.FOOTBALL, SkillLevel.INTERMEDIATE,
                     1466, 20, 15, 5, 10.8103, 106.7055),
             new ProfileSeed("duc.ngominh@goatsports.vn", SportType.FOOTBALL, SkillLevel.INTERMEDIATE,
-                    1410, 15, 12, 7, 10.7982, 106.7087)
+                    1410, 15, 12, 7, 10.7982, 106.7087),
+
+            // Nha Trang: toa do quanh trung tam thanh pho, ban kinh di lai khac nhau.
+            new ProfileSeed("vy.nguyenthao@goatsports.vn", SportType.BADMINTON, SkillLevel.ADVANCED,
+                    1655, 28, 8, 3, 12.2450, 109.1890, 25),
+            new ProfileSeed("khoa.lequang@goatsports.vn", SportType.BADMINTON, SkillLevel.INTERMEDIATE,
+                    1372, 15, 11, 4, 12.2310, 109.1955, 15),
+            new ProfileSeed("my.tranha@goatsports.vn", SportType.BADMINTON, SkillLevel.BEGINNER,
+                    1118, 4, 9, 1, 12.2520, 109.1820, 5),
+            new ProfileSeed("son.phamthanh@goatsports.vn", SportType.BADMINTON, SkillLevel.INTERMEDIATE,
+                    1408, 19, 12, 5, 12.2205, 109.2010, 30),
+            new ProfileSeed("chi.vothi@goatsports.vn", SportType.BADMINTON, SkillLevel.ADVANCED,
+                    1590, 24, 10, 2, 12.2388, 109.1967, 8),
+            new ProfileSeed("long.dinhhoang@goatsports.vn", SportType.BADMINTON, SkillLevel.INTERMEDIATE,
+                    1340, 12, 13, 6, 12.2600, 109.1750, 20),
+            new ProfileSeed("long.dinhhoang@goatsports.vn", SportType.FOOTBALL, SkillLevel.INTERMEDIATE,
+                    1425, 17, 14, 5, 12.2600, 109.1750, 20)
     );
 
     @Override
@@ -177,6 +223,9 @@ public class DemoDataSeeder implements CommandLineRunner {
         String hashedPassword = passwordEncoder.encode(DEMO_PASSWORD);
         int users = 0;
         for (UserSeed seed : USERS) {
+            users += insertUser(seed, hashedPassword);
+        }
+        for (UserSeed seed : NHA_TRANG_USERS) {
             users += insertUser(seed, hashedPassword);
         }
         int profiles = 0;
@@ -233,7 +282,7 @@ public class DemoDataSeeder implements CommandLineRunner {
                                                            win_count, loss_count, draw_count, match_count, win_rate,
                                                            created_at, created_by, updated_at, updated_by)
                         values (:profileId, :userId, :sportType, :skillLevel,
-                                :elo, :latitude, :longitude, 10,
+                                :elo, :latitude, :longitude, :playRadiusKm,
                                 :win, :loss, :draw, :matches, :winRate,
                                 now(), 'demo-seed', now(), 'demo-seed')
                         on conflict do nothing
@@ -247,6 +296,7 @@ public class DemoDataSeeder implements CommandLineRunner {
                 .setParameter("elo", seed.elo())
                 .setParameter("latitude", seed.latitude())
                 .setParameter("longitude", seed.longitude())
+                .setParameter("playRadiusKm", seed.playRadiusKm())
                 .setParameter("win", seed.win())
                 .setParameter("loss", seed.loss())
                 .setParameter("draw", seed.draw())
