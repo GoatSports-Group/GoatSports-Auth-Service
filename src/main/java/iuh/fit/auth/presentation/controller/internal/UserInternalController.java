@@ -10,7 +10,9 @@ import iuh.fit.auth.presentation.converter.PlayerSportProfileConverter;
 import iuh.fit.auth.presentation.converter.UserConverter;
 import iuh.fit.auth.presentation.response.report.UserDetailReportResponse;
 import iuh.fit.auth.presentation.response.report.UserReportResponse;
+import iuh.fit.auth.domain.enums.SportType;
 import iuh.fit.auth.presentation.response.user.PlayerSportProfileResponse;
+import iuh.fit.auth.presentation.response.user.ScoutingCandidateResponse;
 import iuh.fit.auth.presentation.response.user.UserPermissionResponse;
 import iuh.fit.shared.annotation.AuditLog;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -78,6 +81,32 @@ public class UserInternalController {
         return ResponseEntity.ok(
                 playerSportProfileConverter.toResponse(playerSportProfileService.getProfilesOf(userId))
         );
+    }
+
+    @GetMapping("/scouting")
+    public ResponseEntity<List<ScoutingCandidateResponse>> findScoutingCandidates(
+            @RequestParam SportType sportType,
+            @RequestParam double latitude,
+            @RequestParam double longitude,
+            @RequestParam(defaultValue = "25") double radiusKm,
+            @RequestParam(defaultValue = "40") int limit
+    ) {
+        return ResponseEntity.ok(playerSportProfileService
+                .findScoutingCandidates(sportType, latitude, longitude, radiusKm, limit)
+                .stream()
+                .map(candidate -> ScoutingCandidateResponse.builder()
+                        .userId(candidate.userId())
+                        .username(candidate.username())
+                        .fullName(candidate.fullName())
+                        .avatarUrl(candidate.avatarUrl())
+                        .skillLevel(candidate.skillLevel())
+                        .eloRating(candidate.eloRating())
+                        .matchCount(candidate.matchCount())
+                        .winRate(candidate.winRate())
+                        .playRadiusKm(candidate.playRadiusKm())
+                        .distanceKm(candidate.distanceKm())
+                        .build())
+                .toList());
     }
 
     @GetMapping("/admin")

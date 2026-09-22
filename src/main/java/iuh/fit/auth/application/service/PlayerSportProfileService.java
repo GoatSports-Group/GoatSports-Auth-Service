@@ -2,6 +2,8 @@ package iuh.fit.auth.application.service;
 
 import iuh.fit.auth.application.dto.request.user.SavePlayerSportProfileCommand;
 import iuh.fit.auth.application.dto.response.user.PlayerSportProfileResponseCommand;
+import iuh.fit.auth.application.dto.response.user.ScoutedPlayerCommand;
+import iuh.fit.auth.domain.enums.SportType;
 import iuh.fit.auth.application.exception.ServiceException;
 
 import java.util.List;
@@ -10,7 +12,6 @@ import java.util.UUID;
 public interface PlayerSportProfileService {
     List<PlayerSportProfileResponseCommand> getMyProfiles() throws ServiceException;
 
-    /** Hồ sơ thể thao công khai của một người chơi khác, dùng khi xem thông tin đối phương. */
     List<PlayerSportProfileResponseCommand> getProfilesOf(UUID userId);
 
     PlayerSportProfileResponseCommand createMyProfile(SavePlayerSportProfileCommand command) throws ServiceException;
@@ -21,4 +22,7 @@ public interface PlayerSportProfileService {
     ) throws ServiceException;
 
     void deleteMyProfile(UUID profileId) throws ServiceException;
+
+    List<ScoutedPlayerCommand> findScoutingCandidates(
+            SportType sportType, double latitude, double longitude, double radiusKm, int limit);
 }

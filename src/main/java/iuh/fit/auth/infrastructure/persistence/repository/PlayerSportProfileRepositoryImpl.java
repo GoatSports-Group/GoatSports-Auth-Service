@@ -4,13 +4,17 @@ import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.port.persistence.PlayerSportProfileRepository;
 import iuh.fit.auth.domain.entity.Availability;
 import iuh.fit.auth.domain.entity.PlayerSportProfile;
+import iuh.fit.auth.application.dto.response.user.ScoutingCandidateCommand;
+import iuh.fit.auth.domain.enums.RoleEnum;
 import iuh.fit.auth.domain.enums.SportType;
+import iuh.fit.auth.domain.enums.UserStatusEnum;
 import iuh.fit.auth.infrastructure.persistence.entity.AvailabilityEntity;
 import iuh.fit.auth.infrastructure.persistence.entity.PlayerSportProfileEntity;
 import iuh.fit.auth.infrastructure.persistence.mapper.PlayerSportProfileEntityMapper;
 import iuh.fit.auth.infrastructure.persistence.repository.jpa.JpaPlayerSportProfileRepository;
 import iuh.fit.auth.infrastructure.persistence.repository.jpa.JpaUserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +32,17 @@ public class PlayerSportProfileRepositoryImpl implements PlayerSportProfileRepos
     private final JpaPlayerSportProfileRepository jpaProfileRepository;
     private final JpaUserRepository jpaUserRepository;
     private final PlayerSportProfileEntityMapper profileMapper;
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ScoutingCandidateCommand> findScoutingCandidates(
+            SportType sportType, double minLatitude, double maxLatitude,
+            double minLongitude, double maxLongitude, int limit) {
+        return jpaProfileRepository.findScoutingCandidates(
+                sportType, UserStatusEnum.ACTIVE, RoleEnum.PLAYER,
+                minLatitude, maxLatitude, minLongitude, maxLongitude,
+                PageRequest.of(0, limit));
+    }
 
     @Override
     @Transactional(readOnly = true)

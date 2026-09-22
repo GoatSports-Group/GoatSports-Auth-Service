@@ -4,6 +4,7 @@ import iuh.fit.auth.application.dto.request.user.SaveAvailabilityCommand;
 import iuh.fit.auth.application.dto.request.user.SavePlayerSportProfileCommand;
 import iuh.fit.auth.application.dto.response.user.AvailabilityResponseCommand;
 import iuh.fit.auth.application.dto.response.user.PlayerSportProfileResponseCommand;
+import iuh.fit.auth.application.dto.response.user.ScoutedPlayerCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.port.persistence.PlayerSportProfileRepository;
 import iuh.fit.auth.application.port.security.CurrentUserProvider;
@@ -11,6 +12,7 @@ import iuh.fit.auth.application.service.PlayerSportProfileService;
 import iuh.fit.auth.domain.entity.Availability;
 import iuh.fit.auth.domain.entity.PlayerSportProfile;
 import iuh.fit.auth.domain.entity.User;
+import iuh.fit.auth.domain.enums.SportType;
 import iuh.fit.auth.domain.service.EloRatingPolicy;
 
 import java.util.ArrayList;
@@ -23,6 +25,8 @@ import java.util.stream.Collectors;
 
 public class PlayerSportProfileServiceImpl implements PlayerSportProfileService {
     private static final String DEFAULT_TIMEZONE = "Asia/Ho_Chi_Minh";
+    private static final double EARTH_RADIUS_KM = 6371;
+    private static final double KM_PER_LATITUDE_DEGREE = 111.0;
 
     private final PlayerSportProfileRepository profileRepository;
     private final CurrentUserProvider currentUserProvider;
@@ -220,5 +224,41 @@ public class PlayerSportProfileServiceImpl implements PlayerSportProfileService 
                 profile.getCreatedAt(),
                 profile.getUpdatedAt()
         );
+    }
+
+    @Override
+    public List<ScoutedPlayerCommand> findScoutingCandidates(
+            SportType sportType, double latitude, double longitude, double radiusKm, int limit) {
+        if (sportType == null || radiusKm <= 0 || limit <= 0) return List.of();
+
+        double latitudeDelta = radiusKm / KM_PER_LATITUDE_DEGREE;
+        double longitudeScale = Math.max(Math.cos(Math.toRadians(latitude)), 0.01);
+        double longitudeDelta = radiusKm / (KM_PER_LATITUDE_DEGREE * longitudeScale);
+
+        return profileRepository.findScoutingCandidates(
+                        sportType,
+                        latitude - latitudeDelta, latitude + latitudeDelta,
+                        longitude - longitudeDelta, longitude + longitudeDelta,
+                        Math.min(limit * 4, 400))
+                .stream()
+                .map(candidate -> new ScoutedPlayerCommand(
+                        candidate.userId(), candidate.username(), candidate.fullName(), candidate.avatarUrl(),
+                        candidate.skillLevel(), candidate.eloRating(), candidate.matchCount(), candidate.winRate(),
+                        candidate.playRadiusKm(),
+                        distanceKm(latitude, longitude, candidate.latitude(), candidate.longitude())))
+                .filter(candidate -> candidate.distanceKm() <= radiusKm)
+                .sorted(Comparator.comparingDouble(ScoutedPlayerCommand::distanceKm))
+                .limit(limit)
+                .toList();
+    }
+
+    private double distanceKm(double fromLatitude, double fromLongitude, double toLatitude, double toLongitude) {
+        double latitudeDistance = Math.toRadians(toLatitude - fromLatitude);
+        double longitudeDistance = Math.toRadians(toLongitude - fromLongitude);
+        double a = Math.sin(latitudeDistance / 2) * Math.sin(latitudeDistance / 2)
+                + Math.cos(Math.toRadians(fromLatitude)) * Math.cos(Math.toRadians(toLatitude))
+                * Math.sin(longitudeDistance / 2) * Math.sin(longitudeDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return Math.round(EARTH_RADIUS_KM * c * 10.0) / 10.0;
     }
 }
