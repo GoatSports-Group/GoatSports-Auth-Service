@@ -72,6 +72,7 @@ public class PlayerSportProfileServiceImpl implements PlayerSportProfileService 
                 .eloRating(EloRatingPolicy.initialRating(command.sportType(), command.skillLevel()))
                 .preferredPositions(normalizePositions(command.preferredPositions()))
                 .playStyle(normalizeOptional(command.playStyle()))
+                .city(command.city().trim())
                 .latitude(command.latitude())
                 .longitude(command.longitude())
                 .playRadiusKm(command.playRadiusKm())
@@ -96,9 +97,8 @@ public class PlayerSportProfileServiceImpl implements PlayerSportProfileService 
         PlayerSportProfile profile = profileRepository.findByIdAndUserId(profileId, userId)
                 .orElseThrow(() -> new ServiceException("Không tìm thấy hồ sơ thể thao"));
 
-        if (profile.getSportType() != command.sportType()
-                && profileRepository.existsByUserIdAndSportType(userId, command.sportType())) {
-            throw new ServiceException("Bạn đã có hồ sơ cho môn thể thao này");
+        if (profile.getSportType() != command.sportType()) {
+            throw new ServiceException("Không thể đổi môn thể thao của hồ sơ. Hãy tạo hồ sơ mới cho môn khác");
         }
 
         Set<UUID> existingAvailabilityIds = profile.getAvailabilities().stream()
@@ -106,7 +106,6 @@ public class PlayerSportProfileServiceImpl implements PlayerSportProfileService 
                 .filter(id -> id != null)
                 .collect(Collectors.toSet());
 
-        profile.setSportType(command.sportType());
         // Đã có trận thì trình độ do Elo quyết định, không nhận giá trị tự khai nữa —
         // nếu không, người chơi có thể để Elo 1000 mà vẫn khai trình độ PRO.
         profile.setSkillLevel(hasPlayed(profile)
@@ -117,6 +116,7 @@ public class PlayerSportProfileServiceImpl implements PlayerSportProfileService 
         }
         profile.setPreferredPositions(normalizePositions(command.preferredPositions()));
         profile.setPlayStyle(normalizeOptional(command.playStyle()));
+        profile.setCity(command.city().trim());
         profile.setLatitude(command.latitude());
         profile.setLongitude(command.longitude());
         profile.setPlayRadiusKm(command.playRadiusKm());
@@ -212,6 +212,7 @@ public class PlayerSportProfileServiceImpl implements PlayerSportProfileService 
                 profile.getEloRating(),
                 profile.getPreferredPositions(),
                 profile.getPlayStyle(),
+                profile.getCity(),
                 profile.getLatitude(),
                 profile.getLongitude(),
                 profile.getPlayRadiusKm(),

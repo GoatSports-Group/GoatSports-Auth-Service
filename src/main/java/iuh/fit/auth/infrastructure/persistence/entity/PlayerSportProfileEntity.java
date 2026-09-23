@@ -75,6 +75,8 @@ public class PlayerSportProfileEntity extends BaseEntity {
 
     @Column(name = "play_style")
     private String playStyle;
+    @Column(name = "city", length = 100)
+    private String city;
     private Double latitude;
     private Double longitude;
     @Column(name = "play_radius_km")

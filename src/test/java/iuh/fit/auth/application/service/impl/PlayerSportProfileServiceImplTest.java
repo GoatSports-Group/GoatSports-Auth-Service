@@ -73,6 +73,7 @@ class PlayerSportProfileServiceImplTest {
                 SkillLevel.PRO,
                 Set.of(),
                 "COMPETITIVE",
+                "Hồ Chí Minh",
                 10.762622,
                 106.660172,
                 15.0,
@@ -125,12 +126,54 @@ class PlayerSportProfileServiceImplTest {
         verify(profileRepository, never()).save(any(PlayerSportProfile.class));
     }
 
+    @Test
+    void createProfileStoresTrimmedCity() throws ServiceException {
+        when(profileRepository.existsByUserIdAndSportType(userId, SportType.BADMINTON)).thenReturn(false);
+        when(profileRepository.save(any(PlayerSportProfile.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        SavePlayerSportProfileCommand command = new SavePlayerSportProfileCommand(
+                SportType.BADMINTON, SkillLevel.INTERMEDIATE, Set.of(), null,
+                "  Hà Nội  ", 21.0285, 105.8542, 10.0, List.of());
+
+        var response = service.createMyProfile(command);
+
+        assertEquals("Hà Nội", response.city());
+    }
+
+    @Test
+    void createProfileRejectsMissingCity() throws ServiceException {
+        SavePlayerSportProfileCommand command = new SavePlayerSportProfileCommand(
+                SportType.BADMINTON, SkillLevel.INTERMEDIATE, Set.of(), null,
+                " ", 21.0285, 105.8542, 10.0, List.of());
+
+        assertThrows(ServiceException.class, () -> service.createMyProfile(command));
+
+        verify(profileRepository, never()).save(any(PlayerSportProfile.class));
+    }
+
+    @Test
+    void updateProfileRejectsChangingSport() throws ServiceException {
+        UUID profileId = UUID.randomUUID();
+        PlayerSportProfile existing = PlayerSportProfile.builder()
+                .profileId(profileId)
+                .userId(userId)
+                .sportType(SportType.TENNIS)
+                .skillLevel(SkillLevel.INTERMEDIATE)
+                .availabilities(Set.of())
+                .build();
+        when(profileRepository.findByIdAndUserId(profileId, userId)).thenReturn(java.util.Optional.of(existing));
+
+        assertThrows(ServiceException.class, () -> service.updateMyProfile(profileId, validCommand(List.of())));
+
+        verify(profileRepository, never()).save(any(PlayerSportProfile.class));
+    }
+
     private SavePlayerSportProfileCommand validCommand(List<SaveAvailabilityCommand> availabilities) {
         return new SavePlayerSportProfileCommand(
                 SportType.BADMINTON,
                 SkillLevel.INTERMEDIATE,
                 Set.of("Đánh đôi"),
                 "Kiểm soát cầu",
+                "Hồ Chí Minh",
                 10.762622,
                 106.660172,
                 15.0,

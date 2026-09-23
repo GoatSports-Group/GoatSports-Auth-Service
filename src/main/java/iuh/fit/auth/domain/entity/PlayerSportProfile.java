@@ -27,6 +27,7 @@ public class PlayerSportProfile extends BaseEntity {
     @Builder.Default
     private Set<String> preferredPositions = new HashSet<>();
     private String playStyle;
+    private String city;
     private Double latitude;
     private Double longitude;
     private Double playRadiusKm;

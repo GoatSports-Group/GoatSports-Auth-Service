@@ -74,6 +74,7 @@ public class PlayerSportProfileController {
                 request.getSkillLevel(),
                 request.getPreferredPositions(),
                 request.getPlayStyle(),
+                request.getCity(),
                 request.getLatitude(),
                 request.getLongitude(),
                 request.getPlayRadiusKm(),

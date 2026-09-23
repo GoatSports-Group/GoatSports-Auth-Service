@@ -25,6 +25,7 @@ public class PlayerSportProfileResponse {
     private Integer eloRating;
     private Set<String> preferredPositions;
     private String playStyle;
+    private String city;
     private Double latitude;
     private Double longitude;
     private Double playRadiusKm;

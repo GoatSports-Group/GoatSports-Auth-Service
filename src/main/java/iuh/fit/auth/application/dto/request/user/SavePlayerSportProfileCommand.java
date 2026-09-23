@@ -15,6 +15,7 @@ public record SavePlayerSportProfileCommand(
         SkillLevel skillLevel,
         Set<String> preferredPositions,
         String playStyle,
+        String city,
         Double latitude,
         Double longitude,
         Double playRadiusKm,
@@ -24,8 +25,15 @@ public record SavePlayerSportProfileCommand(
         if (sportType == null || skillLevel == null) {
             throw new ServiceException("Môn thể thao và trình độ không được để trống");
         }
-        if ((latitude == null) != (longitude == null)) {
-            throw new ServiceException("Vĩ độ và kinh độ phải được cung cấp cùng nhau");
+        if (city == null || city.isBlank()) {
+            throw new ServiceException("Vui lòng chọn tỉnh/thành phố cho hồ sơ");
+        }
+        if (city.trim().length() > 100) {
+            throw new ServiceException("Tên tỉnh/thành phố không được vượt quá 100 ký tự");
+        }
+        // Scouting tính khoảng cách từ tọa độ này, nên hồ sơ luôn cần một điểm (mặc định: trung tâm tỉnh/thành).
+        if (latitude == null || longitude == null) {
+            throw new ServiceException("Thiếu tọa độ khu vực chơi");
         }
         if (latitude != null && (latitude < -90 || latitude > 90)) {
             throw new ServiceException("Vĩ độ phải nằm trong khoảng từ -90 đến 90");

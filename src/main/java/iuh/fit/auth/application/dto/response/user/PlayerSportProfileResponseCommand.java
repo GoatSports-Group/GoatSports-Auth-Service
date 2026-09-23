@@ -15,6 +15,7 @@ public record PlayerSportProfileResponseCommand(
         Integer eloRating,
         Set<String> preferredPositions,
         String playStyle,
+        String city,
         Double latitude,
         Double longitude,
         Double playRadiusKm,

@@ -111,6 +111,7 @@ public class PlayerSportProfileRepositoryImpl implements PlayerSportProfileRepos
         entity.setSkillLevel(profile.getSkillLevel());
         entity.setEloRating(profile.getEloRating());
         entity.setPlayStyle(profile.getPlayStyle());
+        entity.setCity(profile.getCity());
         entity.setLatitude(profile.getLatitude());
         entity.setLongitude(profile.getLongitude());
         entity.setPlayRadiusKm(profile.getPlayRadiusKm());
