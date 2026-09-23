@@ -1,5 +1,6 @@
 package iuh.fit.auth.infrastructure.security;
 
+import iuh.fit.auth.application.exception.UnauthenticatedException;
 import iuh.fit.auth.application.port.security.CurrentUserProvider;
 import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.domain.entity.User;
@@ -31,7 +32,7 @@ public class CurrentUserProviderAdapter implements CurrentUserProvider {
         String springUser = securityContextHelper.getCurrentUserId().orElse(null);
 
         if (springUser == null || springUser.isEmpty()) {
-            throw new ServiceException("Phiên đăng nhập hết hạn");
+            throw new UnauthenticatedException("Phiên đăng nhập hết hạn");
         }
 
         User user;
