@@ -91,6 +91,9 @@ public class PlayerSportProfileEntity extends BaseEntity {
     private Integer matchCount;
     @Column(name = "win_rate")
     private Double winRate;
+    @Builder.Default
+    @Column(name = "discoverable", nullable = false)
+    private Boolean discoverable = Boolean.TRUE;
 
     @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @Builder.Default

@@ -1,10 +1,12 @@
 package iuh.fit.auth.application.port.persistence;
 
-import iuh.fit.auth.application.dto.response.user.ScoutingCandidateCommand;
+import iuh.fit.auth.application.dto.request.user.ScoutingSearchCommand;
+import iuh.fit.auth.application.dto.response.user.ScoutedPlayerCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.domain.entity.PlayerSportProfile;
 import iuh.fit.auth.domain.enums.SportType;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -12,9 +14,11 @@ import java.util.UUID;
 public interface PlayerSportProfileRepository {
     List<PlayerSportProfile> findAllByUserId(UUID userId);
 
-    List<ScoutingCandidateCommand> findScoutingCandidates(
-            SportType sportType, double minLatitude, double maxLatitude,
+    List<ScoutedPlayerCommand> findScoutingCandidates(
+            ScoutingSearchCommand search, double minLatitude, double maxLatitude,
             double minLongitude, double maxLongitude, int limit);
+
+    List<ScoutedPlayerCommand> findScoutingProfiles(SportType sportType, Collection<UUID> userIds);
 
     Optional<PlayerSportProfile> findByIdAndUserId(UUID profileId, UUID userId);
 

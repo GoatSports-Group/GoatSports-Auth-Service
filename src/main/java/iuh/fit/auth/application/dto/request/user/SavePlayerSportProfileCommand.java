@@ -19,7 +19,8 @@ public record SavePlayerSportProfileCommand(
         Double latitude,
         Double longitude,
         Double playRadiusKm,
-        List<SaveAvailabilityCommand> availabilities
+        List<SaveAvailabilityCommand> availabilities,
+        Boolean discoverable
 ) {
     public void validate() throws ServiceException {
         if (sportType == null || skillLevel == null) {

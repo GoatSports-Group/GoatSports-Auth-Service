@@ -46,4 +46,5 @@ public class SavePlayerSportProfileRequest {
     private Double playRadiusKm;
     @Valid
     private List<AvailabilityRequest> availabilities = new ArrayList<>();
+    private Boolean discoverable;
 }

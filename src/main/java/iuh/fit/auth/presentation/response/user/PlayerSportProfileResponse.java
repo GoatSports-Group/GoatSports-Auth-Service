@@ -35,6 +35,7 @@ public class PlayerSportProfileResponse {
     private Integer matchCount;
     private Double winRate;
     private List<AvailabilityResponse> availabilities;
+    private Boolean discoverable;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

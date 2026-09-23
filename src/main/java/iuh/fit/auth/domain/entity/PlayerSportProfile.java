@@ -37,5 +37,7 @@ public class PlayerSportProfile extends BaseEntity {
     private Integer matchCount;
     private Double winRate;
     @Builder.Default
+    private Boolean discoverable = Boolean.TRUE;
+    @Builder.Default
     private Set<Availability> availabilities = new HashSet<>();
 }

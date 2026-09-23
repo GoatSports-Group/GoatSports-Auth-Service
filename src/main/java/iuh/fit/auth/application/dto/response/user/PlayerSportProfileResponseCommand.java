@@ -25,6 +25,7 @@ public record PlayerSportProfileResponseCommand(
         Integer matchCount,
         Double winRate,
         List<AvailabilityResponseCommand> availabilities,
+        Boolean discoverable,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {

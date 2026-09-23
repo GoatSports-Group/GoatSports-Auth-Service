@@ -10,7 +10,12 @@ import iuh.fit.auth.presentation.converter.PlayerSportProfileConverter;
 import iuh.fit.auth.presentation.converter.UserConverter;
 import iuh.fit.auth.presentation.response.report.UserDetailReportResponse;
 import iuh.fit.auth.presentation.response.report.UserReportResponse;
+import iuh.fit.auth.domain.enums.DayOfWeek;
+import iuh.fit.auth.domain.enums.SkillLevel;
 import iuh.fit.auth.domain.enums.SportType;
+import iuh.fit.auth.application.dto.request.user.ScoutingSearchCommand;
+import iuh.fit.auth.presentation.request.user.ScoutingLookupRequest;
+import jakarta.validation.Valid;
 import iuh.fit.auth.presentation.response.user.PlayerSportProfileResponse;
 import iuh.fit.auth.presentation.response.user.ScoutingCandidateResponse;
 import iuh.fit.auth.presentation.response.user.UserPermissionResponse;
@@ -21,11 +26,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -89,24 +96,24 @@ public class UserInternalController {
             @RequestParam double latitude,
             @RequestParam double longitude,
             @RequestParam(defaultValue = "25") double radiusKm,
-            @RequestParam(defaultValue = "40") int limit
+            @RequestParam(defaultValue = "40") int limit,
+            @RequestParam(required = false) Set<SkillLevel> skillLevels,
+            @RequestParam(required = false) String position,
+            @RequestParam(required = false) DayOfWeek availableOn
     ) {
-        return ResponseEntity.ok(playerSportProfileService
-                .findScoutingCandidates(sportType, latitude, longitude, radiusKm, limit)
-                .stream()
-                .map(candidate -> ScoutingCandidateResponse.builder()
-                        .userId(candidate.userId())
-                        .username(candidate.username())
-                        .fullName(candidate.fullName())
-                        .avatarUrl(candidate.avatarUrl())
-                        .skillLevel(candidate.skillLevel())
-                        .eloRating(candidate.eloRating())
-                        .matchCount(candidate.matchCount())
-                        .winRate(candidate.winRate())
-                        .playRadiusKm(candidate.playRadiusKm())
-                        .distanceKm(candidate.distanceKm())
-                        .build())
-                .toList());
+        ScoutingSearchCommand search = new ScoutingSearchCommand(
+                sportType, latitude, longitude, radiusKm, limit, skillLevels, position, availableOn);
+        return ResponseEntity.ok(playerSportProfileConverter.toScoutingResponse(
+                playerSportProfileService.findScoutingCandidates(search)));
+    }
+
+    @PostMapping("/scouting/lookup")
+    public ResponseEntity<List<ScoutingCandidateResponse>> lookupScoutingProfiles(
+            @Valid @RequestBody ScoutingLookupRequest request
+    ) {
+        return ResponseEntity.ok(playerSportProfileConverter.toScoutingResponse(
+                playerSportProfileService.lookupScoutingProfiles(
+                        request.sportType(), request.latitude(), request.longitude(), request.userIds())));
     }
 
     @GetMapping("/admin")

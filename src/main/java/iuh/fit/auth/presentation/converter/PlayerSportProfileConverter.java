@@ -2,8 +2,10 @@ package iuh.fit.auth.presentation.converter;
 
 import iuh.fit.auth.application.dto.response.user.AvailabilityResponseCommand;
 import iuh.fit.auth.application.dto.response.user.PlayerSportProfileResponseCommand;
+import iuh.fit.auth.application.dto.response.user.ScoutedPlayerCommand;
 import iuh.fit.auth.presentation.response.user.AvailabilityResponse;
 import iuh.fit.auth.presentation.response.user.PlayerSportProfileResponse;
+import iuh.fit.auth.presentation.response.user.ScoutingCandidateResponse;
 import org.mapstruct.Mapper;
 
 import java.util.List;
@@ -15,4 +17,8 @@ public interface PlayerSportProfileConverter {
     PlayerSportProfileResponse toResponse(PlayerSportProfileResponseCommand command);
 
     List<PlayerSportProfileResponse> toResponse(List<PlayerSportProfileResponseCommand> commands);
+
+    ScoutingCandidateResponse toScoutingResponse(ScoutedPlayerCommand command);
+
+    List<ScoutingCandidateResponse> toScoutingResponse(List<ScoutedPlayerCommand> commands);
 }

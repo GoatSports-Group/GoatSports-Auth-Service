@@ -2,6 +2,7 @@ package iuh.fit.auth.application.service.impl;
 
 import iuh.fit.auth.application.dto.request.user.SaveAvailabilityCommand;
 import iuh.fit.auth.application.dto.request.user.SavePlayerSportProfileCommand;
+import iuh.fit.auth.application.dto.request.user.ScoutingSearchCommand;
 import iuh.fit.auth.application.dto.response.user.AvailabilityResponseCommand;
 import iuh.fit.auth.application.dto.response.user.PlayerSportProfileResponseCommand;
 import iuh.fit.auth.application.dto.response.user.ScoutedPlayerCommand;
@@ -16,6 +17,7 @@ import iuh.fit.auth.domain.enums.SportType;
 import iuh.fit.auth.domain.service.EloRatingPolicy;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -82,6 +84,7 @@ public class PlayerSportProfileServiceImpl implements PlayerSportProfileService 
                 .matchCount(0)
                 .winRate(0.0)
                 .availabilities(toAvailabilities(command.availabilities(), Set.of()))
+                .discoverable(!Boolean.FALSE.equals(command.discoverable()))
                 .build();
 
         return toResponse(profileRepository.save(profile));
@@ -121,6 +124,7 @@ public class PlayerSportProfileServiceImpl implements PlayerSportProfileService 
         profile.setLongitude(command.longitude());
         profile.setPlayRadiusKm(command.playRadiusKm());
         profile.setAvailabilities(toAvailabilities(command.availabilities(), existingAvailabilityIds));
+        if (command.discoverable() != null) profile.setDiscoverable(command.discoverable());
 
         return toResponse(profileRepository.save(profile));
     }
@@ -222,34 +226,46 @@ public class PlayerSportProfileServiceImpl implements PlayerSportProfileService 
                 profile.getMatchCount(),
                 profile.getWinRate(),
                 availabilities,
+                !Boolean.FALSE.equals(profile.getDiscoverable()),
                 profile.getCreatedAt(),
                 profile.getUpdatedAt()
         );
     }
 
     @Override
-    public List<ScoutedPlayerCommand> findScoutingCandidates(
-            SportType sportType, double latitude, double longitude, double radiusKm, int limit) {
-        if (sportType == null || radiusKm <= 0 || limit <= 0) return List.of();
+    public List<ScoutedPlayerCommand> findScoutingCandidates(ScoutingSearchCommand search) {
+        if (search == null || search.sportType() == null || search.radiusKm() <= 0 || search.limit() <= 0) {
+            return List.of();
+        }
 
-        double latitudeDelta = radiusKm / KM_PER_LATITUDE_DEGREE;
-        double longitudeScale = Math.max(Math.cos(Math.toRadians(latitude)), 0.01);
-        double longitudeDelta = radiusKm / (KM_PER_LATITUDE_DEGREE * longitudeScale);
+        double latitudeDelta = search.radiusKm() / KM_PER_LATITUDE_DEGREE;
+        double longitudeScale = Math.max(Math.cos(Math.toRadians(search.latitude())), 0.01);
+        double longitudeDelta = search.radiusKm() / (KM_PER_LATITUDE_DEGREE * longitudeScale);
 
+        // The box query is nearest-first, so over-fetching a little leaves room for the corners
+        // the exact distance check below drops.
         return profileRepository.findScoutingCandidates(
-                        sportType,
-                        latitude - latitudeDelta, latitude + latitudeDelta,
-                        longitude - longitudeDelta, longitude + longitudeDelta,
-                        Math.min(limit * 4, 400))
+                        search,
+                        search.latitude() - latitudeDelta, search.latitude() + latitudeDelta,
+                        search.longitude() - longitudeDelta, search.longitude() + longitudeDelta,
+                        Math.min(search.limit() * 2, 400))
                 .stream()
-                .map(candidate -> new ScoutedPlayerCommand(
-                        candidate.userId(), candidate.username(), candidate.fullName(), candidate.avatarUrl(),
-                        candidate.skillLevel(), candidate.eloRating(), candidate.matchCount(), candidate.winRate(),
-                        candidate.playRadiusKm(),
-                        distanceKm(latitude, longitude, candidate.latitude(), candidate.longitude())))
-                .filter(candidate -> candidate.distanceKm() <= radiusKm)
+                .map(candidate -> candidate.withDistanceKm(
+                        distanceKm(search.latitude(), search.longitude(), candidate.latitude(), candidate.longitude())))
+                .filter(candidate -> candidate.distanceKm() <= search.radiusKm())
                 .sorted(Comparator.comparingDouble(ScoutedPlayerCommand::distanceKm))
-                .limit(limit)
+                .limit(search.limit())
+                .toList();
+    }
+
+    @Override
+    public List<ScoutedPlayerCommand> lookupScoutingProfiles(
+            SportType sportType, double latitude, double longitude, Collection<UUID> userIds) {
+        if (sportType == null || userIds == null || userIds.isEmpty()) return List.of();
+        return profileRepository.findScoutingProfiles(sportType, Set.copyOf(userIds)).stream()
+                .map(player -> player.profileVisible() && player.latitude() != null && player.longitude() != null
+                        ? player.withDistanceKm(distanceKm(latitude, longitude, player.latitude(), player.longitude()))
+                        : player)
                 .toList();
     }
 

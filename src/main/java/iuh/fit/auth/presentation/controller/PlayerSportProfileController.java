@@ -78,7 +78,8 @@ public class PlayerSportProfileController {
                 request.getLatitude(),
                 request.getLongitude(),
                 request.getPlayRadiusKm(),
-                availabilities
+                availabilities,
+                request.getDiscoverable()
         );
     }
 

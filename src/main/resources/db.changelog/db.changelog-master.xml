@@ -11,4 +11,5 @@
     <include file="db.changelog/schema/14-09-2026/add-applied-match-results.xml"/>
     <include file="db.changelog/schema/16-09-2026/align-initial-sport-elo.xml"/>
     <include file="db.changelog/schema/23-09-2026/add-player-profile-city.xml"/>
+    <include file="db.changelog/schema/23-09-2026/add-player-profile-discoverable.xml"/>
 </databaseChangeLog>
