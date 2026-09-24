@@ -1,5 +1,6 @@
 package iuh.fit.auth.application.service.impl;
 
+import iuh.fit.auth.domain.service.PasswordPolicy;
 import iuh.fit.auth.application.dto.PageFilter;
 import iuh.fit.auth.application.dto.request.user.*;
 import iuh.fit.auth.application.dto.request.file.FileMoveRequest;
@@ -205,8 +206,8 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException("Mật khẩu mới không được để trống");
         }
 
-        if (!rawNewPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$")) {
-            throw new ServiceException("Mật khẩu phải có ít nhất 8 ký tự, chữ hoa, chữ thường, số và ký tự đặc biệt");
+        if (!PasswordPolicy.isStrong(rawNewPassword)) {
+            throw new ServiceException(PasswordPolicy.STRENGTH_MESSAGE);
         }
 
         if (!rawNewPassword.equals(rawConfirmPassword)) {
@@ -240,8 +241,8 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException("Mật khẩu mới không được để trống");
         }
 
-        if (!rawNewPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$")) {
-            throw new ServiceException("Mật khẩu phải có ít nhất 8 ký tự, chữ hoa, chữ thường, số và ký tự đặc biệt");
+        if (!PasswordPolicy.isStrong(rawNewPassword)) {
+            throw new ServiceException(PasswordPolicy.STRENGTH_MESSAGE);
         }
 
         if (!rawNewPassword.equals(rawConfirmPassword)) {
@@ -269,8 +270,8 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException("Mật khẩu mới không được để trống");
         }
 
-        if (!rawNewPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$")) {
-            throw new ServiceException("Mật khẩu phải có ít nhất 8 ký tự, chữ hoa, chữ thường, số và ký tự đặc biệt");
+        if (!PasswordPolicy.isStrong(rawNewPassword)) {
+            throw new ServiceException(PasswordPolicy.STRENGTH_MESSAGE);
         }
 
         String hashedNewPassword = jwtPort.hashPassword(rawNewPassword);

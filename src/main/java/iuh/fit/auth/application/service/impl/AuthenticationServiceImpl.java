@@ -1,5 +1,6 @@
 package iuh.fit.auth.application.service.impl;
 
+import iuh.fit.auth.domain.service.PasswordPolicy;
 import iuh.fit.auth.application.dto.request.auth.*;
 import iuh.fit.auth.application.dto.response.auth.KeycloakParseCommand;
 import iuh.fit.auth.application.dto.response.auth.KeycloakResponseCommand;
@@ -31,6 +32,12 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class AuthenticationServiceImpl implements AuthenticationService {
+    /**
+     * Khóa Redis của phiên đăng nhập. Hai tiền tố blacklist là HỢP ĐỒNG với api-gateway
+     * ({@code RedisTokenBlacklistFilter} chặn token có khóa này) — đổi tên ở đây phải đổi cả bên gateway.
+     */
+    private static final String ACCESS_BLACKLIST_PREFIX = "blacklist:";
+    private static final String REFRESH_BLACKLIST_PREFIX = "blacklist_refresh:";
 
     private static final Logger log = LoggerFactory.getLogger(AuthenticationServiceImpl.class);
 
@@ -74,26 +81,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return registerWithRole(registerRequestCommand, registrationRole);
     }
 
+    /**
+     * QUAN TRỌNG: hàm này KHÔNG kiểm tra mật khẩu — {@code AuthenticationController} đã xác thực bằng
+     * AuthenticationManager của Spring Security trước khi gọi. Không được gọi hàm này từ nơi khác khi chưa xác thực.
+     */
     @Override
     public LoginResponseCommand login(LoginRequestCommand loginCommand) throws ServiceException {
         User user = userRepository.findByUsernameOrEmailWithRole(loginCommand.username(), loginCommand.username())
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
 
-        String accessToken = jwtPort.generateAccessToken(user);
-        String refreshToken = jwtPort.generateRefreshToken(user);
-
-        String oldRefreshToken = redisPort.getValue("user:" + user.getUserId() + ":refresh");
-        if (oldRefreshToken != null) {
-            redisPort.deleteKey("user:" + user.getUserId() + ":refresh");
-        }
-
-        redisPort.saveWithTTL(
-                "user:" + user.getUserId() + ":refresh",
-                refreshToken,
-                jwtPort.getAuthProperties().refreshTokenExpirationSecond(),
-                TimeUnit.SECONDS);
-
-        return new LoginResponseCommand(userMapper.toUserResponseCommand(user), accessToken, refreshToken);
+        return issueSession(user);
     }
 
     @Override
@@ -142,21 +139,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (userId == null || userId.isEmpty())
             return;
 
-        redisPort.deleteKey("user:" + userId + ":refresh");
+        redisPort.deleteKey(refreshKey(userId));
         redisPort.saveWithTTL(
-                "blacklist:" + accessToken,
+                ACCESS_BLACKLIST_PREFIX + accessToken,
                 "revoked",
                 jwtPort.getRemainingTime(accessToken),
                 TimeUnit.SECONDS);
 
-        if (redisPort.hasKey("user:" + userId + ":keycloakRefresh")) {
-            String keycloakRefresh = redisPort.getValue("user:" + userId + ":keycloakRefresh");
+        if (redisPort.hasKey(keycloakRefreshKey(userId))) {
+            String keycloakRefresh = redisPort.getValue(keycloakRefreshKey(userId));
             try {
                 keycloakPort.logout(keycloakRefresh);
             } catch (Exception e) {
                 log.warn("Keycloak logout failed or unreachable: {}. Proceeding with local logout.", e.getMessage());
             }
-            redisPort.deleteKey("user:" + userId + ":keycloakRefresh");
+            redisPort.deleteKey(keycloakRefreshKey(userId));
         }
     }
 
@@ -175,10 +172,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new ServiceException("Refresh token không hợp lệ hoặc đã hết hạn");
         }
 
-        String refreshKey = "user:" + userId + ":refresh";
-        String keycloakRefreshKey = "user:" + userId + ":keycloakRefresh";
+        String refreshKey = refreshKey(userId);
+        String keycloakRefreshKey = keycloakRefreshKey(userId);
 
-        String blacklistKey = "blacklist_refresh:" + refreshToken;
+        String blacklistKey = REFRESH_BLACKLIST_PREFIX + refreshToken;
         if (redisPort.hasKey(blacklistKey)) {
             redisPort.deleteKey(refreshKey);
             redisPort.deleteKey(keycloakRefreshKey);
@@ -223,8 +220,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String newRefreshToken = jwtPort.generateRefreshToken(currentUser);
 
         this.redisPort.replaceKey(
-                "user:" + userId + ":refresh",
-                "user:" + userId + ":refresh",
+                refreshKey,
+                refreshKey,
                 newRefreshToken,
                 jwtPort.getAuthProperties().refreshTokenExpirationSecond(),
                 TimeUnit.SECONDS);
@@ -251,20 +248,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (user.getStatus() == UserStatusEnum.INACTIVE)
             throw new ServiceException("Người dùng bị khóa");
 
-        String rawPassword = rsaPort.decrypt(forgotPasswordRequestCommand.password());
-        String rawConfirmPassword = rsaPort.decrypt(forgotPasswordRequestCommand.confirmPassword());
-
-        if (rawPassword == null || rawPassword.isBlank()) {
-            throw new ServiceException("Mật khẩu không được để trống");
-        }
-
-        if (!rawPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$")) {
-            throw new ServiceException("Mật khẩu phải có ít nhất 8 ký tự, chữ hoa, chữ thường, số và ký tự đặc biệt");
-        }
-
-        if (!rawPassword.equals(rawConfirmPassword)) {
-            throw new ServiceException("Mật khẩu và xác nhận mật khẩu không khớp");
-        }
+        String rawPassword = decryptNewPassword(forgotPasswordRequestCommand.password(), forgotPasswordRequestCommand.confirmPassword());
 
         String hashedPassword = jwtPort.hashPassword(rawPassword);
         user.setPassword(hashedPassword);
@@ -333,26 +317,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             }
         }
 
-        String oldKeycloakRefresh = redisPort.getValue("user:" + user.getUserId() + ":keycloakRefresh");
+        String oldKeycloakRefresh = redisPort.getValue(keycloakRefreshKey(user.getUserId()));
         if (oldKeycloakRefresh != null) {
-            redisPort.deleteKey("user:" + user.getUserId() + ":keycloakRefresh");
+            redisPort.deleteKey(keycloakRefreshKey(user.getUserId()));
         }
         redisPort.saveWithTTL(
-                "user:" + user.getUserId() + ":keycloakRefresh",
+                keycloakRefreshKey(user.getUserId()),
                 keycloakResponse.refreshToken(),
                 keycloakResponse.refreshExpiresIn(),
                 TimeUnit.SECONDS);
 
-        String accessToken = jwtPort.generateAccessToken(user);
-        String refreshToken = jwtPort.generateRefreshToken(user);
-
-        redisPort.saveWithTTL(
-                "user:" + user.getUserId() + ":refresh",
-                refreshToken,
-                jwtPort.getAuthProperties().refreshTokenExpirationSecond(),
-                TimeUnit.SECONDS);
-
-        return new LoginResponseCommand(userMapper.toUserResponseCommand(user), accessToken, refreshToken);
+        return issueSession(user);
     }
 
     private UserResponseCommand registerWithRole(
@@ -364,20 +339,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (existed)
             throw new ServiceException("Người dùng đã tồn tại");
 
-        String rawPassword = rsaPort.decrypt(registerRequestCommand.password());
-        String rawConfirmPassword = rsaPort.decrypt(registerRequestCommand.confirmPassword());
-
-        if (rawPassword == null || rawPassword.isBlank()) {
-            throw new ServiceException("Mật khẩu không được để trống");
-        }
-
-        if (!rawPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$")) {
-            throw new ServiceException("Mật khẩu phải có ít nhất 8 ký tự, chữ hoa, chữ thường, số và ký tự đặc biệt");
-        }
-
-        if (!rawPassword.equals(rawConfirmPassword)) {
-            throw new ServiceException("Mật khẩu và xác nhận mật khẩu không khớp");
-        }
+        String rawPassword = decryptNewPassword(registerRequestCommand.password(), registerRequestCommand.confirmPassword());
 
         String hashedPassword = jwtPort.hashPassword(rawPassword);
 
@@ -407,5 +369,48 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         emailNotificationPort.sendVerificationEmail(createdUser.getEmail(), verificationCode);
 
         return userMapper.toUserResponseCommand(createdUser);
+    }
+
+    /**
+     * Cấp phiên mới: access + refresh token của GOAT Sports. Mỗi người chỉ giữ MỘT refresh token hợp lệ
+     * (ghi đè cái cũ), nên đăng nhập ở thiết bị mới sẽ đăng xuất phiên refresh ở thiết bị cũ.
+     */
+    private LoginResponseCommand issueSession(User user) {
+        String accessToken = jwtPort.generateAccessToken(user);
+        String refreshToken = jwtPort.generateRefreshToken(user);
+        redisPort.deleteKey(refreshKey(user.getUserId().toString()));
+        redisPort.saveWithTTL(
+                refreshKey(user.getUserId().toString()),
+                refreshToken,
+                jwtPort.getAuthProperties().refreshTokenExpirationSecond(),
+                TimeUnit.SECONDS);
+        return new LoginResponseCommand(userMapper.toUserResponseCommand(user), accessToken, refreshToken);
+    }
+
+    /**
+     * Mật khẩu đi trên đường truyền được mã hóa RSA bằng public key của server; giải mã rồi mới kiểm tra
+     * độ mạnh và khớp xác nhận. Trả về mật khẩu gốc để băm.
+     */
+    private String decryptNewPassword(String encryptedPassword, String encryptedConfirm) throws ServiceException {
+        String rawPassword = rsaPort.decrypt(encryptedPassword);
+        String rawConfirmPassword = rsaPort.decrypt(encryptedConfirm);
+        if (rawPassword == null || rawPassword.isBlank()) {
+            throw new ServiceException("Mật khẩu không được để trống");
+        }
+        if (!PasswordPolicy.isStrong(rawPassword)) {
+            throw new ServiceException(PasswordPolicy.STRENGTH_MESSAGE);
+        }
+        if (!rawPassword.equals(rawConfirmPassword)) {
+            throw new ServiceException("Mật khẩu và xác nhận mật khẩu không khớp");
+        }
+        return rawPassword;
+    }
+
+    private static String refreshKey(Object userId) {
+        return "user:" + userId + ":refresh";
+    }
+
+    private static String keycloakRefreshKey(Object userId) {
+        return "user:" + userId + ":keycloakRefresh";
     }
 }
