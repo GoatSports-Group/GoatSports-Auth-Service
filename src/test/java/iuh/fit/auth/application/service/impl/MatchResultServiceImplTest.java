@@ -30,7 +30,7 @@ class MatchResultServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        service = new MatchResultServiceImpl(profileRepository, resultRepository);
+        service = new MatchResultServiceImpl(profileRepository, resultRepository, null);
     }
 
     @Test

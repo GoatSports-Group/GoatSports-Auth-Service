@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -36,4 +35,18 @@ public class AppliedMatchResultEntity {
     private Integer newElo;
     @Column(name = "applied_at", nullable = false)
     private LocalDateTime appliedAt;
+    @Column(nullable = false, length = 20)
+    private String source;
+    @Column(name = "reference_id")
+    private UUID referenceId;
+    @Column(length = 255)
+    private String title;
+    @Column(name = "opponent_name", length = 255)
+    private String opponentName;
+    @Column(name = "my_score")
+    private Integer myScore;
+    @Column(name = "opponent_score")
+    private Integer opponentScore;
+    @Column(name = "opponent_elo")
+    private Integer opponentElo;
 }

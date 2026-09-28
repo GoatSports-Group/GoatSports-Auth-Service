@@ -75,9 +75,10 @@ public class ApplicationServiceConfig {
     @Bean
     public MatchResultServiceImpl matchResultService(
             PlayerSportProfileRepository profileRepository,
-            AppliedMatchResultRepository resultRepository
+            AppliedMatchResultRepository resultRepository,
+            CurrentUserProvider currentUserProvider
     ) {
-        return new MatchResultServiceImpl(profileRepository, resultRepository);
+        return new MatchResultServiceImpl(profileRepository, resultRepository, currentUserProvider);
     }
 
     @Bean

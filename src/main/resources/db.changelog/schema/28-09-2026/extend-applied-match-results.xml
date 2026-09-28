@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+    <!-- applied_match_results tro thanh lich su thi dau cua ho so the thao: tran nao (ghep tran hay giai dau),
+         dau voi ai, ti so bao nhieu, ELO doi thu. Dong cu la ghep tran nen source mac dinh MATCHMAKING. -->
+    <changeSet id="20260928-auth-extend-applied-match-results" author="codex">
+        <addColumn tableName="applied_match_results">
+            <column name="source" type="VARCHAR(20)" defaultValue="MATCHMAKING"><constraints nullable="false"/></column>
+            <column name="reference_id" type="UUID"/>
+            <column name="title" type="VARCHAR(255)"/>
+            <column name="opponent_name" type="VARCHAR(255)"/>
+            <column name="my_score" type="INT"/>
+            <column name="opponent_score" type="INT"/>
+            <column name="opponent_elo" type="INT"/>
+        </addColumn>
+        <createIndex tableName="applied_match_results" indexName="idx_match_result_user_sport_applied">
+            <column name="user_id"/>
+            <column name="sport_type"/>
+            <column name="applied_at"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

@@ -15,6 +15,10 @@ public record ApplyMatchResultRequest(
         @NotNull @Min(0) @Max(5000) Integer opponentElo,
         @NotBlank String outcome,
         /** Elo mà người chơi thực sự thi đấu ở trận này; dùng để khởi tạo hồ sơ mới cho đúng. */
-        @Min(0) @Max(5000) Integer playerElo
+        @Min(0) @Max(5000) Integer playerElo,
+        /** Chỉ để ghi lịch sử thi đấu. */
+        @jakarta.validation.constraints.Size(max = 255) String opponentName,
+        @Min(0) Integer myScore,
+        @Min(0) Integer opponentScore
 ) {
 }

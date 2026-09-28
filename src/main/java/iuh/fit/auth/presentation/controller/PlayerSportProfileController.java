@@ -31,11 +31,21 @@ import java.util.UUID;
 public class PlayerSportProfileController {
     private final PlayerSportProfileService profileService;
     private final PlayerSportProfileConverter profileConverter;
+    private final iuh.fit.auth.application.service.MatchResultService matchResultService;
 
     @GetMapping
     @AuditLog(action = "GET_MY_SPORT_PROFILES", description = "Lấy hồ sơ thể thao của người dùng hiện tại")
     public ResponseEntity<List<PlayerSportProfileResponse>> getMyProfiles() throws ServiceException {
         return ResponseEntity.ok(profileConverter.toResponse(profileService.getMyProfiles()));
+    }
+
+    /** Lịch sử thi đấu (ghép trận + giải đấu) của hồ sơ một môn, mới nhất trước. */
+    @GetMapping("/{sportType}/history")
+    public ResponseEntity<List<iuh.fit.auth.presentation.response.user.MatchHistoryResponse>> getMyHistory(
+            @PathVariable iuh.fit.auth.domain.enums.SportType sportType
+    ) throws ServiceException {
+        return ResponseEntity.ok(matchResultService.getMyHistory(sportType).stream()
+                .map(iuh.fit.auth.presentation.response.user.MatchHistoryResponse::from).toList());
     }
 
     @PostMapping
