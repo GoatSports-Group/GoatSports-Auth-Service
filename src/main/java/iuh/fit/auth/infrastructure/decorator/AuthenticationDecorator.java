@@ -1,5 +1,7 @@
 package iuh.fit.auth.infrastructure.decorator;
 
+import iuh.fit.auth.domain.enums.UserStatusEnum;
+import java.util.UUID;
 import iuh.fit.auth.application.dto.request.auth.*;
 import iuh.fit.auth.application.dto.response.auth.LoginResponseCommand;
 import iuh.fit.auth.application.dto.response.auth.RefreshResponseCommand;
@@ -47,6 +49,13 @@ public class AuthenticationDecorator implements AuthenticationService {
     @Override
     public RefreshResponseCommand refresh(String refreshToken) throws ServiceException {
         return authenticationServiceImpl.refresh(refreshToken);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void changeUserStatus(UUID userId, UserStatusEnum status)
+            throws ServiceException {
+        authenticationServiceImpl.changeUserStatus(userId, status);
     }
 
     @Override

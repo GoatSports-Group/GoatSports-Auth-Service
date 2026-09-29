@@ -48,6 +48,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             adminPermission("ASSIGN_ROLE_USER", "/api/v1/admin/users/role", "PUT", "USER"),
             adminPermission("CHANGE_PASSWORD_USER", "/api/v1/admin/users/{userId}/password", "PUT", "USER"),
             adminPermission("VERIFY_USER", "/api/v1/admin/users/{userId}/verify", "PUT", "USER"),
+            adminPermission("CHANGE_USER_STATUS", "/api/v1/admin/users/{userId}/status", "PUT", "USER"),
 
             adminPermission("CREATE_ROLE", "/api/v1/admin/roles", "POST", "ROLE"),
             adminPermission("UPDATE_ROLE", "/api/v1/admin/roles", "PUT", "ROLE"),
@@ -68,13 +69,19 @@ public class DatabaseInitializer implements CommandLineRunner {
             adminPermission("EXPORT_USER", "/api/v1/reports/export/users/{userId}", "GET", "REPORT"),
             adminPermission("GET_LOGS", "/api/v1/logs", "GET", "AUDIT"),
             adminPermission("MODERATE_REVIEW", "/api/v1/admin/reviews/{reviewId}/status", "PATCH", "REVIEW"),
+            adminPermission("GET_ALL_REVIEWS", "/api/v1/admin/reviews", "GET", "REVIEW"),
             adminPermission("MODERATE_SOCIAL_CONTENT", "/api/v1/admin/social/reports/{reportId}/action", "PATCH", "SOCIAL_MODERATION"),
             adminPermission("REVIEW_CONTENT_APPEAL", "/api/v1/admin/social/appeals/{appealId}", "PATCH", "SOCIAL_MODERATION"),
 
             adminPermission("GET_ALL_VENUES", "/api/v1/admin/venues", "GET", "VENUE"),
+            adminPermission("SUSPEND_VENUE", "/api/v1/admin/venues/{venueId}/suspension", "POST", "VENUE"),
             adminPermission("GET_ANY_VENUE", "/api/v1/admin/venues/{venueId}", "GET", "VENUE"),
             adminPermission("GET_ANY_VENUE_COURTS", "/api/v1/admin/venues/{venueId}/courts", "GET", "VENUE_COURT"),
             adminPermission("GET_ANY_VENUE_COURT", "/api/v1/admin/venue-courts/{venueCourtId}", "GET", "VENUE_COURT"),
+            // Một quyền cho mọi API thống kê của dashboard admin (auth, venue, club...).
+            adminPermission("GET_PLATFORM_STATS", "/api/v1/admin/stats/**", "GET", "STATS"),
+            adminPermission("GET_ALL_BOOKINGS", "/api/v1/admin/bookings", "GET", "BOOKING"),
+            adminPermission("GET_ANY_BOOKING", "/api/v1/admin/bookings/{bookingId}", "GET", "BOOKING"),
 
             ownerPermission("GET_OWN_VENUES", "/api/v1/owner/venues", "GET", "VENUE"),
             ownerPermission("GET_OWN_VENUE", "/api/v1/owner/venues/{venueId}", "GET", "VENUE"),

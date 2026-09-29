@@ -213,7 +213,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         User currentUser = userRepository.findById(UUID.fromString(userId)).orElse(null);
         if (currentUser == null)
             throw new ServiceException("Người dùng không tồn tại");
-        if (currentUser.getStatus() == UserStatusEnum.INACTIVE)
+        if (currentUser.getStatus() == UserStatusEnum.INACTIVE || currentUser.getStatus() == UserStatusEnum.BLOCKED)
             throw new ServiceException("Người dùng bị khóa");
 
         String newAccessToken = jwtPort.generateAccessToken(currentUser);
@@ -404,6 +404,33 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new ServiceException("Mật khẩu và xác nhận mật khẩu không khớp");
         }
         return rawPassword;
+    }
+
+    @Override
+    public void changeUserStatus(UUID userId, UserStatusEnum status) throws ServiceException {
+        if (status != UserStatusEnum.ACTIVE && status != UserStatusEnum.BLOCKED) {
+            throw new ServiceException("Chỉ có thể khóa hoặc mở khóa tài khoản.");
+        }
+        String actorId = currentUserProvider.getCurrentUserId().orElse(null);
+        if (userId.toString().equals(actorId)) {
+            throw new ServiceException("Không thể tự khóa tài khoản của chính mình.");
+        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
+        if (status == UserStatusEnum.BLOCKED && user.getRole() != null && user.getRole().getName() == RoleEnum.ADMIN) {
+            throw new ServiceException("Không thể khóa tài khoản quản trị viên.");
+        }
+        if (status == UserStatusEnum.ACTIVE && user.getStatus() != UserStatusEnum.BLOCKED) {
+            throw new ServiceException("Tài khoản không ở trạng thái bị khóa.");
+        }
+        user.setStatus(status);
+        userRepository.save(user);
+        if (status == UserStatusEnum.BLOCKED) {
+            // ponytail: access token còn hạn (mặc định 5 phút) vẫn dùng được tới khi hết hạn; nếu cần cắt ngay thì
+            // thêm khóa "blocked_user:{id}" và cho RedisTokenBlacklistFilter của gateway kiểm tra.
+            redisPort.deleteKey(refreshKey(userId));
+            redisPort.deleteKey(keycloakRefreshKey(userId));
+        }
     }
 
     private static String refreshKey(Object userId) {

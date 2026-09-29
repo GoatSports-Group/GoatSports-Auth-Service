@@ -1,5 +1,7 @@
 package iuh.fit.auth.infrastructure.persistence.repository;
 
+import java.time.LocalDateTime;
+import java.util.Map;
 import com.turkraft.springfilter.converter.FilterSpecificationConverter;
 import com.turkraft.springfilter.parser.FilterParser;
 import iuh.fit.auth.application.dto.PageFilter;
@@ -143,5 +145,28 @@ public class UserRepositoryImpl implements UserRepository {
         } catch (IllegalArgumentException exception) {
             return Optional.empty();
         }
+    }
+
+    @Override
+    public Map<String, Long> countByRole() {
+        return toCountMap(jpaUserRepository.countGroupedByRole());
+    }
+
+    @Override
+    public Map<String, Long> countByStatus() {
+        return toCountMap(jpaUserRepository.countGroupedByStatus());
+    }
+
+    @Override
+    public List<LocalDateTime> findCreatedAtBetween(LocalDateTime from, LocalDateTime to) {
+        return jpaUserRepository.findCreatedAtBetween(from, to);
+    }
+
+    private static Map<String, Long> toCountMap(List<Object[]> rows) {
+        Map<String, Long> counts = new java.util.LinkedHashMap<>();
+        for (Object[] row : rows) {
+            if (row[0] != null) counts.put(((Enum<?>) row[0]).name(), ((Number) row[1]).longValue());
+        }
+        return counts;
     }
 }

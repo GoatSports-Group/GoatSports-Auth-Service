@@ -1,5 +1,6 @@
 package iuh.fit.auth.infrastructure.config;
 
+import iuh.fit.auth.application.service.impl.AdminStatsServiceImpl;
 import iuh.fit.auth.application.mapper.UserMapper;
 import iuh.fit.auth.application.port.cache.RedisPort;
 import iuh.fit.auth.application.port.client.StoragePort;
@@ -70,6 +71,11 @@ public class ApplicationServiceConfig {
             CurrentUserProvider currentUserProvider
     ) {
         return new PlayerSportProfileServiceImpl(profileRepository, currentUserProvider);
+    }
+
+    @Bean
+    public AdminStatsServiceImpl adminStatsService(UserRepository userRepository) {
+        return new AdminStatsServiceImpl(userRepository);
     }
 
     @Bean

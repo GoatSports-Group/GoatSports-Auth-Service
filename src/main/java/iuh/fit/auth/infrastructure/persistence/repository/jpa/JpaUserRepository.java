@@ -1,5 +1,6 @@
 package iuh.fit.auth.infrastructure.persistence.repository.jpa;
 
+import java.time.LocalDateTime;
 import iuh.fit.auth.domain.enums.RoleEnum;
 import iuh.fit.auth.domain.enums.UserStatusEnum;
 import iuh.fit.auth.infrastructure.persistence.entity.UserEntity;
@@ -48,4 +49,13 @@ public interface JpaUserRepository extends JpaRepository<UserEntity, UUID>, JpaS
             @Param("roleName") RoleEnum roleName,
             Pageable pageable
     );
+
+    @Query("select role.name, count(u) from UserEntity u join u.role role group by role.name")
+    List<Object[]> countGroupedByRole();
+
+    @Query("select u.status, count(u) from UserEntity u group by u.status")
+    List<Object[]> countGroupedByStatus();
+
+    @Query("select u.createdAt from UserEntity u where u.createdAt >= :from and u.createdAt < :to")
+    List<LocalDateTime> findCreatedAtBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 }

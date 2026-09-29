@@ -16,6 +16,7 @@ import iuh.fit.auth.application.port.security.RsaPort;
 import iuh.fit.auth.domain.entity.Role;
 import iuh.fit.auth.domain.entity.User;
 import iuh.fit.auth.domain.enums.RoleEnum;
+import iuh.fit.auth.domain.enums.UserStatusEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -145,5 +146,56 @@ class AuthenticationServiceImplTest {
 
         assertThrows(ServiceException.class, () -> authenticationService.register(command));
         verifyNoInteractions(userRepository, roleRepository);
+    }
+
+    private User user(RoleEnum role, UserStatusEnum status) {
+        User user = new User();
+        user.setUserId(java.util.UUID.randomUUID());
+        user.setStatus(status);
+        Role userRole = new Role();
+        userRole.setName(role);
+        user.setRole(userRole);
+        return user;
+    }
+
+    @Test
+    void blockingAPlayerRevokesTheirRefreshSessions() throws ServiceException {
+        User player = user(RoleEnum.PLAYER, UserStatusEnum.ACTIVE);
+        when(currentUserProvider.getCurrentUserId()).thenReturn(java.util.Optional.of("admin-id"));
+        when(userRepository.findById(player.getUserId())).thenReturn(java.util.Optional.of(player));
+
+        authenticationService.changeUserStatus(player.getUserId(), UserStatusEnum.BLOCKED);
+
+        assertEquals(UserStatusEnum.BLOCKED, player.getStatus());
+        verify(userRepository).save(player);
+        verify(redisPort).deleteKey("user:" + player.getUserId() + ":refresh");
+        verify(redisPort).deleteKey("user:" + player.getUserId() + ":keycloakRefresh");
+    }
+
+    @Test
+    void adminsAndTheActorThemselvesCannotBeBlocked() throws ServiceException {
+        User admin = user(RoleEnum.ADMIN, UserStatusEnum.ACTIVE);
+        when(currentUserProvider.getCurrentUserId()).thenReturn(java.util.Optional.of(admin.getUserId().toString()));
+        assertThrows(ServiceException.class,
+                () -> authenticationService.changeUserStatus(admin.getUserId(), UserStatusEnum.BLOCKED));
+
+        User otherAdmin = user(RoleEnum.ADMIN, UserStatusEnum.ACTIVE);
+        when(userRepository.findById(otherAdmin.getUserId())).thenReturn(java.util.Optional.of(otherAdmin));
+        assertThrows(ServiceException.class,
+                () -> authenticationService.changeUserStatus(otherAdmin.getUserId(), UserStatusEnum.BLOCKED));
+        verify(userRepository, org.mockito.Mockito.never()).save(any());
+    }
+
+    @Test
+    void onlyBlockedAccountsCanBeUnblockedAndOnlyThoseTwoStatesAreAllowed() throws ServiceException {
+        User pending = user(RoleEnum.PLAYER, UserStatusEnum.INACTIVE);
+        when(currentUserProvider.getCurrentUserId()).thenReturn(java.util.Optional.of("admin-id"));
+        when(userRepository.findById(pending.getUserId())).thenReturn(java.util.Optional.of(pending));
+
+        assertThrows(ServiceException.class,
+                () -> authenticationService.changeUserStatus(pending.getUserId(), UserStatusEnum.ACTIVE));
+        assertThrows(ServiceException.class,
+                () -> authenticationService.changeUserStatus(pending.getUserId(), UserStatusEnum.PENDING));
+        assertEquals(UserStatusEnum.INACTIVE, pending.getStatus());
     }
 }

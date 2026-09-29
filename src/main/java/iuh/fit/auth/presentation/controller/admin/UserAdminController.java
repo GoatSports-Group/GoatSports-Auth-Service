@@ -1,5 +1,9 @@
 package iuh.fit.auth.presentation.controller.admin;
 
+import iuh.fit.auth.application.service.AuthenticationService;
+import iuh.fit.auth.domain.enums.UserStatusEnum;
+import jakarta.validation.constraints.NotNull;
+import java.util.UUID;
 import iuh.fit.auth.application.dto.PageFilter;
 import iuh.fit.auth.application.dto.request.user.AdminUpdatePasswordRequestCommand;
 import iuh.fit.auth.application.dto.request.user.AssignRoleRequestCommand;
@@ -33,6 +37,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserAdminController {
     private final UserService userService;
+    private final AuthenticationService authenticationService;
     private final UserMapper userMapper;
     private final UserConverter userConverter;
 
@@ -117,6 +122,20 @@ public class UserAdminController {
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    /** Khóa (BLOCKED) hoặc mở khóa (ACTIVE) tài khoản; khóa thì thu hồi phiên đăng nhập. */
+    @PutMapping("/{userId}/status")
+    @PreAuthorize("hasAuthority('CHANGE_USER_STATUS')")
+    @AuditLog(action = "ADMIN_CHANGE_USER_STATUS", description = "Đổi trạng thái tài khoản #{#userId} thành #{#request.status}")
+    public ResponseEntity<Void> changeStatus(
+            @PathVariable("userId") UUID userId,
+            @Valid @RequestBody ChangeUserStatusRequest request
+    ) throws ServiceException {
+        authenticationService.changeUserStatus(userId, request.status());
+        return ResponseEntity.ok().build();
+    }
+
+    public record ChangeUserStatusRequest(@NotNull UserStatusEnum status) { }
 
     @PutMapping("/{userId}/verify")
     @PreAuthorize("hasAuthority('VERIFY_USER')")
