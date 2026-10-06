@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Yêu cầu hỗ trợ</title>
+</head>
+<body style="margin:0;padding:24px;background:#f4f7f5;font-family:Arial,sans-serif;color:#101a2c;">
+<table role="presentation" style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid #dbe5e0;border-radius:16px;">
+    <tr>
+        <td style="padding:20px 24px;border-bottom:1px solid #dbe5e0;">
+            <div style="font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#007a55;">Yêu cầu hỗ trợ</div>
+            <div style="margin-top:6px;font-size:20px;font-weight:800;" th:text="${subject}">Tiêu đề</div>
+            <div style="margin-top:4px;font-size:14px;color:#5f6f84;" th:text="${topic}">Chủ đề</div>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding:20px 24px;">
+            <table role="presentation" style="width:100%;font-size:14px;">
+                <tr>
+                    <td style="padding:4px 0;color:#5f6f84;width:110px;">Người gửi</td>
+                    <td style="padding:4px 0;font-weight:700;" th:text="${fullName}">Họ tên</td>
+                </tr>
+                <tr>
+                    <td style="padding:4px 0;color:#5f6f84;">Email</td>
+                    <td style="padding:4px 0;font-weight:700;" th:text="${email}">email</td>
+                </tr>
+            </table>
+            <div style="margin-top:16px;padding:16px;border-radius:12px;background:#f8faf9;font-size:15px;line-height:1.6;white-space:pre-line;"
+                 th:text="${message}">Nội dung</div>
+            <p style="margin:16px 0 0;font-size:13px;color:#5f6f84;">Bấm "Trả lời" để phản hồi thẳng tới người gửi.</p>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

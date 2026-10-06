@@ -32,4 +32,20 @@ public class AsyncEmailAdapter implements AsyncEmailPort {
             log.error("Lỗi gửi mail tới " + recipient + ": " + e.getMessage());
         }
     }
+
+    @Override
+    @Async("emailExecutor")
+    public void sendHtmlWithReplyTo(String recipient, String replyTo, String subject, String html) {
+        MimeMessage mimeMessage = this.javaMailSender.createMimeMessage();
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, StandardCharsets.UTF_8.name());
+            helper.setTo(recipient);
+            helper.setReplyTo(replyTo);
+            helper.setSubject(subject);
+            helper.setText(html, true);
+            this.javaMailSender.send(mimeMessage);
+        } catch (Exception e) {
+            log.error("Lỗi gửi mail tới " + recipient + ": " + e.getMessage());
+        }
+    }
 }

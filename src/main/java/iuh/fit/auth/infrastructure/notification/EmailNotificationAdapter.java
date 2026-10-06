@@ -3,6 +3,7 @@ package iuh.fit.auth.infrastructure.notification;
 import iuh.fit.auth.application.port.notification.AsyncEmailPort;
 import iuh.fit.auth.application.port.notification.EmailNotificationPort;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
@@ -12,6 +13,9 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 public class EmailNotificationAdapter implements EmailNotificationPort {
     private final SpringTemplateEngine templateEngine;
     private final AsyncEmailPort asyncEmailPort;
+
+    @Value("${spring.mail.username}")
+    private String supportInbox;
 
     @Override
     public void sendVerificationEmail(String email, String verificationCode) {
@@ -43,5 +47,18 @@ public class EmailNotificationAdapter implements EmailNotificationPort {
         String content = this.templateEngine.process("verification", context);
 
         this.asyncEmailPort.sendEmailSync(email, subject, content, false, true);
+    }
+
+    @Override
+    public void sendSupportRequest(SupportRequestMail request) {
+        Context context = new Context();
+        context.setVariable("fullName", request.fullName());
+        context.setVariable("email", request.email());
+        context.setVariable("topic", request.topic());
+        context.setVariable("subject", request.subject());
+        context.setVariable("message", request.message());
+        String html = this.templateEngine.process("support-request", context);
+        this.asyncEmailPort.sendHtmlWithReplyTo(supportInbox, request.email(),
+                "[Hỗ trợ GOAT Sports] " + request.topic() + " · " + request.subject(), html);
     }
 }

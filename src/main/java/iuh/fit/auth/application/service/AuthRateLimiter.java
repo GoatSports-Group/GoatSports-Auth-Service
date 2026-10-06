@@ -39,6 +39,16 @@ public class AuthRateLimiter {
     @Value("${app.rate-limit.password-reset.window-seconds:86400}")
     private long passwordResetWindowSeconds;
 
+    @Value("${app.rate-limit.support.max-attempts:5}")
+    private int supportMaxAttempts;
+    @Value("${app.rate-limit.support.window-seconds:3600}")
+    private long supportWindowSeconds;
+
+    public void checkSupportRequest(String email) {
+        check("support", email, supportMaxAttempts, supportWindowSeconds,
+                "Bạn đã gửi nhiều yêu cầu hỗ trợ trong một giờ. Vui lòng thử lại sau.");
+    }
+
     public void checkLogin(String email) {
         check("login", email, loginMaxAttempts, loginWindowSeconds,
                 "Bạn đã đăng nhập sai quá nhiều lần. Vui lòng thử lại sau ít phút.");
