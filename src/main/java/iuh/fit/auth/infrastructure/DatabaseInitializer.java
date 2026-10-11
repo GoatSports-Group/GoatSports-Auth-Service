@@ -1,5 +1,6 @@
 package iuh.fit.auth.infrastructure;
 
+import iuh.fit.auth.application.port.cache.RedisPort;
 import iuh.fit.auth.domain.enums.AuthProviderEnum;
 import iuh.fit.auth.domain.enums.RoleEnum;
 import iuh.fit.auth.domain.enums.UserStatusEnum;
@@ -33,6 +34,7 @@ public class DatabaseInitializer implements CommandLineRunner {
     private final JpaRoleRepository roleRepository;
     private final JpaUserRepository userRepository;
     private final JpaPermissionRepository permissionRepository;
+    private final RedisPort redisPort;
 
     private record PermissionSeed(
             String name,
@@ -82,6 +84,15 @@ public class DatabaseInitializer implements CommandLineRunner {
             adminPermission("GET_PLATFORM_STATS", "/api/v1/admin/stats/**", "GET", "STATS"),
             adminPermission("GET_ALL_BOOKINGS", "/api/v1/admin/bookings", "GET", "BOOKING"),
             adminPermission("GET_ANY_BOOKING", "/api/v1/admin/bookings/{bookingId}", "GET", "BOOKING"),
+            adminPermission("LOOKUP_USERS", "/api/v1/admin/users/summaries", "POST", "USER"),
+            adminPermission("GET_SYSTEM_HEALTH", "/api/v1/admin/system/**", "GET", "SYSTEM"),
+            adminPermission("GET_AI_STATUS", "/api/v1/ai/admin/status", "GET", "AI"),
+            adminPermission("SEND_BROADCAST", "/api/v1/admin/broadcasts", "POST", "NOTIFICATION"),
+            adminPermission("GET_BROADCASTS", "/api/v1/admin/broadcasts/**", "GET", "NOTIFICATION"),
+            adminPermission("GET_PLATFORM_FINANCE", "/api/v1/admin/finance/**", "GET", "FINANCE"),
+            adminPermission("RETRY_REFUND", "/api/v1/admin/finance/refunds/{refundId}/retry", "POST", "FINANCE"),
+            adminPermission("GET_ALL_CLUBS", "/api/v1/admin/clubs", "GET", "CLUB"),
+            adminPermission("GET_ALL_TOURNAMENTS", "/api/v1/admin/tournaments", "GET", "TOURNAMENT"),
 
             ownerPermission("GET_OWN_VENUES", "/api/v1/owner/venues", "GET", "VENUE"),
             ownerPermission("GET_OWN_VENUE", "/api/v1/owner/venues/{venueId}", "GET", "VENUE"),
@@ -222,6 +233,7 @@ public class DatabaseInitializer implements CommandLineRunner {
                 }
                 if (updated) {
                     roleRepository.save(role);
+                    redisPort.evictRolePermissions(roleName.name());
                     log.info("Đã đồng bộ quyền hạn cho vai trò {}", roleName);
                 }
             });

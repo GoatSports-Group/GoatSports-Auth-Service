@@ -7,6 +7,10 @@ import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.domain.entity.User;
 import iuh.fit.auth.application.dto.response.base.PageResult;
 
+import iuh.fit.auth.application.dto.report.UserReportResponseCommand;
+import iuh.fit.auth.application.dto.response.user.UserSummaryResponseCommand;
+
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,18 +32,21 @@ public interface UserRepository {
 
     PageResult<User> findAll(PageFilter filter);
 
-    List<User> findAllUsers();
+    List<UserReportResponseCommand> findAllForReport();
+
+    List<UserSummaryResponseCommand> findSummariesByIds(Collection<UUID> userIds);
+
+    List<UUID> findActiveIdsByRoles(Collection<String> roleNames, UUID after, int limit);
+
+    long countActiveByRoles(Collection<String> roleNames);
 
     List<User> searchActivePlayers(String keyword, UUID excludedUserId, int limit);
 
     Optional<User> findByRole_Name(String name);
 
-    /** Số tài khoản theo tên vai trò (PLAYER, VENUE_OWNER, ADMIN...). */
     Map<String, Long> countByRole();
 
-    /** Số tài khoản theo trạng thái (ACTIVE, INACTIVE, PENDING, BLOCKED). */
     Map<String, Long> countByStatus();
 
-    /** Thời điểm tạo của các tài khoản tạo trong [from, to). */
     List<LocalDateTime> findCreatedAtBetween(LocalDateTime from, LocalDateTime to);
 }

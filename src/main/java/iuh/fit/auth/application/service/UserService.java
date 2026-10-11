@@ -9,6 +9,7 @@ import iuh.fit.auth.application.dto.request.user.CreateUserRequestCommand;
 import iuh.fit.auth.application.dto.request.user.UpdateUserRequestCommand;
 import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
+import iuh.fit.auth.application.dto.response.user.UserSummaryResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.domain.entity.User;
 
@@ -37,4 +38,8 @@ public interface UserService {
     List<UserResponseCommand> searchPlayers(String keyword, UUID excludedUserId, int limit);
 
     void verifyUser(String userId, boolean verified) throws ServiceException;
+
+    List<UserSummaryResponseCommand> getUserSummaries(List<UUID> userIds) throws ServiceException;
+
+    int MAX_SUMMARY_IDS = 100;
 }

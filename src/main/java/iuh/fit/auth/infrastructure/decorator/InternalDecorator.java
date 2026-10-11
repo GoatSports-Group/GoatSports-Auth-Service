@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -44,5 +46,17 @@ public class InternalDecorator implements InternalService {
     @Override
     public UserResponseCommand getUserById(String userId) throws ServiceException {
         return internalServiceImpl.getUserById(userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UUID> findRecipientIds(Set<String> roleNames, UUID after, int limit) throws ServiceException {
+        return internalServiceImpl.findRecipientIds(roleNames, after, limit);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countRecipients(Set<String> roleNames) throws ServiceException {
+        return internalServiceImpl.countRecipients(roleNames);
     }
 }

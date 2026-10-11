@@ -116,6 +116,21 @@ public class UserInternalController {
                         request.sportType(), request.latitude(), request.longitude(), request.userIds())));
     }
 
+    /** Người nhận thông báo hệ thống (notification-service gửi theo lô): mã tài khoản ACTIVE, keyset theo mã. */
+    @GetMapping("/recipients/ids")
+    public ResponseEntity<List<UUID>> getRecipientIds(
+            @RequestParam Set<String> roles,
+            @RequestParam(required = false) UUID after,
+            @RequestParam(defaultValue = "500") int limit
+    ) throws ServiceException {
+        return ResponseEntity.ok(internalService.findRecipientIds(roles, after, limit));
+    }
+
+    @GetMapping("/recipients/count")
+    public ResponseEntity<Long> countRecipients(@RequestParam Set<String> roles) throws ServiceException {
+        return ResponseEntity.ok(internalService.countRecipients(roles));
+    }
+
     @GetMapping("/admin")
     public ResponseEntity<String> getAdmin() throws ServiceException {
         return ResponseEntity.status(HttpStatus.OK).body(internalService.getAdmin());

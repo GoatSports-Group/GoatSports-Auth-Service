@@ -4,6 +4,7 @@ import iuh.fit.auth.application.dto.PageFilter;
 import iuh.fit.auth.application.dto.request.user.*;
 import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
+import iuh.fit.auth.application.dto.response.user.UserSummaryResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.service.UserService;
 import iuh.fit.auth.application.service.impl.UserServiceImpl;
@@ -83,5 +84,11 @@ public class UserDecorator implements UserService {
     @Transactional(rollbackFor = Exception.class)
     public void verifyUser(String userId, boolean verified) throws ServiceException {
         userServiceImpl.verifyUser(userId, verified);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserSummaryResponseCommand> getUserSummaries(List<UUID> userIds) throws ServiceException {
+        return userServiceImpl.getUserSummaries(userIds);
     }
 }

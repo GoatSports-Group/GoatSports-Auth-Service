@@ -5,6 +5,8 @@ import java.util.Map;
 import com.turkraft.springfilter.converter.FilterSpecificationConverter;
 import com.turkraft.springfilter.parser.FilterParser;
 import iuh.fit.auth.application.dto.PageFilter;
+import iuh.fit.auth.application.dto.report.UserReportResponseCommand;
+import iuh.fit.auth.application.dto.response.user.UserSummaryResponseCommand;
 import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.port.persistence.UserRepository;
@@ -23,6 +25,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -116,11 +119,34 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public List<User> findAllUsers() {
-        List<UserEntity> userEntities = jpaUserRepository.findAll();
-        return userEntities.stream()
-                .map(userEntityMapper::toDomain)
+    public List<UserReportResponseCommand> findAllForReport() {
+        return jpaUserRepository.findAllForReport().stream()
+                .map(row -> new UserReportResponseCommand(row.userId(), row.fullName(), row.email(),
+                        row.role().name(), row.status().getValue(), row.createdAt()))
                 .toList();
+    }
+
+    @Override
+    public List<UserSummaryResponseCommand> findSummariesByIds(Collection<UUID> userIds) {
+        return userIds.isEmpty() ? List.of() : jpaUserRepository.findSummariesByIds(userIds);
+    }
+
+    // UUID nhỏ nhất: trang đầu của keyset không cần nhánh "after is null" (PostgreSQL so sánh uuid theo byte).
+    private static final UUID KEYSET_START = new UUID(0L, 0L);
+
+    @Override
+    public List<UUID> findActiveIdsByRoles(Collection<String> roleNames, UUID after, int limit) {
+        return jpaUserRepository.findIdsByStatusAndRoles(UserStatusEnum.ACTIVE, roles(roleNames),
+                after == null ? KEYSET_START : after, PageRequest.of(0, limit));
+    }
+
+    @Override
+    public long countActiveByRoles(Collection<String> roleNames) {
+        return jpaUserRepository.countByStatusAndRoles(UserStatusEnum.ACTIVE, roles(roleNames));
+    }
+
+    private static List<RoleEnum> roles(Collection<String> roleNames) {
+        return roleNames.stream().map(RoleEnum::valueOf).toList();
     }
 
     @Override

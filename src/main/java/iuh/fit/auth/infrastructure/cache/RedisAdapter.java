@@ -2,6 +2,7 @@ package iuh.fit.auth.infrastructure.cache;
 
 import iuh.fit.auth.application.port.cache.RedisPort;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -13,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RedisAdapter implements RedisPort {
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -71,5 +73,14 @@ public class RedisAdapter implements RedisPort {
             this.redisTemplate.expire(key, ttl, timeUnit);
         }
         return current;
+    }
+
+    @Override
+    public void evictRolePermissions(String roleName) {
+        try {
+            this.redisTemplate.delete(GATEWAY_ROLE_PERMISSIONS_PREFIX + roleName);
+        } catch (RuntimeException exception) {
+            log.warn("Không xóa được cache quyền của vai trò {}: {}", roleName, exception.getMessage());
+        }
     }
 }

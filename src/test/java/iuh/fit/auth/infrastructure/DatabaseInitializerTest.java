@@ -1,5 +1,6 @@
 package iuh.fit.auth.infrastructure;
 
+import iuh.fit.auth.application.port.cache.RedisPort;
 import iuh.fit.auth.domain.enums.RoleEnum;
 import iuh.fit.auth.infrastructure.persistence.entity.PermissionEntity;
 import iuh.fit.auth.infrastructure.persistence.entity.RoleEntity;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,6 +35,8 @@ class DatabaseInitializerTest {
     private JpaUserRepository userRepository;
     @Mock
     private JpaPermissionRepository permissionRepository;
+    @Mock
+    private RedisPort redisPort;
 
     @Test
     void assignsVenuePermissionsToLeastPrivilegedRoles() throws Exception {
@@ -54,7 +58,7 @@ class DatabaseInitializerTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         new DatabaseInitializer(
-                passwordEncoder, roleRepository, userRepository, permissionRepository
+                passwordEncoder, roleRepository, userRepository, permissionRepository, redisPort
         ).run();
 
         Set<String> adminPermissions = names(roles.get(RoleEnum.ADMIN));
@@ -65,6 +69,10 @@ class DatabaseInitializerTest {
                 "GET_ALL_VENUES", "GET_ANY_VENUE", "GET_ANY_VENUE_COURTS", "GET_ANY_VENUE_COURT"
         );
         assertThat(adminPermissions).contains("MODERATE_SOCIAL_CONTENT", "REVIEW_CONTENT_APPEAL");
+        assertThat(adminPermissions).contains("LOOKUP_USERS", "GET_SYSTEM_HEALTH", "GET_AI_STATUS", "SEND_BROADCAST",
+                "GET_BROADCASTS", "GET_PLATFORM_FINANCE", "RETRY_REFUND", "GET_ALL_CLUBS", "GET_ALL_TOURNAMENTS");
+        // Quyền vừa đồng bộ phải tới gateway ngay, không chờ cache 15 phút hết hạn.
+        verify(redisPort).evictRolePermissions("ADMIN");
         assertThat(playerPermissions).doesNotContain("MODERATE_SOCIAL_CONTENT", "REVIEW_CONTENT_APPEAL");
         assertThat(ownerPermissions).doesNotContain("MODERATE_SOCIAL_CONTENT", "REVIEW_CONTENT_APPEAL");
         assertThat(adminPermissions).doesNotContain("UPDATE_OWN_VENUE", "CREATE_OWN_VENUE_COURT");

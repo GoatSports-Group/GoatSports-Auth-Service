@@ -1,6 +1,7 @@
 package iuh.fit.auth.application.service.impl;
 
 import iuh.fit.auth.application.dto.PageFilter;
+import iuh.fit.auth.application.port.cache.RedisPort;
 import iuh.fit.auth.application.port.persistence.PermissionRepository;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.application.service.RoleService;
@@ -19,8 +20,10 @@ import java.util.stream.Collectors;
 public class RoleServiceImpl implements RoleService {
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
+    private final RedisPort redisPort;
 
-    public RoleServiceImpl(RoleRepository roleRepository, PermissionRepository permissionRepository) {
+    public RoleServiceImpl(RoleRepository roleRepository, PermissionRepository permissionRepository, RedisPort redisPort) {
+        this.redisPort = redisPort;
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
     }
@@ -51,11 +54,15 @@ public class RoleServiceImpl implements RoleService {
             resRole.setPermissions(permissions);
         }
 
+        RoleEnum previousName = resRole.getName();
         resRole.setDescription(command.description());
         resRole.setActive(command.active());
         resRole.setName(parseRole(command.name()));
 
-        return roleRepository.save(resRole);
+        Role saved = roleRepository.save(resRole);
+        redisPort.evictRolePermissions(previousName.name());
+        redisPort.evictRolePermissions(saved.getName().name());
+        return saved;
     }
 
     @Override

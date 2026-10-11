@@ -7,6 +7,7 @@ import iuh.fit.auth.application.dto.request.file.FileMoveRequest;
 import iuh.fit.auth.application.dto.request.file.MoveFileRequest;
 import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
+import iuh.fit.auth.application.dto.response.user.UserSummaryResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.mapper.UserMapper;
 import iuh.fit.auth.application.port.client.StoragePort;
@@ -297,5 +298,15 @@ public class UserServiceImpl implements UserService {
         emailNotificationPort.sendDeactivateEmail(savedUser.getEmail(), savedUser.getFullName(), verified);
 
         userRegistrationEventPublisher.publishUserVerified(savedUser);
+    }
+
+    @Override
+    public List<UserSummaryResponseCommand> getUserSummaries(List<UUID> userIds) throws ServiceException {
+        if (userIds == null || userIds.isEmpty()) return List.of();
+        List<UUID> distinct = userIds.stream().distinct().toList();
+        if (distinct.size() > MAX_SUMMARY_IDS) {
+            throw new ServiceException("Chỉ tra cứu tối đa " + MAX_SUMMARY_IDS + " người dùng mỗi lần.");
+        }
+        return userRepository.findSummariesByIds(distinct);
     }
 }

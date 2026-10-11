@@ -6,6 +6,8 @@ import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 public interface InternalService {
     UserPermissionsResponseCommand getUserPermissions(String userId) throws ServiceException;
@@ -17,4 +19,8 @@ public interface InternalService {
     List<UserReportResponseCommand> getAllUserReports();
 
     UserResponseCommand getUserById(String userId) throws ServiceException;
+
+    List<UUID> findRecipientIds(Set<String> roleNames, UUID after, int limit) throws ServiceException;
+
+    long countRecipients(Set<String> roleNames) throws ServiceException;
 }

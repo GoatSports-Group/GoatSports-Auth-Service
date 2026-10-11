@@ -10,6 +10,8 @@ import iuh.fit.auth.application.dto.request.user.AssignRoleRequestCommand;
 import iuh.fit.auth.application.dto.request.user.CreateUserRequestCommand;
 import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
+import iuh.fit.auth.application.dto.response.user.UserSummaryResponseCommand;
+import iuh.fit.auth.presentation.request.user.UserSummariesRequest;
 import iuh.fit.auth.application.mapper.UserMapper;
 import iuh.fit.auth.application.service.UserService;
 import iuh.fit.auth.application.exception.ServiceException;
@@ -88,6 +90,14 @@ public class UserAdminController {
                 .toList();
 
         return ResponseEntity.status(HttpStatus.OK).body(new BaseListResponse(meta, userResponses));
+    }
+
+    @PostMapping("/summaries")
+    @PreAuthorize("hasAuthority('LOOKUP_USERS')")
+    public ResponseEntity<List<UserSummaryResponseCommand>> getUserSummaries(
+            @Valid @RequestBody UserSummariesRequest request
+    ) throws ServiceException {
+        return ResponseEntity.ok(userService.getUserSummaries(request.userIds()));
     }
 
     @PutMapping("/role")

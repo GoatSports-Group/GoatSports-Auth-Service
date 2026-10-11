@@ -87,18 +87,7 @@ public class InternalServiceImpl implements InternalService {
 
     @Override
     public List<UserReportResponseCommand> getAllUserReports() {
-        List<User> users = userRepository.findAllUsers();
-
-        return users.stream()
-                .map(user -> new UserReportResponseCommand(
-                        user.getUserId(),
-                        user.getFullName(),
-                        user.getEmail(),
-                        user.getRole().getName().name(),
-                        user.getStatus().getValue(),
-                        user.getCreatedAt()
-                ))
-                .collect(Collectors.toList());
+        return userRepository.findAllForReport();
     }
 
     @Override
@@ -107,5 +96,30 @@ public class InternalServiceImpl implements InternalService {
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
 
         return userMapper.toUserResponseCommand(user);
+    }
+
+    private static final int MAX_RECIPIENT_PAGE = 1000;
+
+    @Override
+    public List<UUID> findRecipientIds(Set<String> roleNames, UUID after, int limit) throws ServiceException {
+        return userRepository.findActiveIdsByRoles(validRoles(roleNames), after,
+                Math.max(1, Math.min(limit, MAX_RECIPIENT_PAGE)));
+    }
+
+    @Override
+    public long countRecipients(Set<String> roleNames) throws ServiceException {
+        return userRepository.countActiveByRoles(validRoles(roleNames));
+    }
+
+    private static Set<String> validRoles(Set<String> roleNames) throws ServiceException {
+        if (roleNames == null || roleNames.isEmpty()) throw new ServiceException("Cần ít nhất một vai trò nhận.");
+        for (String roleName : roleNames) {
+            try {
+                RoleEnum.valueOf(roleName);
+            } catch (IllegalArgumentException exception) {
+                throw new ServiceException("Vai trò không hợp lệ: " + roleName);
+            }
+        }
+        return roleNames;
     }
 }
