@@ -84,7 +84,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             adminPermission("GET_PLATFORM_STATS", "/api/v1/admin/stats/**", "GET", "STATS"),
             adminPermission("GET_ALL_BOOKINGS", "/api/v1/admin/bookings", "GET", "BOOKING"),
             adminPermission("GET_ANY_BOOKING", "/api/v1/admin/bookings/{bookingId}", "GET", "BOOKING"),
-            adminPermission("EXPORT_ALL_BOOKINGS", "/api/v1/reports/export/admin-bookings", "GET", "REPORT"),
+            adminPermission("EXPORT_ALL_BOOKINGS", "/api/v1/reports/exports/**", "GET", "REPORT"),
             adminPermission("LOOKUP_USERS", "/api/v1/admin/users/summaries", "POST", "USER"),
             adminPermission("GET_SYSTEM_HEALTH", "/api/v1/admin/system/**", "GET", "SYSTEM"),
             adminPermission("GET_AI_STATUS", "/api/v1/ai/admin/status", "GET", "AI"),
