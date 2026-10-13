@@ -91,7 +91,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             adminPermission("SEND_BROADCAST", "/api/v1/admin/broadcasts", "POST", "NOTIFICATION"),
             adminPermission("GET_BROADCASTS", "/api/v1/admin/broadcasts/**", "GET", "NOTIFICATION"),
             adminPermission("GET_PLATFORM_FINANCE", "/api/v1/admin/finance/**", "GET", "FINANCE"),
-            adminPermission("RETRY_REFUND", "/api/v1/admin/finance/refunds/{refundId}/retry", "POST", "FINANCE"),
+            adminPermission("RETRY_REFUND", "/api/v1/admin/finance/refunds/**", "POST", "FINANCE"),
             adminPermission("GET_ALL_CLUBS", "/api/v1/admin/clubs", "GET", "CLUB"),
             adminPermission("GET_ALL_TOURNAMENTS", "/api/v1/admin/tournaments", "GET", "TOURNAMENT"),
 
