@@ -34,7 +34,6 @@ public class PlayerSportProfileController {
     private final iuh.fit.auth.application.service.MatchResultService matchResultService;
 
     @GetMapping
-    @AuditLog(action = "GET_MY_SPORT_PROFILES", description = "Lấy hồ sơ thể thao của người dùng hiện tại")
     public ResponseEntity<List<PlayerSportProfileResponse>> getMyProfiles() throws ServiceException {
         return ResponseEntity.ok(profileConverter.toResponse(profileService.getMyProfiles()));
     }

@@ -48,7 +48,6 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    @AuditLog(action = "GET_USER", description = "Lấy thông tin người dùng #{#userId}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable("userId") String userId) throws ServiceException {
         UserResponseCommand user = userService.getUserById(userId);
         return ResponseEntity.status(HttpStatus.OK).body(userConverter.toResponse(user));
