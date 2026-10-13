@@ -68,6 +68,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             adminPermission("APPROVE_OWNER_APPLICATION", "/api/v1/admin/owner-applications/{id}/approve", "POST", "OWNER_APPLICATION"),
             adminPermission("REJECT_OWNER_APPLICATION", "/api/v1/admin/owner-applications/{id}/reject", "POST", "OWNER_APPLICATION"),
             adminPermission("GET_LOGS", "/api/v1/logs", "GET", "AUDIT"),
+            adminPermission("RESOLVE_SECURITY_ALERT", "/api/v1/logs/alerts/**", "POST", "AUDIT"),
             adminPermission("MODERATE_REVIEW", "/api/v1/admin/reviews/{reviewId}/status", "PATCH", "REVIEW"),
             adminPermission("GET_ALL_REVIEWS", "/api/v1/admin/reviews", "GET", "REVIEW"),
             adminPermission("MODERATE_SOCIAL_CONTENT", "/api/v1/admin/social/reports/{reportId}/action", "PATCH", "SOCIAL_MODERATION"),
