@@ -14,7 +14,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Role extends BaseEntity {
     private UUID roleId;
-    private RoleEnum name;
+    /** Vai trò hệ thống dùng tên trong {@link iuh.fit.auth.domain.enums.RoleEnum}; vai trò admin tự tạo có tên bất kỳ hợp lệ. */
+    private String name;
     private String description;
     private boolean active;
 

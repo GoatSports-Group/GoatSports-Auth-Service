@@ -4,6 +4,7 @@ import iuh.fit.auth.application.dto.request.auth.*;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.port.security.RsaPort;
 import iuh.fit.auth.application.service.AuthenticationService;
+import iuh.fit.auth.application.service.InternalService;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.service.AuthRateLimiter;
 import iuh.fit.auth.application.dto.response.auth.LoginResponseCommand;
@@ -37,6 +38,7 @@ public class AuthenticationController {
 
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final AuthenticationService authenticationService;
+    private final InternalService internalService;
     private final UserConverter userConverter;
     private final RsaPort rsaPort;
     private final AuthRateLimiter authRateLimiter;
@@ -176,7 +178,9 @@ public class AuthenticationController {
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser() throws ServiceException {
         UserResponseCommand user = authenticationService.getCurrentUser();
-        return ResponseEntity.status(HttpStatus.OK).body(userConverter.toResponse(user));
+        UserResponse response = userConverter.toResponse(user);
+        response.setPermissions(internalService.getUserPermissions(String.valueOf(response.getUserId())).permissions());
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     private ResponseCookie createCookie(String name, String value, long maxAge) {

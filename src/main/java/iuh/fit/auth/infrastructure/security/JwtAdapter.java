@@ -125,7 +125,7 @@ public class JwtAdapter implements JwtPort {
                     .subject(user.getUserId().toString())
                     .claim("username", user.getUsername())
                     .claim("email", user.getEmail())
-                    .claim("role", user.getRole().getName().name())
+                    .claim("role", user.getRole().getName())
                     .build();
 
             JwsHeader header = JwsHeader.with(JWT_ALGORITHM).build();

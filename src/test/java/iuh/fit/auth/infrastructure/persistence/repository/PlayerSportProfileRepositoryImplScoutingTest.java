@@ -50,7 +50,7 @@ class PlayerSportProfileRepositoryImplScoutingTest {
 
     @BeforeEach
     void setUp() {
-        player = em.persist(RoleEntity.builder().name(RoleEnum.PLAYER).active(true).build());
+        player = em.persist(RoleEntity.builder().name(RoleEnum.PLAYER.name()).active(true).build());
         near = user("near", UserStatusEnum.ACTIVE);
         far = user("far", UserStatusEnum.ACTIVE);
         hidden = user("hidden", UserStatusEnum.ACTIVE);

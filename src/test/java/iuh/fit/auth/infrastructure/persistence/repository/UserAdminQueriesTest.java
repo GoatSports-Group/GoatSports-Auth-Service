@@ -52,7 +52,7 @@ class UserAdminQueriesTest {
 
     @Test
     void recipientKeysetPagesCoverEveryActiveRecipientOnceInIdOrder() {
-        Set<RoleEnum> roles = Set.of(RoleEnum.PLAYER, RoleEnum.VENUE_OWNER);
+        Set<String> roles = Set.of(RoleEnum.PLAYER.name(), RoleEnum.VENUE_OWNER.name());
         List<UUID> collected = new ArrayList<>();
         UUID after = START;
         while (true) {
@@ -65,7 +65,7 @@ class UserAdminQueriesTest {
         // Người bị khóa và admin không nhận; không trùng, không sót qua ranh giới trang.
         assertThat(collected).containsExactlyElementsOf(activePlayersAndOwners);
         assertThat(repository.countByStatusAndRoles(UserStatusEnum.ACTIVE, roles)).isEqualTo(6);
-        assertThat(repository.countByStatusAndRoles(UserStatusEnum.ACTIVE, Set.of(RoleEnum.VENUE_OWNER))).isEqualTo(1);
+        assertThat(repository.countByStatusAndRoles(UserStatusEnum.ACTIVE, Set.of(RoleEnum.VENUE_OWNER.name()))).isEqualTo(1);
     }
 
     @Test
@@ -79,13 +79,13 @@ class UserAdminQueriesTest {
 
         assertThat(repository.findAllForReport()).hasSize(8)
                 .anySatisfy(row -> {
-                    assertThat(row.role()).isEqualTo(RoleEnum.PLAYER);
+                    assertThat(row.role()).isEqualTo(RoleEnum.PLAYER.name());
                     assertThat(row.status()).isEqualTo(UserStatusEnum.BLOCKED);
                 });
     }
 
     private RoleEntity role(RoleEnum name) {
-        return em.persist(RoleEntity.builder().name(name).active(true).build());
+        return em.persist(RoleEntity.builder().name(name.name()).active(true).build());
     }
 
     private UUID user(String username, UserStatusEnum status, RoleEntity role) {

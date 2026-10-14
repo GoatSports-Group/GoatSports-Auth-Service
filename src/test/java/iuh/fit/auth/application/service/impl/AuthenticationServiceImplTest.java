@@ -105,7 +105,7 @@ class AuthenticationServiceImplTest {
                 "encrypted-password",
                 "encrypted-confirm-password"
         );
-        Role venueOwnerRole = Role.builder().name(RoleEnum.VENUE_OWNER).build();
+        Role venueOwnerRole = Role.builder().name(RoleEnum.VENUE_OWNER.name()).build();
 
         when(userRepository.existsByUsernameOrEmail(command.username(), command.email())).thenReturn(false);
         when(rsaPort.decrypt(command.password())).thenReturn("Strong@123");
@@ -153,7 +153,7 @@ class AuthenticationServiceImplTest {
         user.setUserId(java.util.UUID.randomUUID());
         user.setStatus(status);
         Role userRole = new Role();
-        userRole.setName(role);
+        userRole.setName(role.name());
         user.setRole(userRole);
         return user;
     }

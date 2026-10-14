@@ -64,8 +64,8 @@ public class CallbackController {
 
         String redirectUrl = state == null || state.isBlank() ? clientUrl : state;
         if (result.user() != null && result.user().role() != null) {
-            RoleEnum roleName = result.user().role().getName();
-            if (roleName == RoleEnum.ADMIN || roleName == RoleEnum.VENUE_OWNER) {
+            String roleName = result.user().role().getName();
+            if (!RoleEnum.PLAYER.name().equals(roleName)) {
                 redirectUrl = adminUrl.replaceAll("/+$", "") + "/admin/dashboard";
             }
         }

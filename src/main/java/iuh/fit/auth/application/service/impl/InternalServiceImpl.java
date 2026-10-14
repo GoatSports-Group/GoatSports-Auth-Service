@@ -42,11 +42,13 @@ public class InternalServiceImpl implements InternalService {
         User user = userRepository.findById(userUUID)
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
 
-        Set<String> permissions = (user.getRole() != null && user.getRole().getPermissions() != null)
+        // Vai trò tạm ngưng thì không mang quyền nào ("Tạm ngưng để tước quyền mà không mất cấu hình").
+        Set<String> permissions = (user.getRole() != null && user.getRole().isActive()
+                && user.getRole().getPermissions() != null)
                 ? user.getRole().getPermissions().stream().map(Permission::getName).collect(Collectors.toSet())
                 : Collections.emptySet();
 
-        String role = user.getRole() != null ? user.getRole().getName().name() : "";
+        String role = user.getRole() != null ? user.getRole().getName() : "";
 
         return new UserPermissionsResponseCommand(user.getEmail(), role, permissions);
     }
@@ -63,7 +65,7 @@ public class InternalServiceImpl implements InternalService {
         User user = userRepository.findById(userUUID)
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
 
-        if (user.getRole() != null && user.getRole().getName() == RoleEnum.VENUE_OWNER) {
+        if (user.getRole() != null && RoleEnum.VENUE_OWNER.name().equals(user.getRole().getName())) {
             return;
         }
 

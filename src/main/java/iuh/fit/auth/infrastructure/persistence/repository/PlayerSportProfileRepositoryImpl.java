@@ -50,7 +50,7 @@ public class PlayerSportProfileRepositoryImpl implements PlayerSportProfileRepos
             double minLongitude, double maxLongitude, int limit) {
         double longitudeScale = Math.cos(Math.toRadians(search.latitude()));
         List<UUID> ids = jpaProfileRepository.findScoutingProfileIds(
-                search.sportType(), UserStatusEnum.ACTIVE, RoleEnum.PLAYER,
+                search.sportType(), UserStatusEnum.ACTIVE, RoleEnum.PLAYER.name(),
                 minLatitude, maxLatitude, minLongitude, maxLongitude,
                 search.anySkill(), search.anySkill() ? EnumSet.allOf(SkillLevel.class) : search.skillLevels(),
                 search.anyPosition(), search.anyPosition() ? "" : "%" + escapeLike(search.position().trim().toLowerCase(Locale.ROOT)) + "%",

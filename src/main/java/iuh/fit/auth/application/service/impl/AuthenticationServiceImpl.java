@@ -417,7 +417,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
-        if (status == UserStatusEnum.BLOCKED && user.getRole() != null && user.getRole().getName() == RoleEnum.ADMIN) {
+        if (status == UserStatusEnum.BLOCKED && user.getRole() != null && RoleEnum.ADMIN.name().equals(user.getRole().getName())) {
             throw new ServiceException("Không thể khóa tài khoản quản trị viên.");
         }
         if (status == UserStatusEnum.ACTIVE && user.getStatus() != UserStatusEnum.BLOCKED) {

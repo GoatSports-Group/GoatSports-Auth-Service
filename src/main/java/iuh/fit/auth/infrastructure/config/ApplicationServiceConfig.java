@@ -55,9 +55,10 @@ public class ApplicationServiceConfig {
 
     @Bean
     public RoleServiceImpl roleService(
-            RoleRepository roleRepository, PermissionRepository permissionRepository, RedisPort redisPort
+            RoleRepository roleRepository, PermissionRepository permissionRepository,
+            UserRepository userRepository, RedisPort redisPort
     ) {
-        return new RoleServiceImpl(roleRepository, permissionRepository, redisPort);
+        return new RoleServiceImpl(roleRepository, permissionRepository, userRepository, redisPort);
     }
 
     @Bean

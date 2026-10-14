@@ -18,6 +18,6 @@ public interface UserConverter {
     UserReportResponse toResponse(UserReportResponseCommand user);
 
     @Mapping(target = "status", expression = "java(user.status() != null ? user.status().getValue() : null)")
-    @Mapping(target = "roleName", expression = "java(user.role() != null ? user.role().getName().name() : \"Unknown\")")
+    @Mapping(target = "roleName", expression = "java(user.role() != null ? user.role().getName() : \"Unknown\")")
     UserDetailReportResponse toResponseUserDetailReport(UserResponseCommand user);
 }

@@ -2,7 +2,6 @@ package iuh.fit.auth.infrastructure.persistence.repository.jpa;
 
 import iuh.fit.auth.application.dto.response.user.UserSummaryResponseCommand;
 import java.time.LocalDateTime;
-import iuh.fit.auth.domain.enums.RoleEnum;
 import iuh.fit.auth.domain.enums.UserStatusEnum;
 import iuh.fit.auth.infrastructure.persistence.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -30,7 +29,7 @@ public interface JpaUserRepository extends JpaRepository<UserEntity, UUID>, JpaS
     @Query("SELECT u FROM UserEntity u LEFT JOIN FETCH u.role WHERE u.username = :username OR u.email = :email")
     Optional<UserEntity> findByUsernameOrEmailWithRole(@Param("username") String username, @Param("email") String email);
 
-    Optional<UserEntity> findByRole_Name(RoleEnum name);
+    Optional<UserEntity> findByRole_Name(String name);
 
     @Query("""
             SELECT u FROM UserEntity u
@@ -48,7 +47,7 @@ public interface JpaUserRepository extends JpaRepository<UserEntity, UUID>, JpaS
             @Param("keyword") String keyword,
             @Param("excludedUserId") UUID excludedUserId,
             @Param("status") UserStatusEnum status,
-            @Param("roleName") RoleEnum roleName,
+            @Param("roleName") String roleName,
             Pageable pageable
     );
 
@@ -61,7 +60,7 @@ public interface JpaUserRepository extends JpaRepository<UserEntity, UUID>, JpaS
     @Query("select u.createdAt from UserEntity u where u.createdAt >= :from and u.createdAt < :to")
     List<LocalDateTime> findCreatedAtBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
-    record UserReportRow(UUID userId, String fullName, String email, RoleEnum role, UserStatusEnum status,
+    record UserReportRow(UUID userId, String fullName, String email, String role, UserStatusEnum status,
                          LocalDateTime createdAt) {}
 
     @Query("""
@@ -84,11 +83,11 @@ public interface JpaUserRepository extends JpaRepository<UserEntity, UUID>, JpaS
             order by u.userId
             """)
     List<UUID> findIdsByStatusAndRoles(@Param("status") UserStatusEnum status,
-                                       @Param("roleNames") Collection<RoleEnum> roleNames,
+                                       @Param("roleNames") Collection<String> roleNames,
                                        @Param("after") UUID after,
                                        Pageable pageable);
 
     @Query("select count(u) from UserEntity u join u.role r where u.status = :status and r.name in :roleNames")
     long countByStatusAndRoles(@Param("status") UserStatusEnum status,
-                               @Param("roleNames") Collection<RoleEnum> roleNames);
+                               @Param("roleNames") Collection<String> roleNames);
 }

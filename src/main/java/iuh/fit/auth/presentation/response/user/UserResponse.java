@@ -24,6 +24,8 @@ public class UserResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private UserRole role;
+    /** Quyền đang có hiệu lực (rỗng khi vai trò tạm ngưng). Chỉ /auth/me điền, để admin app ẩn / hiện trang theo quyền. */
+    private Set<String> permissions;
     private UUID keycloakId;
     private Set<String> authProviders;
     private Boolean hasPassword;

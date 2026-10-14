@@ -24,9 +24,8 @@ public class RoleEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(columnDefinition = "UUID")
     private UUID roleId;
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false, unique = true)
-    private RoleEnum name;
+    private String name;
     private String description;
     private boolean active;
 

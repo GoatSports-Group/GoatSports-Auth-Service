@@ -43,13 +43,13 @@ class DatabaseInitializerTest {
         Map<RoleEnum, RoleEntity> roles = new EnumMap<>(RoleEnum.class);
         for (RoleEnum roleName : RoleEnum.values()) {
             roles.put(roleName, RoleEntity.builder()
-                    .name(roleName)
+                    .name(roleName.name())
                     .active(true)
                     .permissions(new HashSet<>())
                     .build());
         }
-        when(roleRepository.findByName(any(RoleEnum.class)))
-                .thenAnswer(invocation -> Optional.of(roles.get(invocation.getArgument(0))));
+        when(roleRepository.findByName(any(String.class)))
+                .thenAnswer(invocation -> Optional.ofNullable(roles.get(RoleEnum.valueOf(invocation.getArgument(0)))));
         when(roleRepository.save(any(RoleEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         when(userRepository.existsByUsernameOrEmail(any(), any())).thenReturn(true);

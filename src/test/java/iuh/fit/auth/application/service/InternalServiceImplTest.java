@@ -33,7 +33,7 @@ class InternalServiceImplTest {
     }
 
     private Role role(RoleEnum name) {
-        return Role.builder().roleId(UUID.randomUUID()).name(name).build();
+        return Role.builder().roleId(UUID.randomUUID()).name(name.name()).build();
     }
 
     @Test
@@ -58,7 +58,22 @@ class InternalServiceImplTest {
 
         service().assignVenueOwnerRole(userId.toString());
 
-        assertThat(user.getRole().getName()).isEqualTo(RoleEnum.VENUE_OWNER);
+        assertThat(user.getRole().getName()).isEqualTo(RoleEnum.VENUE_OWNER.name());
         verify(userRepository).save(user);
+    }
+
+    @Test
+    void aPausedRoleCarriesNoPermissionsButAnActiveCustomRoleDoes() throws Exception {
+        UUID userId = UUID.randomUUID();
+        Role support = Role.builder().roleId(UUID.randomUUID()).name("SUPPORT_STAFF").active(true)
+                .permissions(java.util.Set.of(iuh.fit.auth.domain.entity.Permission.builder().name("GET_USERS").build()))
+                .build();
+        User user = User.builder().userId(userId).role(support).build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        assertThat(service().getUserPermissions(userId.toString()).permissions()).containsExactly("GET_USERS");
+
+        support.setActive(false);
+        assertThat(service().getUserPermissions(userId.toString()).permissions()).isEmpty();
     }
 }

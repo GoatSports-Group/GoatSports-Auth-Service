@@ -122,7 +122,7 @@ public class UserRepositoryImpl implements UserRepository {
     public List<UserReportResponseCommand> findAllForReport() {
         return jpaUserRepository.findAllForReport().stream()
                 .map(row -> new UserReportResponseCommand(row.userId(), row.fullName(), row.email(),
-                        row.role().name(), row.status().getValue(), row.createdAt()))
+                        row.role(), row.status().getValue(), row.createdAt()))
                 .toList();
     }
 
@@ -145,8 +145,8 @@ public class UserRepositoryImpl implements UserRepository {
         return jpaUserRepository.countByStatusAndRoles(UserStatusEnum.ACTIVE, roles(roleNames));
     }
 
-    private static List<RoleEnum> roles(Collection<String> roleNames) {
-        return roleNames.stream().map(RoleEnum::valueOf).toList();
+    private static List<String> roles(Collection<String> roleNames) {
+        return List.copyOf(roleNames);
     }
 
     @Override
@@ -156,7 +156,7 @@ public class UserRepositoryImpl implements UserRepository {
                         keyword.trim(),
                         excludedUserId,
                         UserStatusEnum.ACTIVE,
-                        RoleEnum.PLAYER,
+                        RoleEnum.PLAYER.name(),
                         PageRequest.of(0, safeLimit)
                 ).stream()
                 .map(userEntityMapper::toDomain)
@@ -165,12 +165,8 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public Optional<User> findByRole_Name(String name) {
-        try {
-            return jpaUserRepository.findByRole_Name(RoleEnum.valueOf(name.toUpperCase()))
-                    .map(userEntityMapper::toDomain);
-        } catch (IllegalArgumentException exception) {
-            return Optional.empty();
-        }
+        if (name == null) return Optional.empty();
+        return jpaUserRepository.findByRole_Name(name.toUpperCase()).map(userEntityMapper::toDomain);
     }
 
     @Override
@@ -191,7 +187,9 @@ public class UserRepositoryImpl implements UserRepository {
     private static Map<String, Long> toCountMap(List<Object[]> rows) {
         Map<String, Long> counts = new java.util.LinkedHashMap<>();
         for (Object[] row : rows) {
-            if (row[0] != null) counts.put(((Enum<?>) row[0]).name(), ((Number) row[1]).longValue());
+            // Tên vai trò giờ là chuỗi (vai trò tự tạo), trạng thái vẫn là enum.
+            if (row[0] != null) counts.put(row[0] instanceof Enum<?> value ? value.name() : row[0].toString(),
+                    ((Number) row[1]).longValue());
         }
         return counts;
     }

@@ -38,12 +38,8 @@ public class RoleRepositoryImpl implements RoleRepository {
 
     @Override
     public Optional<Role> findByName(String name) {
-        try {
-            return jpaRoleRepository.findByName(RoleEnum.valueOf(name.toUpperCase()))
-                    .map(roleEntityMapper::toDomain);
-        } catch (IllegalArgumentException exception) {
-            return Optional.empty();
-        }
+        if (name == null) return Optional.empty();
+        return jpaRoleRepository.findByName(name.toUpperCase()).map(roleEntityMapper::toDomain);
     }
 
     @Override

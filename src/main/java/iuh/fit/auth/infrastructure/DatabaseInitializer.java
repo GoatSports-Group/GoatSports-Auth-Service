@@ -153,9 +153,9 @@ public class DatabaseInitializer implements CommandLineRunner {
     private void initializeRoles() {
         for (RoleEnum roleEnum : RoleEnum.values()) {
             String roleName = roleEnum.name();
-            if (roleRepository.findByName(roleEnum).isEmpty()) {
+            if (roleRepository.findByName(roleName).isEmpty()) {
                 RoleEntity role = RoleEntity.builder()
-                        .name(roleEnum)
+                        .name(roleName)
                         .description("Vai trò " + roleEnum.getValue().toLowerCase())
                         .active(true)
                         .build();
@@ -177,7 +177,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             user.setStatus(UserStatusEnum.ACTIVE);
             user.getAuthProviders().add(AuthProviderEnum.LOCAL);
 
-            RoleEntity role = roleRepository.findByName(RoleEnum.ADMIN)
+            RoleEntity role = roleRepository.findByName(RoleEnum.ADMIN.name())
                     .orElseThrow(() -> new ServiceException("Vai trò không tồn tại"));
             user.setRole(role);
 
@@ -213,7 +213,7 @@ public class DatabaseInitializer implements CommandLineRunner {
         }
 
         for (RoleEnum roleName : RoleEnum.values()) {
-            roleRepository.findByName(roleName).ifPresent(role -> {
+            roleRepository.findByName(roleName.name()).ifPresent(role -> {
                 boolean updated = false;
                 if (role.getPermissions() == null) {
                     role.setPermissions(new HashSet<>());

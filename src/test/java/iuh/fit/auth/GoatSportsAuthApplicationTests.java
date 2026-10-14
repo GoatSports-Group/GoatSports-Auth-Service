@@ -49,7 +49,7 @@ class GoatSportsAuthApplicationTests {
     }
 
     private Set<String> permissionNames(RoleEnum roleName) {
-        return roleRepository.findByName(roleName).orElseThrow().getPermissions().stream()
+        return roleRepository.findByName(roleName.name()).orElseThrow().getPermissions().stream()
                 .map(PermissionEntity::getName)
                 .collect(Collectors.toSet());
     }

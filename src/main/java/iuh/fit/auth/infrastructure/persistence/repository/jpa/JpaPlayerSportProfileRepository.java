@@ -1,7 +1,6 @@
 package iuh.fit.auth.infrastructure.persistence.repository.jpa;
 
 import iuh.fit.auth.domain.enums.DayOfWeek;
-import iuh.fit.auth.domain.enums.RoleEnum;
 import iuh.fit.auth.domain.enums.SkillLevel;
 import iuh.fit.auth.domain.enums.SportType;
 import iuh.fit.auth.domain.enums.UserStatusEnum;
@@ -55,7 +54,7 @@ public interface JpaPlayerSportProfileRepository extends JpaRepository<PlayerSpo
     List<UUID> findScoutingProfileIds(
             @Param("sportType") SportType sportType,
             @Param("status") UserStatusEnum status,
-            @Param("roleName") RoleEnum roleName,
+            @Param("roleName") String roleName,
             @Param("minLatitude") double minLatitude,
             @Param("maxLatitude") double maxLatitude,
             @Param("minLongitude") double minLongitude,
