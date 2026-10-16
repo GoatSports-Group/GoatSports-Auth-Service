@@ -1,5 +1,6 @@
 package iuh.fit.auth.presentation.controller;
 
+import iuh.fit.auth.application.exception.AccountStatusException;
 import iuh.fit.auth.application.service.AuthenticationService;
 import iuh.fit.auth.application.dto.response.auth.LoginResponseCommand;
 import iuh.fit.auth.domain.enums.RoleEnum;
@@ -32,6 +33,8 @@ public class CallbackController {
     private String clientUrl;
     @Value("${admin.frontend.url}")
     private String adminUrl;
+    @Value("${auth.frontend.url}")
+    private String authUrl;
     @Value("${app.jwt.refresh-token.expiration-second}")
     private long refreshTokenExpirationSecond;
     @Value("${app.jwt.access-token.expiration-second}")
@@ -51,7 +54,13 @@ public class CallbackController {
             HttpServletResponse response
     ) throws Exception
     {
-        LoginResponseCommand result = authenticationService.callback(code, callbackUrl);
+        LoginResponseCommand result;
+        try {
+            result = authenticationService.callback(code, callbackUrl);
+        } catch (AccountStatusException blocked) {
+            response.sendRedirect(authUrl.replaceAll("/+$", "") + "/login?" + blockedQuery(blocked));
+            return;
+        }
 
         // Ghi audit log thủ công sau khi đã có thông tin user
         sendAuditLog(result, request);
@@ -137,5 +146,18 @@ public class CallbackController {
                 .path("/")
                 .maxAge(maxAge)
                 .build();
+    }
+
+    private static String blockedQuery(AccountStatusException blocked) {
+        java.util.Map<String, Object> data = blocked.getData();
+        StringBuilder query = new StringBuilder("account=blocked");
+        for (String key : new String[]{"appealToken", "email", "fullName"}) {
+            Object value = data.get(key);
+            if (value != null) {
+                query.append('&').append(key).append('=')
+                        .append(java.net.URLEncoder.encode(value.toString(), java.nio.charset.StandardCharsets.UTF_8));
+            }
+        }
+        return query.toString();
     }
 }

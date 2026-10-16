@@ -55,6 +55,8 @@ class AuthenticationServiceImplTest {
     private UserMapper userMapper;
     @Mock
     private RsaPort rsaPort;
+    @Mock
+    private iuh.fit.auth.application.service.AccountAppealService accountAppealService;
 
     private AuthenticationServiceImpl authenticationService;
 
@@ -70,7 +72,8 @@ class AuthenticationServiceImplTest {
                 userRepository,
                 roleRepository,
                 userMapper,
-                rsaPort
+                rsaPort,
+                accountAppealService
         );
     }
 
@@ -151,6 +154,7 @@ class AuthenticationServiceImplTest {
     private User user(RoleEnum role, UserStatusEnum status) {
         User user = new User();
         user.setUserId(java.util.UUID.randomUUID());
+        user.setEmail(user.getUserId() + "@goat.test");
         user.setStatus(status);
         Role userRole = new Role();
         userRole.setName(role.name());
@@ -197,5 +201,77 @@ class AuthenticationServiceImplTest {
         assertThrows(ServiceException.class,
                 () -> authenticationService.changeUserStatus(pending.getUserId(), UserStatusEnum.PENDING));
         assertEquals(UserStatusEnum.INACTIVE, pending.getStatus());
+    }
+
+    @Test
+    void inactiveAccountWithTheRightPasswordGetsAnActivationCodeInsteadOfASession() throws ServiceException {
+        User inactive = user(RoleEnum.PLAYER, UserStatusEnum.INACTIVE);
+        when(userRepository.findByUsernameOrEmailWithRole(inactive.getEmail(), inactive.getEmail()))
+                .thenReturn(java.util.Optional.of(inactive));
+        when(userRepository.findByEmail(inactive.getEmail())).thenReturn(java.util.Optional.of(inactive));
+        when(redisPort.incrementWithTtl(eq("rate:login-activation-otp:" + inactive.getUserId()), eq(1L), any()))
+                .thenReturn(1L);
+        when(jwtPort.getAuthProperties()).thenReturn(new AuthProperties(300, 3600));
+
+        var error = assertThrows(iuh.fit.auth.application.exception.AccountStatusException.class,
+                () -> authenticationService.login(new iuh.fit.auth.application.dto.request.auth.LoginRequestCommand(
+                        inactive.getEmail(), "secret")));
+
+        assertEquals("ACCOUNT_INACTIVE", error.getCode());
+        assertEquals(inactive.getEmail(), error.getData().get("email"));
+        assertEquals(true, error.getData().get("codeSent"));
+        verify(emailNotificationPort).sendVerificationEmail(eq(inactive.getEmail()), anyString());
+        verifyNoInteractions(accountAppealService);
+    }
+
+    @Test
+    void activationCodesFromLoginAreThrottled() throws ServiceException {
+        User inactive = user(RoleEnum.PLAYER, UserStatusEnum.INACTIVE);
+        when(userRepository.findByUsernameOrEmailWithRole(inactive.getEmail(), inactive.getEmail()))
+                .thenReturn(java.util.Optional.of(inactive));
+        when(redisPort.incrementWithTtl(anyString(), eq(1L), any())).thenReturn(4L);
+
+        var error = assertThrows(iuh.fit.auth.application.exception.AccountStatusException.class,
+                () -> authenticationService.login(new iuh.fit.auth.application.dto.request.auth.LoginRequestCommand(
+                        inactive.getEmail(), "secret")));
+
+        assertEquals(false, error.getData().get("codeSent"));
+        verifyNoInteractions(emailNotificationPort);
+    }
+
+    @Test
+    void blockedAccountWithTheRightPasswordGetsAnAppealTokenInsteadOfASession() throws ServiceException {
+        User blocked = user(RoleEnum.PLAYER, UserStatusEnum.BLOCKED);
+        when(userRepository.findByUsernameOrEmailWithRole(blocked.getEmail(), blocked.getEmail()))
+                .thenReturn(java.util.Optional.of(blocked));
+        when(accountAppealService.issueAppealToken(blocked.getUserId())).thenReturn("appeal-token");
+        when(accountAppealService.appealTokenTtlMinutes()).thenReturn(30L);
+
+        var error = assertThrows(iuh.fit.auth.application.exception.AccountStatusException.class,
+                () -> authenticationService.login(new iuh.fit.auth.application.dto.request.auth.LoginRequestCommand(
+                        blocked.getEmail(), "secret")));
+
+        assertEquals("ACCOUNT_BLOCKED", error.getCode());
+        assertEquals("appeal-token", error.getData().get("appealToken"));
+        verifyNoInteractions(jwtPort);
+    }
+
+    @Test
+    void googleLoginDoesNotBypassABlock() throws ServiceException {
+        User blocked = user(RoleEnum.PLAYER, UserStatusEnum.BLOCKED);
+        java.util.UUID keycloakId = java.util.UUID.randomUUID();
+        blocked.setKeycloakId(keycloakId);
+        when(keycloakPort.exchangeCode("code", "cb")).thenReturn(
+                new iuh.fit.auth.application.dto.response.auth.KeycloakResponseCommand("kc-access", "kc-refresh", 300L, 1800L));
+        when(jwtPort.decodeKeycloakToken("kc-access")).thenReturn(
+                new iuh.fit.auth.application.dto.response.auth.KeycloakParseCommand(blocked.getEmail(), "blocked", "B", keycloakId));
+        when(userRepository.findByKeycloakId(keycloakId)).thenReturn(java.util.Optional.of(blocked));
+        when(accountAppealService.issueAppealToken(blocked.getUserId())).thenReturn("appeal-token");
+
+        var error = assertThrows(iuh.fit.auth.application.exception.AccountStatusException.class,
+                () -> authenticationService.callback("code", "cb"));
+
+        assertEquals("ACCOUNT_BLOCKED", error.getCode());
+        verify(jwtPort, org.mockito.Mockito.never()).generateAccessToken(any());
     }
 }

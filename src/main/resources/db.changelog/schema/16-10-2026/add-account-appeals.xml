@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+    <!-- Thư khiếu nại của tài khoản bị khóa, gửi từ màn đăng nhập; admin đọc ở "Hộp thư khiếu nại". -->
+    <changeSet id="20261016-auth-add-account-appeals" author="codex">
+        <createTable tableName="account_appeals">
+            <column name="appeal_id" type="UUID"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="user_id" type="UUID"><constraints nullable="false"/></column>
+            <column name="email" type="VARCHAR(255)"><constraints nullable="false"/></column>
+            <column name="full_name" type="VARCHAR(255)"/>
+            <column name="subject" type="VARCHAR(150)"><constraints nullable="false"/></column>
+            <column name="message" type="TEXT"><constraints nullable="false"/></column>
+            <column name="status" type="VARCHAR(20)"><constraints nullable="false"/></column>
+            <column name="created_at" type="TIMESTAMP"><constraints nullable="false"/></column>
+            <column name="read_at" type="TIMESTAMP"/>
+            <column name="resolved_at" type="TIMESTAMP"/>
+            <column name="reply" type="TEXT"/>
+            <column name="replied_at" type="TIMESTAMP"/>
+            <column name="replied_by" type="VARCHAR(255)"/>
+        </createTable>
+        <createIndex tableName="account_appeals" indexName="idx_account_appeals_status_created">
+            <column name="status"/>
+            <column name="created_at" descending="true"/>
+        </createIndex>
+        <createIndex tableName="account_appeals" indexName="idx_account_appeals_user">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

@@ -2,6 +2,7 @@ package iuh.fit.auth.infrastructure.exception;
 
 import iuh.fit.auth.application.exception.UnauthenticatedException;
 import iuh.fit.auth.application.exception.RateLimitExceededException;
+import iuh.fit.auth.application.exception.AccountStatusException;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.dto.response.base.BaseResponse;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -67,6 +68,17 @@ public class GlobalExceptionHandler {
         response.setError("Chưa đăng nhập");
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    /** Mật khẩu đúng nhưng tài khoản chưa kích hoạt / bị khóa: client đọc {@code error} để mở đúng popup. */
+    @ExceptionHandler(AccountStatusException.class)
+    ResponseEntity<Object> handleAccountStatus(AccountStatusException e) {
+        BaseResponse<Object> response = new BaseResponse<>();
+        response.setStatusCode(HttpStatus.FORBIDDEN.value());
+        response.setMessage(e.getMessage());
+        response.setError(e.getCode());
+        response.setData(e.getData());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 
     @ExceptionHandler(value = {

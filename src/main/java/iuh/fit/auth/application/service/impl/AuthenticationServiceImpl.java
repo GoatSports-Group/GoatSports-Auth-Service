@@ -15,6 +15,8 @@ import iuh.fit.auth.application.port.security.CurrentUserProvider;
 import iuh.fit.auth.application.port.security.JwtPort;
 import iuh.fit.auth.application.port.security.KeycloakPort;
 import iuh.fit.auth.application.service.AuthenticationService;
+import iuh.fit.auth.application.service.AccountAppealService;
+import iuh.fit.auth.application.exception.AccountStatusException;
 import iuh.fit.auth.domain.entity.Role;
 import iuh.fit.auth.domain.entity.User;
 import iuh.fit.auth.domain.enums.AuthProviderEnum;
@@ -38,6 +40,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      */
     private static final String ACCESS_BLACKLIST_PREFIX = "blacklist:";
     private static final String REFRESH_BLACKLIST_PREFIX = "blacklist_refresh:";
+    /** OTP kích hoạt gửi khi tài khoản chưa kích hoạt đăng nhập đúng mật khẩu: tối đa ngần này lần mỗi giờ. */
+    private static final String LOGIN_OTP_RATE_PREFIX = "rate:login-activation-otp:";
+    private static final int LOGIN_OTP_MAX_PER_HOUR = 3;
 
     private static final Logger log = LoggerFactory.getLogger(AuthenticationServiceImpl.class);
 
@@ -52,6 +57,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
     private final RsaPort rsaPort;
+    private final AccountAppealService accountAppealService;
 
     public AuthenticationServiceImpl(
             JwtPort jwtPort, RedisPort redisPort, KeycloakPort keycloakPort,
@@ -59,7 +65,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             UserRegistrationEventPublisher userRegistrationEventPublisher,
             UserRepository userRepository, RoleRepository roleRepository,
             UserMapper userMapper,
-            RsaPort rsaPort) {
+            RsaPort rsaPort, AccountAppealService accountAppealService) {
         this.jwtPort = jwtPort;
         this.redisPort = redisPort;
         this.keycloakPort = keycloakPort;
@@ -70,6 +76,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         this.roleRepository = roleRepository;
         this.userMapper = userMapper;
         this.rsaPort = rsaPort;
+        this.accountAppealService = accountAppealService;
     }
 
     @Override
@@ -89,6 +96,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public LoginResponseCommand login(LoginRequestCommand loginCommand) throws ServiceException {
         User user = userRepository.findByUsernameOrEmailWithRole(loginCommand.username(), loginCommand.username())
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
+
+        if (user.getStatus() == UserStatusEnum.INACTIVE) {
+            // Mật khẩu đúng: chắc chắn là chủ tài khoản, gửi luôn OTP kích hoạt (có giới hạn để không spam hộp thư).
+            boolean sent = redisPort.incrementWithTtl(LOGIN_OTP_RATE_PREFIX + user.getUserId(), 1, TimeUnit.HOURS)
+                    <= LOGIN_OTP_MAX_PER_HOUR;
+            if (sent) {
+                resendVerificationCode(user.getEmail());
+            }
+            throw AccountStatusException.inactive(user.getEmail(), sent);
+        }
+        if (user.getStatus() == UserStatusEnum.BLOCKED) {
+            throw AccountStatusException.blocked(user.getEmail(), user.getFullName(),
+                    accountAppealService.issueAppealToken(user.getUserId()), accountAppealService.appealTokenTtlMinutes());
+        }
 
         return issueSession(user);
     }
@@ -315,6 +336,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 user.setKeycloakId(keycloakId);
                 userRepository.save(user);
             }
+        }
+
+        // Google không được là cửa sau của lệnh khóa: không cấp phiên, chỉ cấp mã gửi khiếu nại như đăng nhập mật khẩu.
+        if (user.getStatus() == UserStatusEnum.BLOCKED) {
+            throw AccountStatusException.blocked(user.getEmail(), user.getFullName(),
+                    accountAppealService.issueAppealToken(user.getUserId()), accountAppealService.appealTokenTtlMinutes());
         }
 
         String oldKeycloakRefresh = redisPort.getValue(keycloakRefreshKey(user.getUserId()));

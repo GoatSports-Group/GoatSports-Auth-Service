@@ -28,14 +28,15 @@ public class ApplicationServiceConfig {
             EmailNotificationPort emailNotificationPort, CurrentUserProvider currentUserProvider,
             UserRegistrationEventPublisher userRegistrationEventPublisher,
             UserRepository userRepository, RoleRepository roleRepository,
-            UserMapper userMapper, RsaPort rsaPort
+            UserMapper userMapper, RsaPort rsaPort,
+            iuh.fit.auth.application.service.AccountAppealService accountAppealService
     ) {
         return new AuthenticationServiceImpl(
                 jwtPort, redisPort, keycloakPort,
                 emailNotificationPort, currentUserProvider,
                 userRegistrationEventPublisher,
                 userRepository, roleRepository,
-                userMapper, rsaPort
+                userMapper, rsaPort, accountAppealService
         );
     }
 
@@ -96,4 +97,14 @@ public class ApplicationServiceConfig {
         return new InternalServiceImpl(userRepository, roleRepository, userMapper);
     }
 
+    @Bean
+    public iuh.fit.auth.application.service.impl.AccountAppealServiceImpl accountAppealService(
+            iuh.fit.auth.application.port.persistence.AccountAppealRepository appealRepository,
+            UserRepository userRepository, RedisPort redisPort, EmailNotificationPort emailNotificationPort,
+            CurrentUserProvider currentUserProvider
+    ) {
+        return new iuh.fit.auth.application.service.impl.AccountAppealServiceImpl(
+                appealRepository, userRepository, redisPort, emailNotificationPort, currentUserProvider,
+                java.time.Clock.systemDefaultZone());
+    }
 }

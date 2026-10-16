@@ -14,6 +14,7 @@ public class EmailNotificationAdapter implements EmailNotificationPort {
     private final SpringTemplateEngine templateEngine;
     private final AsyncEmailPort asyncEmailPort;
 
+    /** Hộp thư nhận yêu cầu hỗ trợ và thư khiếu nại (có thể khác tài khoản Gmail dùng để gửi). */
     @Value("${spring.mail.username}")
     private String supportInbox;
 
@@ -60,5 +61,27 @@ public class EmailNotificationAdapter implements EmailNotificationPort {
         String html = this.templateEngine.process("support-request", context);
         this.asyncEmailPort.sendHtmlWithReplyTo(supportInbox, request.email(),
                 "[Hỗ trợ GOAT Sports] " + request.topic() + " · " + request.subject(), html);
+    }
+
+    @Override
+    public void sendAccountAppeal(AccountAppealMail mail) {
+        Context context = new Context();
+        context.setVariable("fullName", mail.fullName());
+        context.setVariable("email", mail.email());
+        context.setVariable("subject", mail.subject());
+        context.setVariable("message", mail.message());
+        String html = this.templateEngine.process("account-appeal", context);
+        this.asyncEmailPort.sendHtmlWithReplyTo(supportInbox, mail.email(),
+                "[Khiếu nại tài khoản bị khóa] " + mail.subject(), html);
+    }
+
+    @Override
+    public void sendAccountAppealReply(String email, String fullName, String subject, String reply) {
+        Context context = new Context();
+        context.setVariable("fullName", fullName);
+        context.setVariable("subject", subject);
+        context.setVariable("reply", reply);
+        String html = this.templateEngine.process("account-appeal-reply", context);
+        this.asyncEmailPort.sendHtmlWithReplyTo(email, supportInbox, "Re: " + subject, html);
     }
 }

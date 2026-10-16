@@ -13,4 +13,5 @@
     <include file="db.changelog/schema/23-09-2026/add-player-profile-city.xml"/>
     <include file="db.changelog/schema/23-09-2026/add-player-profile-discoverable.xml"/>
     <include file="db.changelog/schema/28-09-2026/extend-applied-match-results.xml"/>
+    <include file="db.changelog/schema/16-10-2026/add-account-appeals.xml"/>
 </databaseChangeLog>

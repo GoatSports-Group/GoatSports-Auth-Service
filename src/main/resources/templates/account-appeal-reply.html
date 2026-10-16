@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Phản hồi khiếu nại</title>
+</head>
+<body style="margin:0;padding:24px;background:#f4f7f5;font-family:Arial,sans-serif;color:#101a2c;">
+<table role="presentation" style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid #dbe5e0;border-radius:16px;">
+    <tr>
+        <td style="padding:20px 24px;border-bottom:1px solid #dbe5e0;">
+            <div style="font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#007a55;">GOAT Sports · Phản hồi khiếu nại</div>
+            <div style="margin-top:6px;font-size:20px;font-weight:800;" th:text="${subject}">Tiêu đề</div>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding:20px 24px;font-size:15px;line-height:1.6;">
+            <p style="margin:0 0 12px;">Chào <strong th:text="${fullName}">bạn</strong>,</p>
+            <div style="padding:16px;border-radius:12px;background:#f8faf9;white-space:pre-line;" th:text="${reply}">Nội dung phản hồi</div>
+            <p style="margin:16px 0 0;font-size:13px;color:#5f6f84;">Bạn có thể trả lời thư này nếu cần trao đổi thêm.</p>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

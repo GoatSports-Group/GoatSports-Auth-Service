@@ -1,6 +1,5 @@
 package iuh.fit.auth.infrastructure.security;
 
-import iuh.fit.auth.domain.enums.UserStatusEnum;
 import iuh.fit.auth.infrastructure.persistence.entity.UserEntity;
 import iuh.fit.auth.infrastructure.persistence.repository.jpa.JpaUserRepository;
 import lombok.NonNull;
@@ -27,14 +26,6 @@ public class UserDetailCustom implements UserDetailsService {
 
         if(user.getPassword() == null) {
             throw new DisabledException("Tài khoản được đăng nhập bằng mạng xã hội");
-        }
-
-        if (user.getStatus() == UserStatusEnum.BLOCKED) {
-            throw new DisabledException("Tài khoản đã bị khóa");
-        }
-
-        if (user.getStatus() == UserStatusEnum.INACTIVE) {
-            throw new DisabledException("Tài khoản chưa được kích hoạt");
         }
 
         if (user.getRole() == null || !user.getRole().isActive()) {
