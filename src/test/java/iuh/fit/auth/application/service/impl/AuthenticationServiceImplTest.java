@@ -163,10 +163,11 @@ class AuthenticationServiceImplTest {
     }
 
     @Test
-    void blockingAPlayerRevokesTheirRefreshSessions() throws ServiceException {
+    void blockingAPlayerRevokesTheirSessionsAndFlagsThemForTheGateway() throws ServiceException {
         User player = user(RoleEnum.PLAYER, UserStatusEnum.ACTIVE);
         when(currentUserProvider.getCurrentUserId()).thenReturn(java.util.Optional.of("admin-id"));
         when(userRepository.findById(player.getUserId())).thenReturn(java.util.Optional.of(player));
+        when(jwtPort.getAuthProperties()).thenReturn(new AuthProperties(300, 3600));
 
         authenticationService.changeUserStatus(player.getUserId(), UserStatusEnum.BLOCKED);
 
@@ -174,6 +175,20 @@ class AuthenticationServiceImplTest {
         verify(userRepository).save(player);
         verify(redisPort).deleteKey("user:" + player.getUserId() + ":refresh");
         verify(redisPort).deleteKey("user:" + player.getUserId() + ":keycloakRefresh");
+        // Gateway đọc khóa này để chặn access token còn hạn (đăng xuất người đang dùng ngay).
+        verify(redisPort).saveWithTTL("blocked_user:" + player.getUserId(), "1", 3600L, java.util.concurrent.TimeUnit.SECONDS);
+    }
+
+    @Test
+    void unblockingClearsTheGatewayFlag() throws ServiceException {
+        User blocked = user(RoleEnum.PLAYER, UserStatusEnum.BLOCKED);
+        when(currentUserProvider.getCurrentUserId()).thenReturn(java.util.Optional.of("admin-id"));
+        when(userRepository.findById(blocked.getUserId())).thenReturn(java.util.Optional.of(blocked));
+
+        authenticationService.changeUserStatus(blocked.getUserId(), UserStatusEnum.ACTIVE);
+
+        assertEquals(UserStatusEnum.ACTIVE, blocked.getStatus());
+        verify(redisPort).deleteKey("blocked_user:" + blocked.getUserId());
     }
 
     @Test

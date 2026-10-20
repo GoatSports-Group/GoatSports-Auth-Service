@@ -453,11 +453,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setStatus(status);
         userRepository.save(user);
         if (status == UserStatusEnum.BLOCKED) {
-            // ponytail: access token còn hạn (mặc định 5 phút) vẫn dùng được tới khi hết hạn; nếu cần cắt ngay thì
-            // thêm khóa "blocked_user:{id}" và cho RedisTokenBlacklistFilter của gateway kiểm tra.
+            redisPort.saveWithTTL(blockedUserKey(userId), "1",
+                    jwtPort.getAuthProperties().refreshTokenExpirationSecond(), TimeUnit.SECONDS);
             redisPort.deleteKey(refreshKey(userId));
             redisPort.deleteKey(keycloakRefreshKey(userId));
+        } else {
+            redisPort.deleteKey(blockedUserKey(userId));
         }
+    }
+
+    private static String blockedUserKey(Object userId) {
+        return "blocked_user:" + userId;
     }
 
     private static String refreshKey(Object userId) {
