@@ -58,6 +58,7 @@ class AccountDeletionServiceImplTest {
     @Mock private AccountDeletionBlockerPort blockerPort;
     @Mock private CurrentUserProvider currentUserProvider;
     @Mock private JwtPort jwtPort;
+    @Mock private iuh.fit.auth.application.port.client.SessionRevocationPort sessionRevocationPort;
 
     private AccountDeletionServiceImpl service;
 
@@ -65,7 +66,7 @@ class AccountDeletionServiceImplTest {
     void setUp() {
         service = new AccountDeletionServiceImpl(userRepository, profileRepository, appealRepository, redisPort,
                 keycloakPort, emailNotificationPort, eventPublisher, blockerPort, currentUserProvider,
-                jwtPort, CLOCK);
+                jwtPort, sessionRevocationPort, CLOCK);
     }
 
     private static User user(RoleEnum roleName, UserStatusEnum status) {
@@ -101,6 +102,7 @@ class AccountDeletionServiceImplTest {
         verify(userRepository).save(player);
         verify(redisPort).saveWithTTL("blocked_user:" + player.getUserId(), "deletion", 3600L, TimeUnit.SECONDS);
         verify(redisPort).deleteKey("user:" + player.getUserId() + ":refresh");
+        verify(sessionRevocationPort).notifySessionRevoked(player.getUserId(), "ACCOUNT_DELETION_PENDING");
         verify(emailNotificationPort).sendAccountDeletionScheduled(player.getEmail(), player.getFullName(), purgeAt);
     }
 

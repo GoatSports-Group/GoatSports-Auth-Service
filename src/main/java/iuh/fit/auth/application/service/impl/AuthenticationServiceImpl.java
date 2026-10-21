@@ -7,6 +7,7 @@ import iuh.fit.auth.application.dto.response.auth.KeycloakResponseCommand;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.mapper.UserMapper;
 import iuh.fit.auth.application.port.cache.RedisPort;
+import iuh.fit.auth.application.port.client.SessionRevocationPort;
 import iuh.fit.auth.application.port.notification.EmailNotificationPort;
 import iuh.fit.auth.application.port.event.UserRegistrationEventPublisher;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
@@ -58,6 +59,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserMapper userMapper;
     private final RsaPort rsaPort;
     private final AccountAppealService accountAppealService;
+    private final SessionRevocationPort sessionRevocationPort;
 
     public AuthenticationServiceImpl(
             JwtPort jwtPort, RedisPort redisPort, KeycloakPort keycloakPort,
@@ -65,7 +67,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             UserRegistrationEventPublisher userRegistrationEventPublisher,
             UserRepository userRepository, RoleRepository roleRepository,
             UserMapper userMapper,
-            RsaPort rsaPort, AccountAppealService accountAppealService) {
+            RsaPort rsaPort, AccountAppealService accountAppealService, SessionRevocationPort sessionRevocationPort) {
         this.jwtPort = jwtPort;
         this.redisPort = redisPort;
         this.keycloakPort = keycloakPort;
@@ -77,6 +79,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         this.userMapper = userMapper;
         this.rsaPort = rsaPort;
         this.accountAppealService = accountAppealService;
+        this.sessionRevocationPort = sessionRevocationPort;
     }
 
     @Override
@@ -483,6 +486,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     jwtPort.getAuthProperties().refreshTokenExpirationSecond(), TimeUnit.SECONDS);
             redisPort.deleteKey(refreshKey(userId));
             redisPort.deleteKey(keycloakRefreshKey(userId));
+            sessionRevocationPort.notifySessionRevoked(userId, SessionRevocationPort.ACCOUNT_BLOCKED);
         } else {
             redisPort.deleteKey(blockedUserKey(userId));
         }

@@ -57,6 +57,8 @@ class AuthenticationServiceImplTest {
     private RsaPort rsaPort;
     @Mock
     private iuh.fit.auth.application.service.AccountAppealService accountAppealService;
+    @Mock
+    private iuh.fit.auth.application.port.client.SessionRevocationPort sessionRevocationPort;
 
     private AuthenticationServiceImpl authenticationService;
 
@@ -73,7 +75,8 @@ class AuthenticationServiceImplTest {
                 roleRepository,
                 userMapper,
                 rsaPort,
-                accountAppealService
+                accountAppealService,
+                sessionRevocationPort
         );
     }
 
@@ -177,6 +180,8 @@ class AuthenticationServiceImplTest {
         verify(redisPort).deleteKey("user:" + player.getUserId() + ":keycloakRefresh");
         // Gateway đọc khóa này để chặn access token còn hạn (đăng xuất người đang dùng ngay).
         verify(redisPort).saveWithTTL("blocked_user:" + player.getUserId(), "1", 3600L, java.util.concurrent.TimeUnit.SECONDS);
+        // Tab đang ngồi yên cũng đăng xuất ngay qua websocket, không đợi request kế tiếp.
+        verify(sessionRevocationPort).notifySessionRevoked(player.getUserId(), "ACCOUNT_BLOCKED");
     }
 
     @Test

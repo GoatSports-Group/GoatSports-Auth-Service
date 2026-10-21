@@ -29,14 +29,15 @@ public class ApplicationServiceConfig {
             UserRegistrationEventPublisher userRegistrationEventPublisher,
             UserRepository userRepository, RoleRepository roleRepository,
             UserMapper userMapper, RsaPort rsaPort,
-            iuh.fit.auth.application.service.AccountAppealService accountAppealService
+            iuh.fit.auth.application.service.AccountAppealService accountAppealService,
+            iuh.fit.auth.application.port.client.SessionRevocationPort sessionRevocationPort
     ) {
         return new AuthenticationServiceImpl(
                 jwtPort, redisPort, keycloakPort,
                 emailNotificationPort, currentUserProvider,
                 userRegistrationEventPublisher,
                 userRepository, roleRepository,
-                userMapper, rsaPort, accountAppealService
+                userMapper, rsaPort, accountAppealService, sessionRevocationPort
         );
     }
 
@@ -61,11 +62,12 @@ public class ApplicationServiceConfig {
             RedisPort redisPort, KeycloakPort keycloakPort,
             EmailNotificationPort emailNotificationPort, UserRegistrationEventPublisher eventPublisher,
             iuh.fit.auth.application.port.client.AccountDeletionBlockerPort blockerPort,
-            CurrentUserProvider currentUserProvider, JwtPort jwtPort
+            CurrentUserProvider currentUserProvider, JwtPort jwtPort,
+            iuh.fit.auth.application.port.client.SessionRevocationPort sessionRevocationPort
     ) {
         return new iuh.fit.auth.application.service.impl.AccountDeletionServiceImpl(
                 userRepository, profileRepository, appealRepository, redisPort, keycloakPort,
-                emailNotificationPort, eventPublisher, blockerPort, currentUserProvider, jwtPort,
+                emailNotificationPort, eventPublisher, blockerPort, currentUserProvider, jwtPort, sessionRevocationPort,
                 java.time.Clock.systemDefaultZone());
     }
 

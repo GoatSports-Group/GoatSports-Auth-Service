@@ -3,6 +3,7 @@ package iuh.fit.auth.application.service.impl;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.port.cache.RedisPort;
 import iuh.fit.auth.application.port.client.AccountDeletionBlockerPort;
+import iuh.fit.auth.application.port.client.SessionRevocationPort;
 import iuh.fit.auth.application.port.event.UserRegistrationEventPublisher;
 import iuh.fit.auth.application.port.notification.EmailNotificationPort;
 import iuh.fit.auth.application.port.persistence.AccountAppealRepository;
@@ -51,6 +52,7 @@ public class AccountDeletionServiceImpl implements AccountDeletionService {
     private final AccountDeletionBlockerPort blockerPort;
     private final CurrentUserProvider currentUserProvider;
     private final JwtPort jwtPort;
+    private final SessionRevocationPort sessionRevocationPort;
     private final Clock clock;
 
     public AccountDeletionServiceImpl(
@@ -58,7 +60,8 @@ public class AccountDeletionServiceImpl implements AccountDeletionService {
             AccountAppealRepository appealRepository, RedisPort redisPort, KeycloakPort keycloakPort,
             EmailNotificationPort emailNotificationPort,
             UserRegistrationEventPublisher eventPublisher, AccountDeletionBlockerPort blockerPort,
-            CurrentUserProvider currentUserProvider, JwtPort jwtPort, Clock clock) {
+            CurrentUserProvider currentUserProvider, JwtPort jwtPort, SessionRevocationPort sessionRevocationPort,
+            Clock clock) {
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
         this.appealRepository = appealRepository;
@@ -69,6 +72,7 @@ public class AccountDeletionServiceImpl implements AccountDeletionService {
         this.blockerPort = blockerPort;
         this.currentUserProvider = currentUserProvider;
         this.jwtPort = jwtPort;
+        this.sessionRevocationPort = sessionRevocationPort;
         this.clock = clock;
     }
 
@@ -119,6 +123,7 @@ public class AccountDeletionServiceImpl implements AccountDeletionService {
                 jwtPort.getAuthProperties().refreshTokenExpirationSecond(), TimeUnit.SECONDS);
         redisPort.deleteKey("user:" + userId + ":refresh");
         redisPort.deleteKey("user:" + userId + ":keycloakRefresh");
+        sessionRevocationPort.notifySessionRevoked(userId, SessionRevocationPort.ACCOUNT_DELETION_PENDING);
 
         LocalDateTime purgeAt = now.plusDays(GRACE_DAYS);
         try {
