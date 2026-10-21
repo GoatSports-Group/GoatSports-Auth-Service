@@ -102,12 +102,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         if (user.getStatus() == UserStatusEnum.INACTIVE) {
             // Mật khẩu đúng: chắc chắn là chủ tài khoản, gửi luôn OTP kích hoạt (có giới hạn để không spam hộp thư).
-            boolean sent = redisPort.incrementWithTtl(LOGIN_OTP_RATE_PREFIX + user.getUserId(), 1, TimeUnit.HOURS)
-                    <= LOGIN_OTP_MAX_PER_HOUR;
-            if (sent) {
-                resendVerificationCode(user.getEmail());
-            }
-            throw AccountStatusException.inactive(user.getEmail(), sent);
+            throw inactive(user);
         }
         if (user.getStatus() == UserStatusEnum.BLOCKED) {
             throw AccountStatusException.blocked(user.getEmail(), user.getFullName(),
@@ -136,6 +131,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         userRegistrationEventPublisher.publishUserVerified(savedUser);
 
         redisPort.deleteKey(savedUser.getUserId().toString());
+        // Admin từng bỏ xác thực tài khoản này thì gateway đang chặn: nhập OTP xong là dùng lại được.
+        redisPort.deleteKey(blockedUserKey(savedUser.getUserId()));
     }
 
     @Override
@@ -348,6 +345,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw AccountStatusException.blocked(user.getEmail(), user.getFullName(),
                     accountAppealService.issueAppealToken(user.getUserId()), accountAppealService.appealTokenTtlMinutes());
         }
+        // Chưa xác thực (vừa đăng ký, hoặc admin bỏ xác thực): Google đã chứng minh chủ email, gửi OTP như đăng nhập
+        // mật khẩu. Keycloak không còn tắt user nữa nên luồng Google luôn về tới đây thay vì kẹt ở trang lỗi Keycloak.
+        if (user.getStatus() == UserStatusEnum.INACTIVE) {
+            throw inactive(user);
+        }
 
         String oldKeycloakRefresh = redisPort.getValue(keycloakRefreshKey(user.getUserId()));
         if (oldKeycloakRefresh != null) {
@@ -360,6 +362,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 TimeUnit.SECONDS);
 
         return issueSession(user, restoreIfPendingDeletion(user));
+    }
+
+    /** Tài khoản chưa xác thực: gửi OTP kích hoạt (tối đa {@value #LOGIN_OTP_MAX_PER_HOUR} lần/giờ) và báo client mở popup. */
+    private AccountStatusException inactive(User user) throws ServiceException {
+        boolean sent = redisPort.incrementWithTtl(LOGIN_OTP_RATE_PREFIX + user.getUserId(), 1, TimeUnit.HOURS)
+                <= LOGIN_OTP_MAX_PER_HOUR;
+        if (sent) {
+            resendVerificationCode(user.getEmail());
+        }
+        return AccountStatusException.inactive(user.getEmail(), sent);
     }
 
     /**

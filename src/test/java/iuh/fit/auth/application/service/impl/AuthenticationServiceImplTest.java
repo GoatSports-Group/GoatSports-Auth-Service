@@ -325,4 +325,28 @@ class AuthenticationServiceImplTest {
                 () -> authenticationService.changeUserStatus(pending.getUserId(), UserStatusEnum.BLOCKED));
         assertEquals(UserStatusEnum.PENDING_DELETION, pending.getStatus());
     }
+
+    /** Tài khoản chưa xác thực đăng nhập Google: nhận OTP và popup kích hoạt như đăng nhập mật khẩu, không cấp phiên. */
+    @Test
+    void googleLoginOfAnUnverifiedAccountGetsAnActivationCode() throws ServiceException {
+        User inactive = user(RoleEnum.PLAYER, UserStatusEnum.INACTIVE);
+        java.util.UUID keycloakId = java.util.UUID.randomUUID();
+        inactive.setKeycloakId(keycloakId);
+        when(keycloakPort.exchangeCode("code", "cb")).thenReturn(
+                new iuh.fit.auth.application.dto.response.auth.KeycloakResponseCommand("kc-access", "kc-refresh", 300L, 1800L));
+        when(jwtPort.decodeKeycloakToken("kc-access")).thenReturn(
+                new iuh.fit.auth.application.dto.response.auth.KeycloakParseCommand(inactive.getEmail(), "inactive", "I", keycloakId));
+        when(userRepository.findByKeycloakId(keycloakId)).thenReturn(java.util.Optional.of(inactive));
+        when(userRepository.findByEmail(inactive.getEmail())).thenReturn(java.util.Optional.of(inactive));
+        when(redisPort.incrementWithTtl(eq("rate:login-activation-otp:" + inactive.getUserId()), eq(1L), any())).thenReturn(1L);
+        when(jwtPort.getAuthProperties()).thenReturn(new AuthProperties(300, 3600));
+
+        var error = assertThrows(iuh.fit.auth.application.exception.AccountStatusException.class,
+                () -> authenticationService.callback("code", "cb"));
+
+        assertEquals("ACCOUNT_INACTIVE", error.getCode());
+        assertEquals(true, error.getData().get("codeSent"));
+        verify(emailNotificationPort).sendVerificationEmail(eq(inactive.getEmail()), anyString());
+        verify(jwtPort, org.mockito.Mockito.never()).generateAccessToken(any());
+    }
 }

@@ -52,6 +52,8 @@ class UserServiceImplTest {
     @Mock CurrentUserProvider currentUserProvider;
     @Mock EmailNotificationPort emailNotificationPort;
     @Mock RsaPort rsaPort;
+    @Mock iuh.fit.auth.application.port.cache.RedisPort redisPort;
+    @Mock iuh.fit.auth.application.port.client.SessionRevocationPort sessionRevocationPort;
 
     private UserServiceImpl service;
     private final UUID userId = UUID.randomUUID();
@@ -60,7 +62,7 @@ class UserServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new UserServiceImpl(jwtPort, userRepository, roleRepository, userMapper, eventPublisher, storagePort,
-                currentUserProvider, emailNotificationPort, rsaPort);
+                currentUserProvider, emailNotificationPort, rsaPort, redisPort, sessionRevocationPort);
         Role role = Role.builder().roleId(UUID.randomUUID()).name("PLAYER")
                 .permissions(Set.of(Permission.builder().name("CREATE_BOOKING").build())).build();
         user = User.builder().userId(userId).email("an@goat.test").username("an").fullName("Nguyễn An")
@@ -141,5 +143,24 @@ class UserServiceImplTest {
                 .isInstanceOf(ServiceException.class).hasMessageContaining("chờ xóa");
         assertThat(user.getStatus()).isEqualTo(UserStatusEnum.PENDING_DELETION);
         verify(userRepository, never()).save(any());
+    }
+
+    /** Admin bỏ xác thực: tab đang mở đăng xuất ngay, gateway chặn token còn hạn bằng mã riêng; xác thực lại thì gỡ chặn. */
+    @Test
+    void unverifyingAnAccountEndsItsSessionsAndReverifyingLiftsTheGatewayFlag() throws ServiceException {
+        when(userRepository.save(user)).thenReturn(user);
+        when(jwtPort.getAuthProperties()).thenReturn(new iuh.fit.auth.application.dto.AuthProperties(300, 3600));
+
+        service.verifyUser(userId.toString(), false);
+
+        assertThat(user.getStatus()).isEqualTo(UserStatusEnum.INACTIVE);
+        verify(redisPort).saveWithTTL("blocked_user:" + userId, "inactive", 3600L, java.util.concurrent.TimeUnit.SECONDS);
+        verify(redisPort).deleteKey("user:" + userId + ":refresh");
+        verify(sessionRevocationPort).notifySessionRevoked(userId, "ACCOUNT_INACTIVE");
+
+        service.verifyUser(userId.toString(), true);
+
+        assertThat(user.getStatus()).isEqualTo(UserStatusEnum.ACTIVE);
+        verify(redisPort).deleteKey("blocked_user:" + userId);
     }
 }

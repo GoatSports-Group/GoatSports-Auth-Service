@@ -150,8 +150,9 @@ public class CallbackController {
 
     private static String blockedQuery(AccountStatusException blocked) {
         java.util.Map<String, Object> data = blocked.getData();
-        StringBuilder query = new StringBuilder("account=blocked");
-        for (String key : new String[]{"appealToken", "email", "fullName"}) {
+        StringBuilder query = new StringBuilder(
+                AccountStatusException.INACTIVE.equals(blocked.getCode()) ? "account=inactive" : "account=blocked");
+        for (String key : new String[]{"appealToken", "email", "fullName", "codeSent"}) {
             Object value = data.get(key);
             if (value != null) {
                 query.append('&').append(key).append('=')

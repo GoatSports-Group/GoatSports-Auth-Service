@@ -44,6 +44,8 @@ public class UserServiceImpl implements UserService {
     private final CurrentUserProvider currentUserProvider;
     private final EmailNotificationPort emailNotificationPort;
     private final RsaPort rsaPort;
+    private final iuh.fit.auth.application.port.cache.RedisPort redisPort;
+    private final iuh.fit.auth.application.port.client.SessionRevocationPort sessionRevocationPort;
 
     public UserServiceImpl(
             JwtPort jwtPort,
@@ -53,7 +55,9 @@ public class UserServiceImpl implements UserService {
             StoragePort storagePort,
             CurrentUserProvider currentUserProvider,
             EmailNotificationPort emailNotificationPort,
-            RsaPort rsaPort
+            RsaPort rsaPort,
+            iuh.fit.auth.application.port.cache.RedisPort redisPort,
+            iuh.fit.auth.application.port.client.SessionRevocationPort sessionRevocationPort
     ) {
         this.jwtPort = jwtPort;
         this.userRepository = userRepository;
@@ -64,6 +68,8 @@ public class UserServiceImpl implements UserService {
         this.currentUserProvider = currentUserProvider;
         this.emailNotificationPort = emailNotificationPort;
         this.rsaPort = rsaPort;
+        this.redisPort = redisPort;
+        this.sessionRevocationPort = sessionRevocationPort;
     }
 
     @Override
@@ -329,6 +335,18 @@ public class UserServiceImpl implements UserService {
 
         user.setStatus(verified ? UserStatusEnum.ACTIVE : UserStatusEnum.INACTIVE);
         User savedUser = userRepository.save(user);
+
+        String gatewayFlag = "blocked_user:" + userUUID;
+        if (verified) {
+            redisPort.deleteKey(gatewayFlag);
+        } else {
+            redisPort.saveWithTTL(gatewayFlag, "inactive",
+                    jwtPort.getAuthProperties().refreshTokenExpirationSecond(), java.util.concurrent.TimeUnit.SECONDS);
+            redisPort.deleteKey("user:" + userUUID + ":refresh");
+            redisPort.deleteKey("user:" + userUUID + ":keycloakRefresh");
+            sessionRevocationPort.notifySessionRevoked(userUUID,
+                    iuh.fit.auth.application.port.client.SessionRevocationPort.ACCOUNT_INACTIVE);
+        }
 
         emailNotificationPort.sendDeactivateEmail(savedUser.getEmail(), savedUser.getFullName(), verified);
 

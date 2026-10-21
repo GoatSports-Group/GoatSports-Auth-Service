@@ -46,12 +46,13 @@ public class ApplicationServiceConfig {
             JwtPort jwtPort, UserRepository userRepository, RoleRepository roleRepository,
             UserMapper userMapper, UserRegistrationEventPublisher userRegistrationEventPublisher,
             StoragePort storagePort, CurrentUserProvider currentUserProvider,
-            EmailNotificationPort emailNotificationPort, RsaPort rsaPort
+            EmailNotificationPort emailNotificationPort, RsaPort rsaPort, RedisPort redisPort,
+            iuh.fit.auth.application.port.client.SessionRevocationPort sessionRevocationPort
     ) {
         return new UserServiceImpl(
                 jwtPort, userRepository, roleRepository,
                 userMapper, userRegistrationEventPublisher, storagePort,
-                currentUserProvider, emailNotificationPort, rsaPort
+                currentUserProvider, emailNotificationPort, rsaPort, redisPort, sessionRevocationPort
         );
     }
 
