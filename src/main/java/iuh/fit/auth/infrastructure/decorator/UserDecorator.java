@@ -40,6 +40,11 @@ public class UserDecorator implements UserService {
     }
 
     @Override
+    public UserResponseCommand getVisibleUser(String userId) throws ServiceException {
+        return userServiceImpl.getVisibleUser(userId);
+    }
+
+    @Override
     public UserResponseCommand updateUser(String userId, UpdateUserRequestCommand command) throws ServiceException {
         return userServiceImpl.updateUser(userId, command);
     }

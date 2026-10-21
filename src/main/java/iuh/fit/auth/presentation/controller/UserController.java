@@ -49,7 +49,7 @@ public class UserController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable("userId") String userId) throws ServiceException {
-        UserResponseCommand user = userService.getUserById(userId);
+        UserResponseCommand user = userService.getVisibleUser(userId);
         return ResponseEntity.status(HttpStatus.OK).body(userConverter.toResponse(user));
     }
 

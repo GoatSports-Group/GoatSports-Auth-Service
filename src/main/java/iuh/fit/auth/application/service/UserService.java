@@ -23,6 +23,12 @@ public interface UserService {
 
     UserResponseCommand getUserById(String userId) throws ServiceException;
 
+    /**
+     * Hồ sơ người dùng theo góc nhìn người gọi: chính chủ hoặc người có quyền GET_USERS thấy đầy đủ; người khác chỉ
+     * thấy thông tin công khai (tên đăng nhập, họ tên, ảnh đại diện, vai trò), không thấy email/SĐT/ngày sinh/giới tính.
+     */
+    UserResponseCommand getVisibleUser(String userId) throws ServiceException;
+
     UserResponseCommand updateUser(String userId, UpdateUserRequestCommand command) throws ServiceException;
 
     void updateAvatar(String userId, String tempKey) throws ServiceException;

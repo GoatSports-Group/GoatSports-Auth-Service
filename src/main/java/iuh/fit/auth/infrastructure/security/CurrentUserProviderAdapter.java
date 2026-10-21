@@ -47,6 +47,11 @@ public class CurrentUserProviderAdapter implements CurrentUserProvider {
         return user;
     }
 
+    @Override
+    public boolean hasAuthority(String authority) {
+        return securityContextHelper.hasAuthority(authority);
+    }
+
     private boolean isUUID(String uuid) {
         try {
             UUID.fromString(uuid);

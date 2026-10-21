@@ -10,4 +10,6 @@ public interface CurrentUserProvider {
     Optional<String> getCurrentUserEmailOrUsername();
 
     User getCurrentUser() throws ServiceException;
+
+    boolean hasAuthority(String authority);
 }

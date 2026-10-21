@@ -25,6 +25,12 @@ public class SecurityContextHelper {
         return Optional.ofNullable(extractPrincipal(authentication));
     }
 
+    public boolean hasAuthority(String authority) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(granted -> authority.equals(granted.getAuthority()));
+    }
+
     private String extractPrincipal(Authentication authentication) {
         if (authentication == null) {
             return null;

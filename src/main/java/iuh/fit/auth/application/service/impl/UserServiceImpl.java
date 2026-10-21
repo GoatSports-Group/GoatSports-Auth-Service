@@ -29,9 +29,11 @@ import iuh.fit.auth.domain.enums.UserStatusEnum;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public class UserServiceImpl implements UserService {
+    private static final String VIEW_FULL_PROFILE_PERMISSION = "GET_USERS";
 
     private final JwtPort jwtPort;
     private final UserRepository userRepository;
@@ -124,6 +126,34 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserResponseCommand getVisibleUser(String userId) throws ServiceException {
+        UserResponseCommand user = getUserById(userId);
+        if (isCaller(user.userId(), user.email(), user.username())
+                || currentUserProvider.hasAuthority(VIEW_FULL_PROFILE_PERMISSION)) {
+            return user;
+        }
+        Role role = user.role() == null ? null
+                : Role.builder().roleId(user.role().getRoleId()).name(user.role().getName()).build();
+        return new UserResponseCommand(user.userId(), null, null, user.username(), null, user.fullName(),
+                user.avatarUrl(), null, null, null, user.status(), null, Set.of(), role, user.createdAt(), null);
+    }
+
+    /** Chỉ chính chủ sửa hồ sơ qua /users/{id}; quản trị viên dùng các API /admin/users riêng. */
+    private void assertSelf(UUID userId) throws ServiceException {
+        if (!isCaller(userId, null, null)) {
+            throw new ServiceException("Bạn chỉ có thể sửa hồ sơ của chính mình.");
+        }
+    }
+
+    /** Gateway gắn userId vào X-User-Id; vài luồng cũ chỉ có email/username nên so cả hai. */
+    private boolean isCaller(UUID userId, String email, String username) {
+        String callerId = currentUserProvider.getCurrentUserId().orElse(null);
+        if (callerId != null && callerId.equalsIgnoreCase(userId.toString())) return true;
+        String callerName = currentUserProvider.getCurrentUserEmailOrUsername().orElse(null);
+        return callerName != null && (callerName.equalsIgnoreCase(email) || callerName.equalsIgnoreCase(username));
+    }
+
+    @Override
     public PageResult<User> getAllUsers(PageFilter filter) {
         return userRepository.findAll(filter);
     }
@@ -141,6 +171,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseCommand updateUser(String userId, UpdateUserRequestCommand command) throws ServiceException {
         UUID userUUID = BaseUtil.uuid(userId);
+        assertSelf(userUUID);
 
         User user = userRepository.findById(userUUID)
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
@@ -167,6 +198,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void updateAvatar(String userId, String tempKey) throws ServiceException {
         UUID userUUID = BaseUtil.uuid(userId);
+        assertSelf(userUUID);
 
         User user = userRepository.findById(userUUID)
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
