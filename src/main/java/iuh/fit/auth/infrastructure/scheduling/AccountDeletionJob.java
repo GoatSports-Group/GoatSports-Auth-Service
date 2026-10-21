@@ -17,7 +17,7 @@ public class AccountDeletionJob {
 
     private final AccountDeletionService accountDeletionService;
 
-    @Scheduled(fixedDelayString = "${app.account-deletion.purge-delay-ms:3600000}", initialDelay = 300_000)
+    @Scheduled(fixedDelayString = "${app.account-deletion.purge-delay-ms}", initialDelay = 300_000)
     public void purgeDueAccounts() {
         for (UUID userId : accountDeletionService.findDueForPurge(BATCH)) {
             try {
