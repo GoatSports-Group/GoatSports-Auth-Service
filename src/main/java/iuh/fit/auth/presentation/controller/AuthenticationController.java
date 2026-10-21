@@ -17,6 +17,7 @@ import iuh.fit.auth.presentation.response.user.UserResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -34,6 +35,7 @@ import java.util.Collections;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationController {
 
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
@@ -115,11 +117,17 @@ public class AuthenticationController {
     @PostMapping("/logout")
     @AuditLog(action = "LOGOUT", description = "Đăng xuất")
     public ResponseEntity<Void> logout(
-            @CookieValue("accessToken") String accessToken,
-            @CookieValue("refreshToken") String refreshToken,
+            @CookieValue(value = "accessToken", required = false) String accessToken,
+            @CookieValue(value = "refreshToken", required = false) String refreshToken,
             HttpServletResponse response
     ){
-        authenticationService.logout(accessToken, refreshToken);
+        try {
+            if (refreshToken != null && !refreshToken.isBlank()) {
+                authenticationService.logout(accessToken, refreshToken);
+            }
+        } catch (Exception e) {
+            log.debug("Session already invalid on logout: {}", e.getMessage());
+        }
 
         ResponseCookie deleteAccessCookie = createCookie("accessToken", "", 0);
         ResponseCookie deleteRefreshCookie = createCookie("refreshToken", "", 0);
