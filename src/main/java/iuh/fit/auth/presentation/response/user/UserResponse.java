@@ -29,6 +29,7 @@ public class UserResponse {
     private UUID keycloakId;
     private Set<String> authProviders;
     private Boolean hasPassword;
+    private Boolean accountRestored;
 
     @Getter
     @Setter

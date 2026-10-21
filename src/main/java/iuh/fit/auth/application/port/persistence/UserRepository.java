@@ -49,4 +49,6 @@ public interface UserRepository {
     Map<String, Long> countByStatus();
 
     List<LocalDateTime> findCreatedAtBetween(LocalDateTime from, LocalDateTime to);
+
+    List<UUID> findIdsDueForDeletion(LocalDateTime requestedBefore, int limit);
 }

@@ -84,4 +84,31 @@ public class EmailNotificationAdapter implements EmailNotificationPort {
         String html = this.templateEngine.process("account-appeal-reply", context);
         this.asyncEmailPort.sendHtmlWithReplyTo(email, supportInbox, "Re: " + subject, html);
     }
+
+    @Override
+    public void sendAccountDeletionCode(String email, String fullName, String code) {
+        sendAccountDeletionMail(email, fullName, "CODE", "Mã xác nhận xóa tài khoản - Goat Sports", code, null);
+    }
+
+    @Override
+    public void sendAccountDeletionScheduled(String email, String fullName, java.time.LocalDateTime purgeAt) {
+        sendAccountDeletionMail(email, fullName, "SCHEDULED", "Tài khoản Goat Sports sẽ bị xóa", null,
+                purgeAt.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+    }
+
+    @Override
+    public void sendAccountDeletionCancelled(String email, String fullName) {
+        sendAccountDeletionMail(email, fullName, "CANCELLED", "Đã hủy yêu cầu xóa tài khoản - Goat Sports", null, null);
+    }
+
+    private void sendAccountDeletionMail(String email, String fullName, String kind, String subject, String code,
+                                         String purgeAt) {
+        Context context = new Context();
+        context.setVariable("kind", kind);
+        context.setVariable("fullName", fullName);
+        context.setVariable("code", code);
+        context.setVariable("purgeAt", purgeAt);
+        String html = this.templateEngine.process("account-deletion", context);
+        this.asyncEmailPort.sendEmailSync(email, subject, html, false, true);
+    }
 }

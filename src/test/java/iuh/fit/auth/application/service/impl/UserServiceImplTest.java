@@ -131,4 +131,15 @@ class UserServiceImplTest {
 
         assertThat(user.getFullName()).isEqualTo("Nguyễn Văn An");
     }
+
+    /** "Xác thực lại" một tài khoản chờ xóa sẽ âm thầm hủy việc xóa: admin không được làm vậy. */
+    @Test
+    void adminCannotTouchAnAccountThatIsBeingDeleted() throws ServiceException {
+        user.setStatus(UserStatusEnum.PENDING_DELETION);
+
+        assertThatThrownBy(() -> service.verifyUser(userId.toString(), true))
+                .isInstanceOf(ServiceException.class).hasMessageContaining("chờ xóa");
+        assertThat(user.getStatus()).isEqualTo(UserStatusEnum.PENDING_DELETION);
+        verify(userRepository, never()).save(any());
+    }
 }

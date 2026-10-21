@@ -58,6 +58,11 @@ public class AccountAppealRepositoryImpl implements AccountAppealRepository {
         return repository.countByStatus(status);
     }
 
+    @Override
+    public void deleteByUserId(UUID userId) {
+        repository.deleteByUserId(userId);
+    }
+
     private AccountAppeal toDomain(AccountAppealEntity entity) {
         return AccountAppeal.builder()
                 .appealId(entity.getAppealId()).userId(entity.getUserId())

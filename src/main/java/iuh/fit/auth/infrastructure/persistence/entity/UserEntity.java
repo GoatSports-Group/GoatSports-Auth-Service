@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -36,6 +37,7 @@ public class UserEntity extends BaseEntity {
     private LocalDate dateOfBirth;
     private String phone;
     private String country;
+    private LocalDateTime deletionRequestedAt;
     @Enumerated(EnumType.STRING)
     private UserStatusEnum status;
     @Enumerated(EnumType.STRING)

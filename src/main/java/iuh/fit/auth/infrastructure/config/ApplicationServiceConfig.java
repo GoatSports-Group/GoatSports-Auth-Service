@@ -55,6 +55,21 @@ public class ApplicationServiceConfig {
     }
 
     @Bean
+    public iuh.fit.auth.application.service.impl.AccountDeletionServiceImpl accountDeletionServiceImpl(
+            UserRepository userRepository, PlayerSportProfileRepository profileRepository,
+            iuh.fit.auth.application.port.persistence.AccountAppealRepository appealRepository,
+            RedisPort redisPort, KeycloakPort keycloakPort,
+            EmailNotificationPort emailNotificationPort, UserRegistrationEventPublisher eventPublisher,
+            iuh.fit.auth.application.port.client.AccountDeletionBlockerPort blockerPort,
+            CurrentUserProvider currentUserProvider, JwtPort jwtPort
+    ) {
+        return new iuh.fit.auth.application.service.impl.AccountDeletionServiceImpl(
+                userRepository, profileRepository, appealRepository, redisPort, keycloakPort,
+                emailNotificationPort, eventPublisher, blockerPort, currentUserProvider, jwtPort,
+                java.time.Clock.systemDefaultZone());
+    }
+
+    @Bean
     public RoleServiceImpl roleService(
             RoleRepository roleRepository, PermissionRepository permissionRepository,
             UserRepository userRepository, RedisPort redisPort

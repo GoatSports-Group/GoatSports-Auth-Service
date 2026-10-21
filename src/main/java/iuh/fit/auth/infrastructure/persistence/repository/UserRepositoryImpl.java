@@ -184,6 +184,12 @@ public class UserRepositoryImpl implements UserRepository {
         return jpaUserRepository.findCreatedAtBetween(from, to);
     }
 
+    @Override
+    public List<UUID> findIdsDueForDeletion(LocalDateTime requestedBefore, int limit) {
+        return jpaUserRepository.findIdsByStatusRequestedBefore(UserStatusEnum.PENDING_DELETION, requestedBefore,
+                PageRequest.of(0, limit));
+    }
+
     private static Map<String, Long> toCountMap(List<Object[]> rows) {
         Map<String, Long> counts = new java.util.LinkedHashMap<>();
         for (Object[] row : rows) {

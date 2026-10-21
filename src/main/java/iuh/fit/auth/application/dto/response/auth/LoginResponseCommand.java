@@ -5,5 +5,6 @@ import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 public record LoginResponseCommand(
     UserResponseCommand user,
     String accessToken,
-    String refreshToken
+    String refreshToken,
+    boolean accountRestored
 ) {}

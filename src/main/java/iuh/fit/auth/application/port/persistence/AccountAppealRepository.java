@@ -12,8 +12,9 @@ public interface AccountAppealRepository {
 
     Optional<AccountAppeal> findById(UUID appealId);
 
-    /** Mới nhất trước; {@code status} null = mọi trạng thái. {@code page} tính từ 1. */
     PageResult<AccountAppeal> find(AccountAppealStatus status, int page, int pageSize);
 
     long countByStatus(AccountAppealStatus status);
+
+    void deleteByUserId(UUID userId);
 }

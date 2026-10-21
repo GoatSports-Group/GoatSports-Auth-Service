@@ -7,6 +7,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -27,6 +28,7 @@ public class User extends BaseEntity {
     private LocalDate dateOfBirth;
     private String phone;
     private String country;
+    private LocalDateTime deletionRequestedAt;
     private UserStatusEnum status;
     private GenderEnum gender;
     @Builder.Default

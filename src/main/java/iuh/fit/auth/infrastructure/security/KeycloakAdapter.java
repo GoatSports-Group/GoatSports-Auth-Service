@@ -125,6 +125,21 @@ public class KeycloakAdapter implements KeycloakPort {
     }
 
     @Override
+    public void deleteUser(java.util.UUID keycloakId) throws ServiceException {
+        try (jakarta.ws.rs.core.Response response = keycloak.realm(currentRealm).users().delete(keycloakId.toString())) {
+            int status = response.getStatus();
+            if (status != 204 && status != 404) {
+                throw new ServiceException("Không xóa được tài khoản trên hệ thống xác thực (HTTP " + status + ").");
+            }
+        } catch (ServiceException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to delete Keycloak user {}: {}", keycloakId, e.getMessage());
+            throw new ServiceException("Không xóa được tài khoản trên hệ thống xác thực.");
+        }
+    }
+
+    @Override
     public KeycloakResponseCommand exchangeCode(String code, String redirectUri) throws ServiceException {
         try {
             return restClient

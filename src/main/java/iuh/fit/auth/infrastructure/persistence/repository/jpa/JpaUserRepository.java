@@ -18,15 +18,20 @@ import java.util.UUID;
 
 @Repository
 public interface JpaUserRepository extends JpaRepository<UserEntity, UUID>, JpaSpecificationExecutor<UserEntity> {
-    Optional<UserEntity> findByEmail(String email);
+    String NOT_DELETED = "(u.status is null or u.status <> iuh.fit.auth.domain.enums.UserStatusEnum.DELETED)";
+
+    @Query("select u from UserEntity u where u.email = :email and " + NOT_DELETED)
+    Optional<UserEntity> findByEmail(@Param("email") String email);
 
     Optional<UserEntity> findByKeycloakId(UUID keycloakId);
 
     boolean existsByKeycloakId(UUID keycloakId);
 
-    boolean existsByUsernameOrEmail(String username, String email);
+    @Query("select count(u) > 0 from UserEntity u where (u.username = :username or u.email = :email) and " + NOT_DELETED)
+    boolean existsByUsernameOrEmail(@Param("username") String username, @Param("email") String email);
 
-    @Query("SELECT u FROM UserEntity u LEFT JOIN FETCH u.role WHERE u.username = :username OR u.email = :email")
+    @Query("SELECT u FROM UserEntity u LEFT JOIN FETCH u.role WHERE (u.username = :username OR u.email = :email) AND "
+            + NOT_DELETED)
     Optional<UserEntity> findByUsernameOrEmailWithRole(@Param("username") String username, @Param("email") String email);
 
     Optional<UserEntity> findByRole_Name(String name);
@@ -86,6 +91,15 @@ public interface JpaUserRepository extends JpaRepository<UserEntity, UUID>, JpaS
                                        @Param("roleNames") Collection<String> roleNames,
                                        @Param("after") UUID after,
                                        Pageable pageable);
+
+    @Query("""
+            select u.userId from UserEntity u
+            where u.status = :status and u.deletionRequestedAt <= :before
+            order by u.deletionRequestedAt
+            """)
+    List<UUID> findIdsByStatusRequestedBefore(@Param("status") UserStatusEnum status,
+                                              @Param("before") LocalDateTime before,
+                                              Pageable pageable);
 
     @Query("select count(u) from UserEntity u join u.role r where u.status = :status and r.name in :roleNames")
     long countByStatusAndRoles(@Param("status") UserStatusEnum status,

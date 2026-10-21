@@ -13,4 +13,6 @@ public interface KeycloakPort {
     void updatePassword(String userId, String newPassword) throws ServiceException;
 
     KeycloakResponseCommand exchangeCode(String code, String redirectUri) throws ServiceException;
+
+    void deleteUser(java.util.UUID keycloakId) throws ServiceException;
 }

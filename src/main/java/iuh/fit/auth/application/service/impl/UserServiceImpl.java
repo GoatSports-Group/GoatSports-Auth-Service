@@ -108,6 +108,7 @@ public class UserServiceImpl implements UserService {
 
         User user = userRepository.findById(userUUID)
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
+        requireNotDeleting(user);
 
         Role role = roleRepository.findById(roleUUID)
                 .orElseThrow(() -> new ServiceException("Vai trò không tồn tại"));
@@ -296,6 +297,7 @@ public class UserServiceImpl implements UserService {
 
         User user = userRepository.findById(userUUID)
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
+        requireNotDeleting(user);
 
         String rawNewPassword = rsaPort.decrypt(command.newPassword());
 
@@ -323,6 +325,7 @@ public class UserServiceImpl implements UserService {
 
         User user = userRepository.findById(userUUID)
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
+        requireNotDeleting(user);
 
         user.setStatus(verified ? UserStatusEnum.ACTIVE : UserStatusEnum.INACTIVE);
         User savedUser = userRepository.save(user);
@@ -340,5 +343,12 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException("Chỉ tra cứu tối đa " + MAX_SUMMARY_IDS + " người dùng mỗi lần.");
         }
         return userRepository.findSummariesByIds(distinct);
+    }
+
+    /** Tài khoản chờ xóa / đã xóa: admin không được đổi vai trò, mật khẩu hay trạng thái (sẽ âm thầm hủy việc xóa). */
+    private static void requireNotDeleting(User user) throws ServiceException {
+        if (user.getStatus() == UserStatusEnum.PENDING_DELETION || user.getStatus() == UserStatusEnum.DELETED) {
+            throw new ServiceException("Tài khoản đang chờ xóa hoặc đã xóa, không thể thay đổi.");
+        }
     }
 }

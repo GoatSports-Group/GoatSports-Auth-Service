@@ -14,4 +14,6 @@ public interface JpaAccountAppealRepository extends JpaRepository<AccountAppealE
     Page<AccountAppealEntity> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
     long countByStatus(AccountAppealStatus status);
+
+    void deleteByUserId(UUID userId);
 }

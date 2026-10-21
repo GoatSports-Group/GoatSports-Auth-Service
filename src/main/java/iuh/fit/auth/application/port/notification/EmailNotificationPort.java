@@ -20,4 +20,13 @@ public interface EmailNotificationPort {
 
     record AccountAppealMail(String fullName, String email, String subject, String message) {
     }
+
+    /** Mã xác nhận yêu cầu xóa tài khoản. */
+    void sendAccountDeletionCode(String email, String fullName, String code);
+
+    /** Đã nhận yêu cầu xóa: ngày xóa thật và cách hủy (đăng nhập lại). */
+    void sendAccountDeletionScheduled(String email, String fullName, java.time.LocalDateTime purgeAt);
+
+    /** Đăng nhập lại trong thời gian chờ nên yêu cầu xóa đã hủy. */
+    void sendAccountDeletionCancelled(String email, String fullName);
 }

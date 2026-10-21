@@ -24,6 +24,12 @@ public class UserRegistrationEventPublisherAdapter implements UserRegistrationEv
     @Value("${spring.kafka.topic.user-registration}")
     private String topic;
 
+    @Value("${spring.kafka.topic.user-deleted}")
+    private String userDeletedTopic;
+
+    public record UserDeletedEvent(UUID eventId, UUID userId, LocalDateTime deletedAt) {
+    }
+
     @Override
     public void publishUserRegistered(User user, String plainPassword) {
         UserRegistrationEvent event = toUserRegistrationEvent(user, plainPassword);
@@ -102,6 +108,18 @@ public class UserRegistrationEventPublisherAdapter implements UserRegistrationEv
         } catch (Exception e) {
             log.error("Failed to send user-updated event to Kafka for user ID: {}", user.getUserId(), e);
             throw new RuntimeException("User update event publication failed, rolling back transaction", e);
+        }
+    }
+
+    @Override
+    public void publishUserDeleted(UUID userId) {
+        try {
+            kafkaTemplate.send(userDeletedTopic, userId.toString(),
+                    new UserDeletedEvent(UUID.randomUUID(), userId, LocalDateTime.now())).get();
+            log.info("Sent user-deleted event for user ID: {}", userId);
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) Thread.currentThread().interrupt();
+            throw new IllegalStateException("User deleted event publication failed, rolling back transaction", e);
         }
     }
 

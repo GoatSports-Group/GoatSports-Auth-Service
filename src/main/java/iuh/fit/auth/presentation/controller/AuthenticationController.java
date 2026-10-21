@@ -201,8 +201,11 @@ public class AuthenticationController {
         response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(result.user() != null ? userConverter.toResponse(result.user()) : null);
+        UserResponse body = result.user() != null ? userConverter.toResponse(result.user()) : null;
+        if (body != null && result.accountRestored()) {
+            body.setAccountRestored(true);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(body);
     }
 
     private ResponseEntity<UserResponse> setCookie(HttpServletResponse response, RefreshResponseCommand result) {

@@ -10,4 +10,6 @@ public interface UserRegistrationEventPublisher {
     void publishUserPasswordUpdated(User user, String newPassword);
 
     void publishUserUpdated(User user);
+
+    void publishUserDeleted(java.util.UUID userId);
 }

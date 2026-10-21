@@ -8,6 +8,7 @@ import java.util.TimeZone;
 
 @SpringBootApplication
 @EnableFeignClients
+@org.springframework.scheduling.annotation.EnableScheduling
 public class GoatSportsAuthApplication {
     public static void main(String[] args) {
         TimeZone.setDefault(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));

@@ -15,6 +15,17 @@ public class KafkaConfig {
     @Value("${spring.kafka.topic.user-sync}")
     private String syncTopic;
 
+    @Value("${spring.kafka.topic.user-deleted}")
+    private String userDeletedTopic;
+
+    @Bean
+    public NewTopic userDeletedTopic() {
+        return TopicBuilder.name(userDeletedTopic)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
     @Bean
     public NewTopic userRegistrationTopic() {
         return TopicBuilder.name(registrationTopic)

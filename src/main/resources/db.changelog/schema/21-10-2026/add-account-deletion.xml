@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+    <!-- Người dùng tự xóa tài khoản: chờ 30 ngày kể từ lúc yêu cầu rồi mới ẩn danh hóa. -->
+    <changeSet id="20261021-auth-add-account-deletion" author="codex">
+        <addColumn tableName="users">
+            <column name="deletion_requested_at" type="TIMESTAMP"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

@@ -289,4 +289,35 @@ class AuthenticationServiceImplTest {
         assertEquals("ACCOUNT_BLOCKED", error.getCode());
         verify(jwtPort, org.mockito.Mockito.never()).generateAccessToken(any());
     }
+
+    /** Đăng nhập lại trong 30 ngày chờ xóa là hủy yêu cầu xóa (như Facebook) và mở lại cho gateway. */
+    @Test
+    void loggingInWhilePendingDeletionRestoresTheAccount() throws ServiceException {
+        User pending = user(RoleEnum.PLAYER, UserStatusEnum.PENDING_DELETION);
+        pending.setDeletionRequestedAt(java.time.LocalDateTime.now().minusDays(3));
+        when(userRepository.findByUsernameOrEmailWithRole(pending.getEmail(), pending.getEmail()))
+                .thenReturn(java.util.Optional.of(pending));
+        when(jwtPort.getAuthProperties()).thenReturn(new AuthProperties(300, 3600));
+
+        var session = authenticationService.login(new iuh.fit.auth.application.dto.request.auth.LoginRequestCommand(
+                pending.getEmail(), "secret"));
+
+        assertEquals(true, session.accountRestored());
+        assertEquals(UserStatusEnum.ACTIVE, pending.getStatus());
+        assertEquals(null, pending.getDeletionRequestedAt());
+        verify(userRepository).save(pending);
+        verify(redisPort).deleteKey("blocked_user:" + pending.getUserId());
+        verify(emailNotificationPort).sendAccountDeletionCancelled(pending.getEmail(), pending.getFullName());
+    }
+
+    @Test
+    void adminCannotBlockOrUnblockAnAccountPendingDeletion() throws ServiceException {
+        User pending = user(RoleEnum.PLAYER, UserStatusEnum.PENDING_DELETION);
+        when(currentUserProvider.getCurrentUserId()).thenReturn(java.util.Optional.of("admin-id"));
+        when(userRepository.findById(pending.getUserId())).thenReturn(java.util.Optional.of(pending));
+
+        assertThrows(ServiceException.class,
+                () -> authenticationService.changeUserStatus(pending.getUserId(), UserStatusEnum.BLOCKED));
+        assertEquals(UserStatusEnum.PENDING_DELETION, pending.getStatus());
+    }
 }

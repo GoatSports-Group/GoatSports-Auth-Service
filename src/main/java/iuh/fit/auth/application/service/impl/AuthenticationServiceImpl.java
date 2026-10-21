@@ -111,7 +111,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     accountAppealService.issueAppealToken(user.getUserId()), accountAppealService.appealTokenTtlMinutes());
         }
 
-        return issueSession(user);
+        return issueSession(user, restoreIfPendingDeletion(user));
     }
 
     @Override
@@ -234,7 +234,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         User currentUser = userRepository.findById(UUID.fromString(userId)).orElse(null);
         if (currentUser == null)
             throw new ServiceException("Người dùng không tồn tại");
-        if (currentUser.getStatus() == UserStatusEnum.INACTIVE || currentUser.getStatus() == UserStatusEnum.BLOCKED)
+        if (currentUser.getStatus() == UserStatusEnum.INACTIVE || currentUser.getStatus() == UserStatusEnum.BLOCKED
+                || currentUser.getStatus() == UserStatusEnum.PENDING_DELETION
+                || currentUser.getStatus() == UserStatusEnum.DELETED)
             throw new ServiceException("Người dùng bị khóa");
 
         String newAccessToken = jwtPort.generateAccessToken(currentUser);
@@ -354,7 +356,27 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 keycloakResponse.refreshExpiresIn(),
                 TimeUnit.SECONDS);
 
-        return issueSession(user);
+        return issueSession(user, restoreIfPendingDeletion(user));
+    }
+
+    /**
+     * Đăng nhập lại (mật khẩu hoặc Google) trong thời gian chờ xóa là hủy yêu cầu xóa, như Facebook. Mật khẩu / Google
+     * đã được xác thực trước khi tới đây nên chắc chắn là chủ tài khoản.
+     */
+    private boolean restoreIfPendingDeletion(User user) throws ServiceException {
+        if (user.getStatus() != UserStatusEnum.PENDING_DELETION) {
+            return false;
+        }
+        user.setStatus(UserStatusEnum.ACTIVE);
+        user.setDeletionRequestedAt(null);
+        userRepository.save(user);
+        redisPort.deleteKey(blockedUserKey(user.getUserId()));
+        try {
+            emailNotificationPort.sendAccountDeletionCancelled(user.getEmail(), user.getFullName());
+        } catch (Exception e) {
+            log.warn("Could not send deletion-cancelled email to user {}: {}", user.getUserId(), e.getMessage());
+        }
+        return true;
     }
 
     private UserResponseCommand registerWithRole(
@@ -402,7 +424,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      * Cấp phiên mới: access + refresh token của GOAT Sports. Mỗi người chỉ giữ MỘT refresh token hợp lệ
      * (ghi đè cái cũ), nên đăng nhập ở thiết bị mới sẽ đăng xuất phiên refresh ở thiết bị cũ.
      */
-    private LoginResponseCommand issueSession(User user) {
+    private LoginResponseCommand issueSession(User user, boolean accountRestored) {
         String accessToken = jwtPort.generateAccessToken(user);
         String refreshToken = jwtPort.generateRefreshToken(user);
         redisPort.deleteKey(refreshKey(user.getUserId().toString()));
@@ -411,7 +433,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 refreshToken,
                 jwtPort.getAuthProperties().refreshTokenExpirationSecond(),
                 TimeUnit.SECONDS);
-        return new LoginResponseCommand(userMapper.toUserResponseCommand(user), accessToken, refreshToken);
+        return new LoginResponseCommand(userMapper.toUserResponseCommand(user), accessToken, refreshToken,
+                accountRestored);
     }
 
     /**
@@ -444,6 +467,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
+        if (user.getStatus() == UserStatusEnum.PENDING_DELETION || user.getStatus() == UserStatusEnum.DELETED) {
+            throw new ServiceException("Tài khoản đang chờ xóa hoặc đã xóa, không thể khóa hay mở khóa.");
+        }
         if (status == UserStatusEnum.BLOCKED && user.getRole() != null && RoleEnum.ADMIN.name().equals(user.getRole().getName())) {
             throw new ServiceException("Không thể khóa tài khoản quản trị viên.");
         }
