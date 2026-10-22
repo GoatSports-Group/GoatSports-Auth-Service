@@ -10,6 +10,7 @@ import iuh.fit.auth.application.service.UserService;
 import iuh.fit.auth.application.service.impl.UserServiceImpl;
 import iuh.fit.auth.domain.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@Primary
 @RequiredArgsConstructor
 public class UserDecorator implements UserService {
     private final UserServiceImpl userServiceImpl;

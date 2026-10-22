@@ -7,10 +7,12 @@ import iuh.fit.auth.application.service.PermissionService;
 import iuh.fit.auth.application.service.impl.PermissionServiceImpl;
 import iuh.fit.auth.domain.entity.Permission;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Primary
 @RequiredArgsConstructor
 public class PermissionDecorator implements PermissionService {
     private final PermissionServiceImpl permissionServiceImpl;

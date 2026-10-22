@@ -2,8 +2,10 @@ package iuh.fit.auth.presentation.controller.internal;
 
 import iuh.fit.auth.application.dto.report.UserReportResponseCommand;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
+import iuh.fit.auth.application.dto.response.user.UserSummaryResponseCommand;
 import iuh.fit.auth.application.service.InternalService;
 import iuh.fit.auth.application.service.PlayerSportProfileService;
+import iuh.fit.auth.application.service.UserService;
 import iuh.fit.auth.application.dto.response.user.UserPermissionsResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.presentation.converter.PlayerSportProfileConverter;
@@ -15,6 +17,7 @@ import iuh.fit.auth.domain.enums.SkillLevel;
 import iuh.fit.auth.domain.enums.SportType;
 import iuh.fit.auth.application.dto.request.user.ScoutingSearchCommand;
 import iuh.fit.auth.presentation.request.user.ScoutingLookupRequest;
+import iuh.fit.auth.presentation.request.user.UserSummariesRequest;
 import jakarta.validation.Valid;
 import iuh.fit.auth.presentation.response.user.PlayerSportProfileResponse;
 import iuh.fit.auth.presentation.response.user.ScoutingCandidateResponse;
@@ -41,6 +44,7 @@ import java.util.UUID;
 public class UserInternalController {
 
     private final InternalService internalService;
+    private final UserService userService;
     private final UserConverter userConverter;
     private final PlayerSportProfileService playerSportProfileService;
     private final PlayerSportProfileConverter playerSportProfileConverter;
@@ -117,6 +121,14 @@ public class UserInternalController {
     }
 
     /** Người nhận thông báo hệ thống (notification-service gửi theo lô): mã tài khoản ACTIVE, keyset theo mã. */
+    /** Họ tên + email theo lô mã (tối đa {@link UserService#MAX_SUMMARY_IDS}), cho báo cáo chỉ có mã người dùng. */
+    @PostMapping("/summaries")
+    public ResponseEntity<List<UserSummaryResponseCommand>> getUserSummaries(
+            @Valid @RequestBody UserSummariesRequest request
+    ) throws ServiceException {
+        return ResponseEntity.ok(userService.getUserSummaries(request.userIds()));
+    }
+
     @GetMapping("/recipients/ids")
     public ResponseEntity<List<UUID>> getRecipientIds(
             @RequestParam Set<String> roles,

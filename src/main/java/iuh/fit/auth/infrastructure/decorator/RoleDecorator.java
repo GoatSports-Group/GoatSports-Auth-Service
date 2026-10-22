@@ -9,9 +9,11 @@ import iuh.fit.auth.application.service.RoleService;
 import iuh.fit.auth.application.service.impl.RoleServiceImpl;
 import iuh.fit.auth.domain.entity.Role;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 @Service
+@Primary
 @RequiredArgsConstructor
 public class RoleDecorator implements RoleService {
     private final RoleServiceImpl roleServiceImpl;

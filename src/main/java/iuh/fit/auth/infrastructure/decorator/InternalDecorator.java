@@ -7,6 +7,7 @@ import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.service.InternalService;
 import iuh.fit.auth.application.service.impl.InternalServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,7 @@ import java.util.UUID;
 import java.util.Set;
 
 @Service
+@Primary
 @RequiredArgsConstructor
 public class InternalDecorator implements InternalService {
     private final InternalServiceImpl internalServiceImpl;

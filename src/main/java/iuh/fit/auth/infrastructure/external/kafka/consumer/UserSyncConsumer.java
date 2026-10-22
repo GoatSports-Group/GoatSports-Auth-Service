@@ -7,7 +7,9 @@ import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.domain.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.BackOff;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,12 @@ public class UserSyncConsumer {
 
     private final UserRepository userRepository;
 
+    // Keycloak trả USER_SYNCED ngay sau USER_REGISTERED, mà event đó được gửi trong transaction đăng ký
+    // (gửi lỗi thì rollback): sync có thể tới trước khi user commit. Không thấy user thì thử lại thay vì bỏ.
+    @RetryableTopic(
+            attempts = "4",
+            backOff = @BackOff(delay = 1000, multiplier = 2.0)
+    )
     @KafkaListener(
             topics = "${spring.kafka.topic.user-sync}",
             groupId = "${spring.kafka.consumer.group-id}"
@@ -42,7 +50,7 @@ public class UserSyncConsumer {
                 userRepository.save(user);
                 log.info("Successfully updated keycloakId for user: {}", user.getUsername());
             } else {
-                log.warn("User with ID: {} not found in local DB. Cannot sync Keycloak ID.", userId);
+                throw new IllegalStateException("User " + userId + " not found yet, retrying Keycloak ID sync");
             }
         }
     }

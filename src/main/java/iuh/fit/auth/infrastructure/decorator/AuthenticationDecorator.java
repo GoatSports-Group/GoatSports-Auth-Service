@@ -10,10 +10,12 @@ import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.service.AuthenticationService;
 import iuh.fit.auth.application.service.impl.AuthenticationServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Primary
 @RequiredArgsConstructor
 public class AuthenticationDecorator implements AuthenticationService {
     private final AuthenticationServiceImpl authenticationServiceImpl;
