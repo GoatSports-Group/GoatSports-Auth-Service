@@ -1,5 +1,7 @@
 package iuh.fit.auth.application.service.impl;
 
+import iuh.fit.auth.application.port.cache.RedisPort;
+import iuh.fit.auth.application.port.client.SessionRevocationPort;
 import iuh.fit.auth.domain.service.PasswordPolicy;
 import iuh.fit.auth.application.dto.PageFilter;
 import iuh.fit.auth.application.dto.request.user.*;
@@ -31,6 +33,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class UserServiceImpl implements UserService {
     private static final String VIEW_FULL_PROFILE_PERMISSION = "GET_USERS";
@@ -44,8 +47,8 @@ public class UserServiceImpl implements UserService {
     private final CurrentUserProvider currentUserProvider;
     private final EmailNotificationPort emailNotificationPort;
     private final RsaPort rsaPort;
-    private final iuh.fit.auth.application.port.cache.RedisPort redisPort;
-    private final iuh.fit.auth.application.port.client.SessionRevocationPort sessionRevocationPort;
+    private final RedisPort redisPort;
+    private final SessionRevocationPort sessionRevocationPort;
 
     public UserServiceImpl(
             JwtPort jwtPort,
@@ -56,8 +59,8 @@ public class UserServiceImpl implements UserService {
             CurrentUserProvider currentUserProvider,
             EmailNotificationPort emailNotificationPort,
             RsaPort rsaPort,
-            iuh.fit.auth.application.port.cache.RedisPort redisPort,
-            iuh.fit.auth.application.port.client.SessionRevocationPort sessionRevocationPort
+            RedisPort redisPort,
+            SessionRevocationPort sessionRevocationPort
     ) {
         this.jwtPort = jwtPort;
         this.userRepository = userRepository;
@@ -341,11 +344,11 @@ public class UserServiceImpl implements UserService {
             redisPort.deleteKey(gatewayFlag);
         } else {
             redisPort.saveWithTTL(gatewayFlag, "inactive",
-                    jwtPort.getAuthProperties().refreshTokenExpirationSecond(), java.util.concurrent.TimeUnit.SECONDS);
+                    jwtPort.getAuthProperties().refreshTokenExpirationSecond(), TimeUnit.SECONDS);
             redisPort.deleteKey("user:" + userUUID + ":refresh");
             redisPort.deleteKey("user:" + userUUID + ":keycloakRefresh");
             sessionRevocationPort.notifySessionRevoked(userUUID,
-                    iuh.fit.auth.application.port.client.SessionRevocationPort.ACCOUNT_INACTIVE);
+                    SessionRevocationPort.ACCOUNT_INACTIVE);
         }
 
         emailNotificationPort.sendDeactivateEmail(savedUser.getEmail(), savedUser.getFullName(), verified);

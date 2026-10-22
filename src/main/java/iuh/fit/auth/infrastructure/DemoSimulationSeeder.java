@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.Date;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -44,11 +46,11 @@ public class DemoSimulationSeeder implements CommandLineRunner {
         List<Object[]> users = new ArrayList<>();
         for (DemoPopulation.Owner owner : DemoPopulation.owners()) {
             users.add(new Object[]{owner.userId(), owner.email(), owner.username(), password, owner.fullName(),
-                    phone(owner.email()), java.sql.Date.valueOf("1985-06-15"), owner.city().name(), "MALE", "VENUE_OWNER"});
+                    phone(owner.email()), Date.valueOf("1985-06-15"), owner.city().name(), "MALE", "VENUE_OWNER"});
         }
         for (DemoPopulation.Player player : players) {
             users.add(new Object[]{player.userId(), player.email(), player.username(), password, player.fullName(),
-                    phone(player.email()), java.sql.Date.valueOf(player.birthDate()), player.city().name(),
+                    phone(player.email()), Date.valueOf(player.birthDate()), player.city().name(),
                     player.male() ? "MALE" : "FEMALE", "PLAYER"});
         }
         int[][] inserted = jdbc.batchUpdate("""
@@ -86,8 +88,8 @@ public class DemoSimulationSeeder implements CommandLineRunner {
                         matches == 0 ? 0D : (double) wins / matches});
                 for (DemoPopulation.Slot slot : player.availability()) {
                     slots.add(new Object[]{id("availability", profileId + "|" + slot.day() + "|" + slot.start()),
-                            profileId, slot.day().name(), java.sql.Time.valueOf(slot.start()),
-                            java.sql.Time.valueOf(slot.end())});
+                            profileId, slot.day().name(), Time.valueOf(slot.start()),
+                            Time.valueOf(slot.end())});
                 }
             }
         }

@@ -4,6 +4,7 @@ import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.service.AccountDeletionService;
 import iuh.fit.auth.application.service.impl.AccountDeletionServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@org.springframework.context.annotation.Primary
+@Primary
 @RequiredArgsConstructor
 public class AccountDeletionDecorator implements AccountDeletionService {
     private final AccountDeletionServiceImpl accountDeletionServiceImpl;

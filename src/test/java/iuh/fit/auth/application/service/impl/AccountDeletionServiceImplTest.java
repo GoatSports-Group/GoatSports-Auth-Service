@@ -4,6 +4,7 @@ import iuh.fit.auth.application.dto.AuthProperties;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.port.cache.RedisPort;
 import iuh.fit.auth.application.port.client.AccountDeletionBlockerPort;
+import iuh.fit.auth.application.port.client.SessionRevocationPort;
 import iuh.fit.auth.application.port.event.UserRegistrationEventPublisher;
 import iuh.fit.auth.application.port.notification.EmailNotificationPort;
 import iuh.fit.auth.application.port.persistence.AccountAppealRepository;
@@ -58,7 +59,7 @@ class AccountDeletionServiceImplTest {
     @Mock private AccountDeletionBlockerPort blockerPort;
     @Mock private CurrentUserProvider currentUserProvider;
     @Mock private JwtPort jwtPort;
-    @Mock private iuh.fit.auth.application.port.client.SessionRevocationPort sessionRevocationPort;
+    @Mock private SessionRevocationPort sessionRevocationPort;
 
     private AccountDeletionServiceImpl service;
 

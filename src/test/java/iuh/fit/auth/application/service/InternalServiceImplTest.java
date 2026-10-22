@@ -4,6 +4,7 @@ import iuh.fit.auth.application.mapper.UserMapper;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.application.service.impl.InternalServiceImpl;
+import iuh.fit.auth.domain.entity.Permission;
 import iuh.fit.auth.domain.entity.Role;
 import iuh.fit.auth.domain.entity.User;
 import iuh.fit.auth.domain.enums.RoleEnum;
@@ -13,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,7 +68,7 @@ class InternalServiceImplTest {
     void aPausedRoleCarriesNoPermissionsButAnActiveCustomRoleDoes() throws Exception {
         UUID userId = UUID.randomUUID();
         Role support = Role.builder().roleId(UUID.randomUUID()).name("SUPPORT_STAFF").active(true)
-                .permissions(java.util.Set.of(iuh.fit.auth.domain.entity.Permission.builder().name("GET_USERS").build()))
+                .permissions(Set.of(Permission.builder().name("GET_USERS").build()))
                 .build();
         User user = User.builder().userId(userId).role(support).build();
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));

@@ -47,12 +47,12 @@ public class MatchResultServiceImpl implements MatchResultService {
     @Override
     @Transactional
     public AppliedMatchResult apply(ApplyMatchResultCommand command) throws ServiceException {
-        var existing = resultRepository.findBySessionIdAndUserId(command.sessionId(), command.userId());
+        Optional<AppliedMatchResult> existing = resultRepository.findBySessionIdAndUserId(command.sessionId(), command.userId());
         if (existing.isPresent()) return existing.get();
         // Người chơi có thể ghép kèo một môn chưa có hồ sơ; khi trận kết thúc thì hồ sơ
         // được tạo tự động, và phải khởi tạo bằng đúng Elo mà trận đó đã thi đấu —
         // nếu dùng mốc mặc định thì Elo trên thẻ trận và Elo trong hồ sơ sẽ lệch nhau.
-        var profile = profileRepository.findByUserIdAndSportType(command.userId(), command.sportType())
+        PlayerSportProfile profile = profileRepository.findByUserIdAndSportType(command.userId(), command.sportType())
                 .orElseGet(() -> newProfile(command.userId(), command.sportType(), command.playerElo()));
         int oldElo = currentElo(profile);
         double actual = actualScore(command.outcome());
@@ -190,7 +190,7 @@ public class MatchResultServiceImpl implements MatchResultService {
                 || command.second().playerIds() == null || command.second().playerIds().isEmpty()) {
             throw new ServiceException("Mỗi bên phải có ít nhất một người chơi.");
         }
-        var seen = new HashSet<UUID>();
+        HashSet<UUID> seen = new HashSet<UUID>();
         for (UUID userId : players(command)) {
             if (!seen.add(userId)) throw new ServiceException("Một người chơi không thể ở cả hai bên của trận.");
         }

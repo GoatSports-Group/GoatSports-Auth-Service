@@ -35,7 +35,7 @@ public class AppliedMatchResultRepositoryImpl implements AppliedMatchResultRepos
 
     @Override
     public AppliedMatchResult save(AppliedMatchResult result) {
-        var entity = new AppliedMatchResultEntity();
+        AppliedMatchResultEntity entity = new AppliedMatchResultEntity();
         entity.setResultId(result.getResultId());
         entity.setSessionId(result.getSessionId());
         entity.setUserId(result.getUserId());

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -100,7 +101,7 @@ public class JwtAdapter implements JwtPort {
                     ? UUID.fromString(signedJWT.getJWTClaimsSet().getStringClaim("sub"))
                     : null
             );
-        } catch (java.text.ParseException | IllegalArgumentException e) {
+        } catch (ParseException | IllegalArgumentException e) {
             throw new ServiceException("Failed to parse Keycloak access token: " + e.getMessage());
         }
 

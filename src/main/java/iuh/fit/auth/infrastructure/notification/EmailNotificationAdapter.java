@@ -8,6 +8,9 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 @Service
 @RequiredArgsConstructor
 public class EmailNotificationAdapter implements EmailNotificationPort {
@@ -91,9 +94,9 @@ public class EmailNotificationAdapter implements EmailNotificationPort {
     }
 
     @Override
-    public void sendAccountDeletionScheduled(String email, String fullName, java.time.LocalDateTime purgeAt) {
+    public void sendAccountDeletionScheduled(String email, String fullName, LocalDateTime purgeAt) {
         sendAccountDeletionMail(email, fullName, "SCHEDULED", "Tài khoản Goat Sports sẽ bị xóa", null,
-                purgeAt.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+                purgeAt.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
     }
 
     @Override

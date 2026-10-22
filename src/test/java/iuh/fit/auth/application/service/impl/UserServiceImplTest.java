@@ -1,9 +1,12 @@
 package iuh.fit.auth.application.service.impl;
 
+import iuh.fit.auth.application.dto.AuthProperties;
 import iuh.fit.auth.application.dto.request.user.UpdateUserRequestCommand;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.mapper.UserMapper;
+import iuh.fit.auth.application.port.cache.RedisPort;
+import iuh.fit.auth.application.port.client.SessionRevocationPort;
 import iuh.fit.auth.application.port.event.UserRegistrationEventPublisher;
 import iuh.fit.auth.application.port.notification.EmailNotificationPort;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
@@ -30,6 +33,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -52,8 +56,8 @@ class UserServiceImplTest {
     @Mock CurrentUserProvider currentUserProvider;
     @Mock EmailNotificationPort emailNotificationPort;
     @Mock RsaPort rsaPort;
-    @Mock iuh.fit.auth.application.port.cache.RedisPort redisPort;
-    @Mock iuh.fit.auth.application.port.client.SessionRevocationPort sessionRevocationPort;
+    @Mock RedisPort redisPort;
+    @Mock SessionRevocationPort sessionRevocationPort;
 
     private UserServiceImpl service;
     private final UUID userId = UUID.randomUUID();
@@ -149,12 +153,12 @@ class UserServiceImplTest {
     @Test
     void unverifyingAnAccountEndsItsSessionsAndReverifyingLiftsTheGatewayFlag() throws ServiceException {
         when(userRepository.save(user)).thenReturn(user);
-        when(jwtPort.getAuthProperties()).thenReturn(new iuh.fit.auth.application.dto.AuthProperties(300, 3600));
+        when(jwtPort.getAuthProperties()).thenReturn(new AuthProperties(300, 3600));
 
         service.verifyUser(userId.toString(), false);
 
         assertThat(user.getStatus()).isEqualTo(UserStatusEnum.INACTIVE);
-        verify(redisPort).saveWithTTL("blocked_user:" + userId, "inactive", 3600L, java.util.concurrent.TimeUnit.SECONDS);
+        verify(redisPort).saveWithTTL("blocked_user:" + userId, "inactive", 3600L, TimeUnit.SECONDS);
         verify(redisPort).deleteKey("user:" + userId + ":refresh");
         verify(sessionRevocationPort).notifySessionRevoked(userId, "ACCOUNT_INACTIVE");
 

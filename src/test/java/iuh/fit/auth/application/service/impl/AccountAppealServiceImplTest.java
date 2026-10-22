@@ -8,6 +8,7 @@ import iuh.fit.auth.application.port.notification.EmailNotificationPort;
 import iuh.fit.auth.application.port.persistence.AccountAppealRepository;
 import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.application.port.security.CurrentUserProvider;
+import iuh.fit.auth.application.service.AccountAppealService;
 import iuh.fit.auth.domain.entity.AccountAppeal;
 import iuh.fit.auth.domain.entity.User;
 import iuh.fit.auth.domain.enums.AccountAppealStatus;
@@ -23,6 +24,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -128,7 +130,7 @@ class AccountAppealServiceImplTest {
         when(appealRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(userRepository.findById(blocked.getUserId())).thenReturn(Optional.of(blocked));
 
-        var detail = service.open(appeal.getAppealId());
+        AccountAppealService.AppealDetail detail = service.open(appeal.getAppealId());
 
         assertEquals(AccountAppealStatus.READ, detail.appeal().getStatus());
         assertEquals(UserStatusEnum.BLOCKED, detail.accountStatus());
@@ -153,7 +155,7 @@ class AccountAppealServiceImplTest {
 
     @Test
     void listingClampsThePageSize() {
-        when(appealRepository.find(null, 1, 50)).thenReturn(new PageResult<>(java.util.List.of(), 0, 1, 50, 0));
+        when(appealRepository.find(null, 1, 50)).thenReturn(new PageResult<>(List.of(), 0, 1, 50, 0));
         service.list(null, 0, 500);
         verify(appealRepository).find(null, 1, 50);
     }

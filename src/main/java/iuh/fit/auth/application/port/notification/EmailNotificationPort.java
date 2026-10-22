@@ -1,5 +1,7 @@
 package iuh.fit.auth.application.port.notification;
 
+import java.time.LocalDateTime;
+
 public interface EmailNotificationPort {
     void sendVerificationEmail(String email, String verificationCode);
 
@@ -25,7 +27,7 @@ public interface EmailNotificationPort {
     void sendAccountDeletionCode(String email, String fullName, String code);
 
     /** Đã nhận yêu cầu xóa: ngày xóa thật và cách hủy (đăng nhập lại). */
-    void sendAccountDeletionScheduled(String email, String fullName, java.time.LocalDateTime purgeAt);
+    void sendAccountDeletionScheduled(String email, String fullName, LocalDateTime purgeAt);
 
     /** Đăng nhập lại trong thời gian chờ nên yêu cầu xóa đã hủy. */
     void sendAccountDeletionCancelled(String email, String fullName);

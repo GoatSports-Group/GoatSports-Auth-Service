@@ -3,10 +3,13 @@ package iuh.fit.auth.presentation.controller;
 import iuh.fit.auth.application.dto.request.user.SaveAvailabilityCommand;
 import iuh.fit.auth.application.dto.request.user.SavePlayerSportProfileCommand;
 import iuh.fit.auth.application.exception.ServiceException;
+import iuh.fit.auth.application.service.MatchResultService;
 import iuh.fit.auth.application.service.PlayerSportProfileService;
+import iuh.fit.auth.domain.enums.SportType;
 import iuh.fit.auth.presentation.converter.PlayerSportProfileConverter;
 import iuh.fit.auth.presentation.request.user.AvailabilityRequest;
 import iuh.fit.auth.presentation.request.user.SavePlayerSportProfileRequest;
+import iuh.fit.auth.presentation.response.user.MatchHistoryResponse;
 import iuh.fit.auth.presentation.response.user.PlayerSportProfileResponse;
 import iuh.fit.shared.annotation.AuditLog;
 import jakarta.validation.Valid;
@@ -31,7 +34,7 @@ import java.util.UUID;
 public class PlayerSportProfileController {
     private final PlayerSportProfileService profileService;
     private final PlayerSportProfileConverter profileConverter;
-    private final iuh.fit.auth.application.service.MatchResultService matchResultService;
+    private final MatchResultService matchResultService;
 
     @GetMapping
     public ResponseEntity<List<PlayerSportProfileResponse>> getMyProfiles() throws ServiceException {
@@ -40,11 +43,11 @@ public class PlayerSportProfileController {
 
     /** Lịch sử thi đấu (ghép trận + giải đấu) của hồ sơ một môn, mới nhất trước. */
     @GetMapping("/{sportType}/history")
-    public ResponseEntity<List<iuh.fit.auth.presentation.response.user.MatchHistoryResponse>> getMyHistory(
-            @PathVariable iuh.fit.auth.domain.enums.SportType sportType
+    public ResponseEntity<List<MatchHistoryResponse>> getMyHistory(
+            @PathVariable SportType sportType
     ) throws ServiceException {
         return ResponseEntity.ok(matchResultService.getMyHistory(sportType).stream()
-                .map(iuh.fit.auth.presentation.response.user.MatchHistoryResponse::from).toList());
+                .map(MatchHistoryResponse::from).toList());
     }
 
     @PostMapping

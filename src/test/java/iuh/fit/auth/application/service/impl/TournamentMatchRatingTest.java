@@ -6,6 +6,7 @@ import iuh.fit.auth.application.dto.response.user.ScoutedPlayerCommand;
 import iuh.fit.auth.application.dto.request.user.ScoutingSearchCommand;
 import iuh.fit.auth.application.port.persistence.AppliedMatchResultRepository;
 import iuh.fit.auth.application.port.persistence.PlayerSportProfileRepository;
+import iuh.fit.auth.application.service.MatchResultService;
 import iuh.fit.auth.domain.entity.AppliedMatchResult;
 import iuh.fit.auth.domain.entity.PlayerSportProfile;
 import iuh.fit.auth.domain.enums.SkillLevel;
@@ -35,7 +36,7 @@ class TournamentMatchRatingTest {
     void singlesWinnerGainsWhatTheLoserDropsAndHistoryRecordsTheMatch() throws Exception {
         UUID a = player(1000), b = player(1000);
 
-        var rated = service.applyTournamentMatch(match(side("Minh", 21, a), side("Thắng", 19, b)));
+        List<MatchResultService.RatedPlayer> rated = service.applyTournamentMatch(match(side("Minh", 21, a), side("Thắng", 19, b)));
 
         assertThat(rated).allMatch(item -> item.changed());
         assertThat(profiles.elo(a)).isEqualTo(1020);
@@ -67,10 +68,10 @@ class TournamentMatchRatingTest {
     @Test
     void retryWithTheSameScoreChangesNothing() throws Exception {
         UUID a = player(1000), b = player(1000);
-        var command = match(side("Minh", 21, a), side("Thắng", 19, b));
+        ApplyTournamentMatchCommand command = match(side("Minh", 21, a), side("Thắng", 19, b));
         service.applyTournamentMatch(command);
 
-        var replay = service.applyTournamentMatch(command);
+        List<MatchResultService.RatedPlayer> replay = service.applyTournamentMatch(command);
 
         assertThat(replay).noneMatch(item -> item.changed());
         assertThat(profiles.elo(a)).isEqualTo(1020);
@@ -82,7 +83,7 @@ class TournamentMatchRatingTest {
         UUID a = player(1000), b = player(1000);
         service.applyTournamentMatch(match(side("Minh", 21, a), side("Thắng", 19, b)));
 
-        var rated = service.applyTournamentMatch(match(side("Minh", 19, a), side("Thắng", 21, b)));
+        List<MatchResultService.RatedPlayer> rated = service.applyTournamentMatch(match(side("Minh", 19, a), side("Thắng", 21, b)));
 
         assertThat(rated).allMatch(item -> item.changed());
         assertThat(profiles.elo(a)).isEqualTo(980);
@@ -110,9 +111,9 @@ class TournamentMatchRatingTest {
     void ensureProfileCreatesBeginnerOnceAndKeepsAnExistingOne() throws Exception {
         UUID userId = UUID.randomUUID();
 
-        var created = service.ensureProfile(userId, SportType.BADMINTON);
+        PlayerSportProfile created = service.ensureProfile(userId, SportType.BADMINTON);
         created.setEloRating(1300);
-        var again = service.ensureProfile(userId, SportType.BADMINTON);
+        PlayerSportProfile again = service.ensureProfile(userId, SportType.BADMINTON);
 
         assertThat(created.getSkillLevel()).isEqualTo(SkillLevel.BEGINNER);
         assertThat(again.getEloRating()).isEqualTo(1300);

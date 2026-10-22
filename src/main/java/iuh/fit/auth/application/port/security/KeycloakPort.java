@@ -3,6 +3,8 @@ package iuh.fit.auth.application.port.security;
 import iuh.fit.auth.application.dto.response.auth.KeycloakResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 
+import java.util.UUID;
+
 public interface KeycloakPort {
     KeycloakResponseCommand verify(String usernameOrEmail, String password);
 
@@ -14,5 +16,5 @@ public interface KeycloakPort {
 
     KeycloakResponseCommand exchangeCode(String code, String redirectUri) throws ServiceException;
 
-    void deleteUser(java.util.UUID keycloakId) throws ServiceException;
+    void deleteUser(UUID keycloakId) throws ServiceException;
 }

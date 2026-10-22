@@ -3,6 +3,7 @@ package iuh.fit.auth.application.service.impl;
 import iuh.fit.auth.application.dto.request.user.SaveAvailabilityCommand;
 import iuh.fit.auth.application.dto.request.user.SavePlayerSportProfileCommand;
 import iuh.fit.auth.application.dto.request.user.ScoutingSearchCommand;
+import iuh.fit.auth.application.dto.response.user.PlayerSportProfileResponseCommand;
 import iuh.fit.auth.application.dto.response.user.ScoutedPlayerCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.port.persistence.PlayerSportProfileRepository;
@@ -19,7 +20,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -63,7 +66,7 @@ class PlayerSportProfileServiceImplTest {
             return profile;
         });
 
-        var response = service.createMyProfile(command);
+        PlayerSportProfileResponseCommand response = service.createMyProfile(command);
 
         assertEquals(1200, response.eloRating());
         assertEquals(0, response.matchCount());
@@ -89,7 +92,7 @@ class PlayerSportProfileServiceImplTest {
         when(profileRepository.existsByUserIdAndSportType(userId, SportType.TENNIS)).thenReturn(false);
         when(profileRepository.save(any(PlayerSportProfile.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var response = service.createMyProfile(command);
+        PlayerSportProfileResponseCommand response = service.createMyProfile(command);
 
         assertEquals(1800, response.eloRating());
     }
@@ -123,7 +126,7 @@ class PlayerSportProfileServiceImplTest {
                 .skillLevel(SkillLevel.INTERMEDIATE)
                 .availabilities(Set.of())
                 .build();
-        when(profileRepository.findByIdAndUserId(profileId, userId)).thenReturn(java.util.Optional.of(existing));
+        when(profileRepository.findByIdAndUserId(profileId, userId)).thenReturn(Optional.of(existing));
         SavePlayerSportProfileCommand command = validCommand(List.of(
                 availability(UUID.randomUUID(), DayOfWeek.MONDAY, "18:00", "20:00")
         ));
@@ -141,7 +144,7 @@ class PlayerSportProfileServiceImplTest {
                 SportType.BADMINTON, SkillLevel.INTERMEDIATE, Set.of(), null,
                 "  Hà Nội  ", 21.0285, 105.8542, 10.0, List.of(), null);
 
-        var response = service.createMyProfile(command);
+        PlayerSportProfileResponseCommand response = service.createMyProfile(command);
 
         assertEquals("Hà Nội", response.city());
     }
@@ -167,7 +170,7 @@ class PlayerSportProfileServiceImplTest {
                 .skillLevel(SkillLevel.INTERMEDIATE)
                 .availabilities(Set.of())
                 .build();
-        when(profileRepository.findByIdAndUserId(profileId, userId)).thenReturn(java.util.Optional.of(existing));
+        when(profileRepository.findByIdAndUserId(profileId, userId)).thenReturn(Optional.of(existing));
 
         assertThrows(ServiceException.class, () -> service.updateMyProfile(profileId, validCommand(List.of())));
 
@@ -189,9 +192,9 @@ class PlayerSportProfileServiceImplTest {
         PlayerSportProfile existing = PlayerSportProfile.builder()
                 .profileId(profileId).userId(userId).sportType(SportType.BADMINTON)
                 .skillLevel(SkillLevel.INTERMEDIATE).matchCount(0).discoverable(false)
-                .availabilities(new java.util.HashSet<>())
+                .availabilities(new HashSet<>())
                 .build();
-        when(profileRepository.findByIdAndUserId(profileId, userId)).thenReturn(java.util.Optional.of(existing));
+        when(profileRepository.findByIdAndUserId(profileId, userId)).thenReturn(Optional.of(existing));
         when(profileRepository.save(any(PlayerSportProfile.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         assertEquals(false, service.updateMyProfile(profileId, validCommand(List.of())).discoverable());

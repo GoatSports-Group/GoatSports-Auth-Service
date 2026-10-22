@@ -1,6 +1,7 @@
 package iuh.fit.auth.infrastructure.persistence.repository;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import com.turkraft.springfilter.converter.FilterSpecificationConverter;
 import com.turkraft.springfilter.parser.FilterParser;
@@ -13,6 +14,7 @@ import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.domain.entity.User;
 import iuh.fit.auth.domain.enums.RoleEnum;
 import iuh.fit.auth.domain.enums.UserStatusEnum;
+import iuh.fit.auth.infrastructure.persistence.entity.RoleEntity;
 import iuh.fit.auth.infrastructure.persistence.entity.UserEntity;
 import iuh.fit.auth.infrastructure.persistence.mapper.UserEntityMapper;
 import iuh.fit.auth.infrastructure.persistence.repository.jpa.JpaRoleRepository;
@@ -74,7 +76,7 @@ public class UserRepositoryImpl implements UserRepository {
         if (user.getRole() == null || user.getRole().getRoleId() == null) {
             throw new ServiceException("Người dùng phải có vai trò hợp lệ.");
         }
-        var roleEntity = jpaRoleRepository.findById(user.getRole().getRoleId())
+        RoleEntity roleEntity = jpaRoleRepository.findById(user.getRole().getRoleId())
                 .orElseThrow(() -> new ServiceException("Vai trò không tồn tại."));
 
         UserEntity entity;
@@ -191,7 +193,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     private static Map<String, Long> toCountMap(List<Object[]> rows) {
-        Map<String, Long> counts = new java.util.LinkedHashMap<>();
+        Map<String, Long> counts = new LinkedHashMap<>();
         for (Object[] row : rows) {
             // Tên vai trò giờ là chuỗi (vai trò tự tạo), trạng thái vẫn là enum.
             if (row[0] != null) counts.put(row[0] instanceof Enum<?> value ? value.name() : row[0].toString(),

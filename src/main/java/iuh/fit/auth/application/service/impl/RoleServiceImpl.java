@@ -14,6 +14,7 @@ import iuh.fit.auth.application.dto.response.base.PageResult;
 import iuh.fit.auth.application.dto.request.role.CreateRoleRequestCommand;
 import iuh.fit.auth.application.dto.request.role.UpdateRoleRequestCommand;
 import iuh.fit.auth.application.port.persistence.UserRepository;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.UUID;
@@ -162,7 +163,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     private void ensureNameFree(String name, UUID ownId) throws ServiceException {
-        var existing = roleRepository.findByName(name);
+        Optional<Role> existing = roleRepository.findByName(name);
         if (existing.isPresent() && !existing.get().getRoleId().equals(ownId)) {
             throw new ServiceException("Vai trò " + name + " đã tồn tại.");
         }

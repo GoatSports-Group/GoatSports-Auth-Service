@@ -17,7 +17,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -149,14 +152,14 @@ public class CallbackController {
     }
 
     private static String blockedQuery(AccountStatusException blocked) {
-        java.util.Map<String, Object> data = blocked.getData();
+        Map<String, Object> data = blocked.getData();
         StringBuilder query = new StringBuilder(
                 AccountStatusException.INACTIVE.equals(blocked.getCode()) ? "account=inactive" : "account=blocked");
         for (String key : new String[]{"appealToken", "email", "fullName", "codeSent"}) {
             Object value = data.get(key);
             if (value != null) {
                 query.append('&').append(key).append('=')
-                        .append(java.net.URLEncoder.encode(value.toString(), java.nio.charset.StandardCharsets.UTF_8));
+                        .append(URLEncoder.encode(value.toString(), StandardCharsets.UTF_8));
             }
         }
         return query.toString();

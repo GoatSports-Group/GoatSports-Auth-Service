@@ -1,5 +1,9 @@
 package iuh.fit.auth.infrastructure.config;
 
+import iuh.fit.auth.application.port.client.AccountDeletionBlockerPort;
+import iuh.fit.auth.application.port.client.SessionRevocationPort;
+import iuh.fit.auth.application.port.persistence.AccountAppealRepository;
+import iuh.fit.auth.application.service.AccountAppealService;
 import iuh.fit.auth.application.service.impl.AdminStatsServiceImpl;
 import iuh.fit.auth.application.mapper.UserMapper;
 import iuh.fit.auth.application.port.cache.RedisPort;
@@ -19,6 +23,8 @@ import iuh.fit.auth.application.service.impl.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Clock;
+
 @Configuration
 public class ApplicationServiceConfig {
 
@@ -29,8 +35,8 @@ public class ApplicationServiceConfig {
             UserRegistrationEventPublisher userRegistrationEventPublisher,
             UserRepository userRepository, RoleRepository roleRepository,
             UserMapper userMapper, RsaPort rsaPort,
-            iuh.fit.auth.application.service.AccountAppealService accountAppealService,
-            iuh.fit.auth.application.port.client.SessionRevocationPort sessionRevocationPort
+            AccountAppealService accountAppealService,
+            SessionRevocationPort sessionRevocationPort
     ) {
         return new AuthenticationServiceImpl(
                 jwtPort, redisPort, keycloakPort,
@@ -47,7 +53,7 @@ public class ApplicationServiceConfig {
             UserMapper userMapper, UserRegistrationEventPublisher userRegistrationEventPublisher,
             StoragePort storagePort, CurrentUserProvider currentUserProvider,
             EmailNotificationPort emailNotificationPort, RsaPort rsaPort, RedisPort redisPort,
-            iuh.fit.auth.application.port.client.SessionRevocationPort sessionRevocationPort
+            SessionRevocationPort sessionRevocationPort
     ) {
         return new UserServiceImpl(
                 jwtPort, userRepository, roleRepository,
@@ -57,19 +63,19 @@ public class ApplicationServiceConfig {
     }
 
     @Bean
-    public iuh.fit.auth.application.service.impl.AccountDeletionServiceImpl accountDeletionServiceImpl(
+    public AccountDeletionServiceImpl accountDeletionServiceImpl(
             UserRepository userRepository, PlayerSportProfileRepository profileRepository,
-            iuh.fit.auth.application.port.persistence.AccountAppealRepository appealRepository,
+            AccountAppealRepository appealRepository,
             RedisPort redisPort, KeycloakPort keycloakPort,
             EmailNotificationPort emailNotificationPort, UserRegistrationEventPublisher eventPublisher,
-            iuh.fit.auth.application.port.client.AccountDeletionBlockerPort blockerPort,
+            AccountDeletionBlockerPort blockerPort,
             CurrentUserProvider currentUserProvider, JwtPort jwtPort,
-            iuh.fit.auth.application.port.client.SessionRevocationPort sessionRevocationPort
+            SessionRevocationPort sessionRevocationPort
     ) {
-        return new iuh.fit.auth.application.service.impl.AccountDeletionServiceImpl(
+        return new AccountDeletionServiceImpl(
                 userRepository, profileRepository, appealRepository, redisPort, keycloakPort,
                 emailNotificationPort, eventPublisher, blockerPort, currentUserProvider, jwtPort, sessionRevocationPort,
-                java.time.Clock.systemDefaultZone());
+                Clock.systemDefaultZone());
     }
 
     @Bean
@@ -116,13 +122,13 @@ public class ApplicationServiceConfig {
     }
 
     @Bean
-    public iuh.fit.auth.application.service.impl.AccountAppealServiceImpl accountAppealService(
-            iuh.fit.auth.application.port.persistence.AccountAppealRepository appealRepository,
+    public AccountAppealServiceImpl accountAppealService(
+            AccountAppealRepository appealRepository,
             UserRepository userRepository, RedisPort redisPort, EmailNotificationPort emailNotificationPort,
             CurrentUserProvider currentUserProvider
     ) {
-        return new iuh.fit.auth.application.service.impl.AccountAppealServiceImpl(
+        return new AccountAppealServiceImpl(
                 appealRepository, userRepository, redisPort, emailNotificationPort, currentUserProvider,
-                java.time.Clock.systemDefaultZone());
+                Clock.systemDefaultZone());
     }
 }

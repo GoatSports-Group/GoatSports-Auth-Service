@@ -4,6 +4,7 @@ import iuh.fit.auth.application.dto.response.auth.KeycloakResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.port.security.KeycloakPort;
 import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.Keycloak;
@@ -17,6 +18,7 @@ import org.springframework.web.client.RestClientResponseException;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -125,8 +127,8 @@ public class KeycloakAdapter implements KeycloakPort {
     }
 
     @Override
-    public void deleteUser(java.util.UUID keycloakId) throws ServiceException {
-        try (jakarta.ws.rs.core.Response response = keycloak.realm(currentRealm).users().delete(keycloakId.toString())) {
+    public void deleteUser(UUID keycloakId) throws ServiceException {
+        try (Response response = keycloak.realm(currentRealm).users().delete(keycloakId.toString())) {
             int status = response.getStatus();
             if (status != 204 && status != 404) {
                 throw new ServiceException("Không xóa được tài khoản trên hệ thống xác thực (HTTP " + status + ").");

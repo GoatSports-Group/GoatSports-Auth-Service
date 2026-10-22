@@ -4,6 +4,7 @@ import iuh.fit.auth.application.dto.request.user.ApplyMatchResultCommand;
 import iuh.fit.auth.application.dto.request.user.ApplyTournamentMatchCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.service.MatchResultService;
+import iuh.fit.auth.domain.entity.AppliedMatchResult;
 import iuh.fit.auth.presentation.request.internal.ApplyMatchResultRequest;
 import iuh.fit.auth.presentation.request.internal.ApplyTournamentMatchRequest;
 import jakarta.validation.Valid;
@@ -26,7 +27,7 @@ public class MatchResultInternalController {
     public ResponseEntity<Map<String, Object>> apply(
             @Valid @RequestBody ApplyMatchResultRequest request
     ) throws ServiceException {
-        var result = matchResultService.apply(new ApplyMatchResultCommand(
+        AppliedMatchResult result = matchResultService.apply(new ApplyMatchResultCommand(
                 request.sessionId(), request.userId(), request.sportType(),
                 request.opponentElo(), request.outcome(), request.playerElo(),
                 request.opponentName(), request.myScore(), request.opponentScore()
@@ -44,7 +45,7 @@ public class MatchResultInternalController {
     public ResponseEntity<List<Map<String, Object>>> applyTournament(
             @Valid @RequestBody ApplyTournamentMatchRequest request
     ) throws ServiceException {
-        var rated = matchResultService.applyTournamentMatch(new ApplyTournamentMatchCommand(
+        List<MatchResultService.RatedPlayer> rated = matchResultService.applyTournamentMatch(new ApplyTournamentMatchCommand(
                 request.matchId(), request.tournamentId(), request.sportType(), request.title(),
                 side(request.first()), side(request.second())
         ));
