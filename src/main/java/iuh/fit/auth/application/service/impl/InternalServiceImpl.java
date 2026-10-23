@@ -5,6 +5,7 @@ import iuh.fit.auth.application.dto.response.user.UserPermissionsResponseCommand
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.application.mapper.UserMapper;
+import iuh.fit.auth.application.port.notification.EmailNotificationPort;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.application.service.InternalService;
@@ -23,11 +24,14 @@ public class InternalServiceImpl implements InternalService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
+    private final EmailNotificationPort emailNotificationPort;
 
-    public InternalServiceImpl(UserRepository userRepository, RoleRepository roleRepository, UserMapper userMapper) {
+    public InternalServiceImpl(UserRepository userRepository, RoleRepository roleRepository, UserMapper userMapper,
+                               EmailNotificationPort emailNotificationPort) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userMapper = userMapper;
+        this.emailNotificationPort = emailNotificationPort;
     }
 
     @Override
@@ -111,6 +115,13 @@ public class InternalServiceImpl implements InternalService {
     @Override
     public long countRecipients(Set<String> roleNames) throws ServiceException {
         return userRepository.countActiveByRoles(validRoles(roleNames));
+    }
+
+    @Override
+    public void sendBookingTicket(UUID userId, EmailNotificationPort.BookingTicketMail ticket) throws ServiceException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ServiceException("Người dùng không tồn tại"));
+        emailNotificationPort.sendBookingTicket(user.getEmail(), user.getFullName(), ticket);
     }
 
     private static Set<String> validRoles(Set<String> roleNames) throws ServiceException {

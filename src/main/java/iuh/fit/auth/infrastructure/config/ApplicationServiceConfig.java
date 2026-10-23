@@ -116,9 +116,9 @@ public class ApplicationServiceConfig {
     @Bean
     public InternalServiceImpl internalService(
             UserRepository userRepository, RoleRepository roleRepository,
-            UserMapper userMapper
+            UserMapper userMapper, EmailNotificationPort emailNotificationPort
     ) {
-        return new InternalServiceImpl(userRepository, roleRepository, userMapper);
+        return new InternalServiceImpl(userRepository, roleRepository, userMapper, emailNotificationPort);
     }
 
     @Bean

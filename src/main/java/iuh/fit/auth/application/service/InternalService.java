@@ -4,6 +4,7 @@ import iuh.fit.auth.application.dto.report.UserReportResponseCommand;
 import iuh.fit.auth.application.dto.response.user.UserPermissionsResponseCommand;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
+import iuh.fit.auth.application.port.notification.EmailNotificationPort;
 
 import java.util.List;
 import java.util.Set;
@@ -23,4 +24,7 @@ public interface InternalService {
     List<UUID> findRecipientIds(Set<String> roleNames, UUID after, int limit) throws ServiceException;
 
     long countRecipients(Set<String> roleNames) throws ServiceException;
+
+    /** venue-service gọi khi người chơi cọc xong: gửi vé QR tới email tài khoản (thư đi bất đồng bộ). */
+    void sendBookingTicket(UUID userId, EmailNotificationPort.BookingTicketMail ticket) throws ServiceException;
 }

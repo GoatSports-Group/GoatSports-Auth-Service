@@ -8,6 +8,8 @@ import iuh.fit.auth.application.service.PlayerSportProfileService;
 import iuh.fit.auth.application.service.UserService;
 import iuh.fit.auth.application.dto.response.user.UserPermissionsResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
+import iuh.fit.auth.application.port.notification.EmailNotificationPort;
+import iuh.fit.auth.presentation.request.internal.BookingTicketEmailRequest;
 import iuh.fit.auth.presentation.converter.PlayerSportProfileConverter;
 import iuh.fit.auth.presentation.converter.UserConverter;
 import iuh.fit.auth.presentation.response.report.UserDetailReportResponse;
@@ -141,6 +143,17 @@ public class UserInternalController {
     @GetMapping("/recipients/count")
     public ResponseEntity<Long> countRecipients(@RequestParam Set<String> roles) throws ServiceException {
         return ResponseEntity.ok(internalService.countRecipients(roles));
+    }
+
+    @PostMapping("/{userId}/booking-ticket-email")
+    public ResponseEntity<Void> sendBookingTicketEmail(
+            @PathVariable UUID userId, @Valid @RequestBody BookingTicketEmailRequest request
+    ) throws ServiceException {
+        internalService.sendBookingTicket(userId, new EmailNotificationPort.BookingTicketMail(
+                request.bookingId(), request.bookingCode(), request.venueName(), request.courtName(),
+                request.venueAddress(), request.playDate(), request.startTime(), request.endTime(),
+                request.depositAmount(), request.remainingAmount(), request.qrCode()));
+        return ResponseEntity.accepted().build();
     }
 
     @GetMapping("/admin")

@@ -4,6 +4,7 @@ import iuh.fit.auth.application.dto.report.UserReportResponseCommand;
 import iuh.fit.auth.application.dto.response.user.UserPermissionsResponseCommand;
 import iuh.fit.auth.application.dto.response.user.UserResponseCommand;
 import iuh.fit.auth.application.exception.ServiceException;
+import iuh.fit.auth.application.port.notification.EmailNotificationPort;
 import iuh.fit.auth.application.service.InternalService;
 import iuh.fit.auth.application.service.impl.InternalServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -60,5 +61,11 @@ public class InternalDecorator implements InternalService {
     @Transactional(readOnly = true)
     public long countRecipients(Set<String> roleNames) throws ServiceException {
         return internalServiceImpl.countRecipients(roleNames);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void sendBookingTicket(UUID userId, EmailNotificationPort.BookingTicketMail ticket) throws ServiceException {
+        internalServiceImpl.sendBookingTicket(userId, ticket);
     }
 }

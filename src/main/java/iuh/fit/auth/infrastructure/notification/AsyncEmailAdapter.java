@@ -4,6 +4,7 @@ import iuh.fit.auth.application.port.notification.AsyncEmailPort;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -43,6 +44,23 @@ public class AsyncEmailAdapter implements AsyncEmailPort {
             helper.setReplyTo(replyTo);
             helper.setSubject(subject);
             helper.setText(html, true);
+            this.javaMailSender.send(mimeMessage);
+        } catch (Exception e) {
+            log.error("Lỗi gửi mail tới " + recipient + ": " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Async("emailExecutor")
+    public void sendHtmlWithInlineImage(String recipient, String subject, String html, String contentId, byte[] png) {
+        MimeMessage mimeMessage = this.javaMailSender.createMimeMessage();
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, StandardCharsets.UTF_8.name());
+            helper.setTo(recipient);
+            helper.setSubject(subject);
+            helper.setText(html, true);
+            // Phải gọi sau setText: ảnh nhúng gắn vào phần HTML đã có.
+            helper.addInline(contentId, new ByteArrayResource(png), "image/png");
             this.javaMailSender.send(mimeMessage);
         } catch (Exception e) {
             log.error("Lỗi gửi mail tới " + recipient + ": " + e.getMessage());

@@ -1,6 +1,7 @@
 package iuh.fit.auth.application.service;
 
 import iuh.fit.auth.application.mapper.UserMapper;
+import iuh.fit.auth.application.port.notification.EmailNotificationPort;
 import iuh.fit.auth.application.port.persistence.RoleRepository;
 import iuh.fit.auth.application.port.persistence.UserRepository;
 import iuh.fit.auth.application.service.impl.InternalServiceImpl;
@@ -29,9 +30,10 @@ class InternalServiceImplTest {
     @Mock UserRepository userRepository;
     @Mock RoleRepository roleRepository;
     @Mock UserMapper userMapper;
+    @Mock EmailNotificationPort emailNotificationPort;
 
     private InternalServiceImpl service() {
-        return new InternalServiceImpl(userRepository, roleRepository, userMapper);
+        return new InternalServiceImpl(userRepository, roleRepository, userMapper, emailNotificationPort);
     }
 
     private Role role(RoleEnum name) {

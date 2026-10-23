@@ -1,6 +1,9 @@
 package iuh.fit.auth.application.port.notification;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.UUID;
 
 public interface EmailNotificationPort {
     void sendVerificationEmail(String email, String verificationCode);
@@ -31,4 +34,12 @@ public interface EmailNotificationPort {
 
     /** Đăng nhập lại trong thời gian chờ nên yêu cầu xóa đã hủy. */
     void sendAccountDeletionCancelled(String email, String fullName);
+
+    /** Vé đặt sân sau khi cọc xong: ảnh QR nhận sân (từ {@code qrCode}) cùng lịch chơi và số tiền. */
+    void sendBookingTicket(String email, String fullName, BookingTicketMail ticket);
+
+    record BookingTicketMail(UUID bookingId, String bookingCode, String venueName, String courtName,
+                             String venueAddress, LocalDate playDate, LocalTime startTime, LocalTime endTime,
+                             Double depositAmount, Double remainingAmount, String qrCode) {
+    }
 }
