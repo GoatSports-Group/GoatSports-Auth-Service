@@ -28,7 +28,7 @@ public class UserRegistrationEvent {
         private String username;
         private String email;
         private String fullName;
-        private String password;
+        private String encryptedPassword;
         private boolean verified;
     }
 }

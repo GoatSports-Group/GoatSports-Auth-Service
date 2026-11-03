@@ -5,6 +5,7 @@ import iuh.fit.auth.application.dto.event.UserRegistrationEventType;
 import iuh.fit.auth.application.port.event.UserRegistrationEventPublisher;
 import iuh.fit.auth.domain.entity.User;
 import iuh.fit.auth.domain.enums.UserStatusEnum;
+import iuh.fit.auth.infrastructure.security.KafkaPasswordCipher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +21,7 @@ import java.util.UUID;
 public class UserRegistrationEventPublisherAdapter implements UserRegistrationEventPublisher {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaPasswordCipher passwordCipher;
 
     @Value("${spring.kafka.topic.user-registration}")
     private String topic;
@@ -76,7 +78,7 @@ public class UserRegistrationEventPublisherAdapter implements UserRegistrationEv
                         .username(user.getUsername())
                         .email(user.getEmail())
                         .fullName(user.getFullName())
-                        .password(newPassword)
+                        .encryptedPassword(passwordCipher.encrypt(newPassword))
                         .build())
                 .build();
         try {
@@ -133,7 +135,7 @@ public class UserRegistrationEventPublisherAdapter implements UserRegistrationEv
                         .username(user.getUsername())
                         .email(user.getEmail())
                         .fullName(user.getFullName())
-                        .password(plainPassword)
+                        .encryptedPassword(passwordCipher.encrypt(plainPassword))
                         .build()
                 )
                 .build();
