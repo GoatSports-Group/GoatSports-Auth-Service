@@ -22,7 +22,7 @@
         <td style="padding:16px 24px;">
             <!--[if mso]><table role="presentation" width="100%"><tr><td width="220" valign="top"><![endif]-->
             <div style="display:inline-block;width:220px;max-width:100%;vertical-align:top;text-align:center;margin:0 0 16px;">
-                <img src="cid:ticketQr" width="200" height="200" alt="Mã QR nhận sân"
+                <img th:src="${qrImageUrl}"width="200" height="200" alt="Mã QR nhận sân"
                      style="display:block;margin:0 auto;width:200px;height:200px;border:1px solid #dbe5e0;border-radius:12px;">
                 <div style="margin-top:8px;font-size:13px;color:#5f6f84;">Mã đặt sân</div>
                 <div style="font-size:16px;font-weight:800;letter-spacing:.06em;" th:text="${bookingCode}">GS000000</div>

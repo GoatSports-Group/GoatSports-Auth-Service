@@ -1,9 +1,5 @@
 package iuh.fit.auth.infrastructure.notification;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.WriterException;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.QRCodeWriter;
 import iuh.fit.auth.application.port.notification.AsyncEmailPort;
 import iuh.fit.auth.application.port.notification.EmailNotificationPort;
 import lombok.RequiredArgsConstructor;
@@ -12,11 +8,8 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
-import javax.imageio.ImageIO;
-import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -28,8 +21,7 @@ public class EmailNotificationAdapter implements EmailNotificationPort {
     private final SpringTemplateEngine templateEngine;
     private final AsyncEmailPort asyncEmailPort;
 
-    static final String TICKET_QR_ID = "ticketQr";
-    private static final int QR_SIZE = 360;
+    private static final String TICKET_QR_PATH = "/venue-service/api/v1/venues/ticket-qr?code=";
     private static final Locale VI = Locale.forLanguageTag("vi-VN");
     private static final DateTimeFormatter HOUR = DateTimeFormatter.ofPattern("HH:mm");
     private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -40,6 +32,9 @@ public class EmailNotificationAdapter implements EmailNotificationPort {
 
     @Value("${client.frontend.url}")
     private String clientUrl;
+
+    @Value("${api.public.url}")
+    private String apiPublicUrl;
 
     @Override
     public void sendVerificationEmail(String email, String verificationCode) {
@@ -140,32 +135,16 @@ public class EmailNotificationAdapter implements EmailNotificationPort {
         context.setVariable("remainingAmount", money(ticket.remainingAmount()));
         context.setVariable("hasRemaining", ticket.remainingAmount() != null && ticket.remainingAmount() > 0);
         context.setVariable("detailUrl", clientUrl + "/booking/detail/" + ticket.bookingId());
+        context.setVariable("qrImageUrl", apiPublicUrl + TICKET_QR_PATH
+                + URLEncoder.encode(ticket.qrCode(), StandardCharsets.UTF_8));
         String html = this.templateEngine.process("booking-ticket", context);
-        this.asyncEmailPort.sendHtmlWithInlineImage(email,
+        this.asyncEmailPort.sendEmailSync(email,
                 "Vé đặt sân " + ticket.bookingCode() + " · " + slot + " " + ticket.playDate().format(DAY),
-                html, TICKET_QR_ID, qrPng(ticket.qrCode()));
+                html, false, true);
     }
 
     private static String money(Double amount) {
         return NumberFormat.getIntegerInstance(VI).format(amount == null ? 0 : amount) + " đ";
-    }
-
-    /** QR đen trên nền trắng, giữ vùng trắng 4 ô mặc định của zxing để máy quét của chủ sân đọc được. */
-    static byte[] qrPng(String content) {
-        try {
-            BitMatrix matrix = new QRCodeWriter().encode(content, BarcodeFormat.QR_CODE, QR_SIZE, QR_SIZE);
-            BufferedImage image = new BufferedImage(QR_SIZE, QR_SIZE, BufferedImage.TYPE_INT_RGB);
-            for (int x = 0; x < QR_SIZE; x++) {
-                for (int y = 0; y < QR_SIZE; y++) {
-                    image.setRGB(x, y, matrix.get(x, y) ? Color.BLACK.getRGB() : Color.WHITE.getRGB());
-                }
-            }
-            ByteArrayOutputStream output = new ByteArrayOutputStream();
-            ImageIO.write(image, "PNG", output);
-            return output.toByteArray();
-        } catch (WriterException | IOException exception) {
-            throw new IllegalStateException("Không vẽ được mã QR vé đặt sân", exception);
-        }
     }
 
     private void sendAccountDeletionMail(String email, String fullName, String kind, String subject, String code,
