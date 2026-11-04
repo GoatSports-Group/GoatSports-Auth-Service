@@ -28,6 +28,7 @@ import java.util.UUID;
 @Slf4j
 public class JwtAdapter implements JwtPort {
     public static final MacAlgorithm JWT_ALGORITHM = MacAlgorithm.HS256;
+    private static final String SESSION_CLAIM = "sid";
     private final PasswordEncoder passwordEncoder;
     private final JwtEncoder jwtEncoder;
 
@@ -41,19 +42,25 @@ public class JwtAdapter implements JwtPort {
     private int verificationCodeValidityInSecond;
 
     @Override
-    public String generateAccessToken(User user) {
-        return buildToken(user, accessTokenExpirationSecond);
+    public String generateAccessToken(User user, String sessionId) {
+        return buildToken(user, sessionId, accessTokenExpirationSecond);
     }
 
     @Override
-    public String generateRefreshToken(User user) {
-        return buildToken(user, refreshTokenExpirationSecond);
+    public String generateRefreshToken(User user, String sessionId) {
+        return buildToken(user, sessionId, refreshTokenExpirationSecond);
     }
 
     @Override
     public String getUserIdFromToken(String token) {
         Jwt jwt = checkValidToken(token);
         return jwt.getSubject();
+    }
+
+    @Override
+    public String getSessionIdFromToken(String token) {
+        Jwt jwt = checkValidToken(token);
+        return jwt.getClaimAsString(SESSION_CLAIM);
     }
 
     @Override
@@ -115,7 +122,7 @@ public class JwtAdapter implements JwtPort {
                 refreshTokenExpirationSecond);
     }
 
-    private String buildToken(User user, long accessTokenExpirationSecond) {
+    private String buildToken(User user, String sessionId, long accessTokenExpirationSecond) {
         try {
             Instant now = Instant.now();
             Instant validity = now.plus(accessTokenExpirationSecond, ChronoUnit.SECONDS);
@@ -127,6 +134,7 @@ public class JwtAdapter implements JwtPort {
                     .claim("username", user.getUsername())
                     .claim("email", user.getEmail())
                     .claim("role", user.getRole().getName())
+                    .claim(SESSION_CLAIM, sessionId)
                     .build();
 
             JwsHeader header = JwsHeader.with(JWT_ALGORITHM).build();

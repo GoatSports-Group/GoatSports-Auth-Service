@@ -6,11 +6,13 @@ import iuh.fit.auth.application.exception.ServiceException;
 import iuh.fit.auth.domain.entity.User;
 
 public interface JwtPort {
-    String generateAccessToken(User user);
+    String generateAccessToken(User user, String sessionId);
 
-    String generateRefreshToken(User user);
+    String generateRefreshToken(User user, String sessionId);
 
     String getUserIdFromToken(String token);
+
+    String getSessionIdFromToken(String token);
 
     String getRoleFromToken(String token);
 

@@ -160,12 +160,19 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (userId == null || userId.isEmpty())
             return;
 
+        if (accessToken != null && !accessToken.isBlank()) {
+            redisPort.saveWithTTL(
+                    ACCESS_BLACKLIST_PREFIX + accessToken,
+                    "revoked",
+                    jwtPort.getRemainingTime(accessToken),
+                    TimeUnit.SECONDS);
+        }
+
+        if (!refreshToken.equals(redisPort.getValue(refreshKey(userId)))) {
+            return;
+        }
         redisPort.deleteKey(refreshKey(userId));
-        redisPort.saveWithTTL(
-                ACCESS_BLACKLIST_PREFIX + accessToken,
-                "revoked",
-                jwtPort.getRemainingTime(accessToken),
-                TimeUnit.SECONDS);
+        redisPort.deleteKey(sessionKey(userId));
 
         if (redisPort.hasKey(keycloakRefreshKey(userId))) {
             String keycloakRefresh = redisPort.getValue(keycloakRefreshKey(userId));
@@ -239,15 +246,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 || currentUser.getStatus() == UserStatusEnum.DELETED)
             throw new ServiceException("Người dùng bị khóa");
 
-        String newAccessToken = jwtPort.generateAccessToken(currentUser);
-        String newRefreshToken = jwtPort.generateRefreshToken(currentUser);
+        String sessionId = jwtPort.getSessionIdFromToken(refreshToken);
+        if (sessionId == null || sessionId.isBlank()) {
+            sessionId = UUID.randomUUID().toString();
+        }
+        String newAccessToken = jwtPort.generateAccessToken(currentUser, sessionId);
+        String newRefreshToken = jwtPort.generateRefreshToken(currentUser, sessionId);
+        long ttl = jwtPort.getAuthProperties().refreshTokenExpirationSecond();
 
         this.redisPort.replaceKey(
                 refreshKey,
                 refreshKey,
                 newRefreshToken,
-                jwtPort.getAuthProperties().refreshTokenExpirationSecond(),
+                ttl,
                 TimeUnit.SECONDS);
+        redisPort.saveWithTTL(sessionKey(userId), sessionId, ttl, TimeUnit.SECONDS);
 
         long remainingTime = jwtPort.getRemainingTime(refreshToken);
         if (remainingTime > 0) {
@@ -440,14 +453,18 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      * (ghi đè cái cũ), nên đăng nhập ở thiết bị mới sẽ đăng xuất phiên refresh ở thiết bị cũ.
      */
     private LoginResponseCommand issueSession(User user, boolean accountRestored) {
-        String accessToken = jwtPort.generateAccessToken(user);
-        String refreshToken = jwtPort.generateRefreshToken(user);
-        redisPort.deleteKey(refreshKey(user.getUserId().toString()));
-        redisPort.saveWithTTL(
-                refreshKey(user.getUserId().toString()),
-                refreshToken,
-                jwtPort.getAuthProperties().refreshTokenExpirationSecond(),
-                TimeUnit.SECONDS);
+        String userId = user.getUserId().toString();
+        String sessionId = UUID.randomUUID().toString();
+        String accessToken = jwtPort.generateAccessToken(user, sessionId);
+        String refreshToken = jwtPort.generateRefreshToken(user, sessionId);
+        long ttl = jwtPort.getAuthProperties().refreshTokenExpirationSecond();
+        boolean replacesSession = redisPort.hasKey(refreshKey(userId));
+        redisPort.deleteKey(refreshKey(userId));
+        redisPort.saveWithTTL(refreshKey(userId), refreshToken, ttl, TimeUnit.SECONDS);
+        redisPort.saveWithTTL(sessionKey(userId), sessionId, ttl, TimeUnit.SECONDS);
+        if (replacesSession) {
+            sessionRevocationPort.notifySessionRevoked(user.getUserId(), SessionRevocationPort.SESSION_REPLACED);
+        }
         return new LoginResponseCommand(userMapper.toUserResponseCommand(user), accessToken, refreshToken,
                 accountRestored);
     }
@@ -510,6 +527,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private static String refreshKey(Object userId) {
         return "user:" + userId + ":refresh";
+    }
+
+    /** Mã phiên hiện hành của tài khoản; api-gateway đọc cùng khóa này để chặn token của phiên cũ. */
+    private static String sessionKey(Object userId) {
+        return "user:" + userId + ":session";
     }
 
     private static String keycloakRefreshKey(Object userId) {

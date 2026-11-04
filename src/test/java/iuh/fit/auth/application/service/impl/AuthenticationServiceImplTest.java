@@ -306,7 +306,7 @@ class AuthenticationServiceImplTest {
                 () -> authenticationService.callback("code", "cb"));
 
         assertEquals("ACCOUNT_BLOCKED", error.getCode());
-        verify(jwtPort, Mockito.never()).generateAccessToken(any());
+        verify(jwtPort, Mockito.never()).generateAccessToken(any(), any());
     }
 
     /** Đăng nhập lại trong 30 ngày chờ xóa là hủy yêu cầu xóa (như Facebook) và mở lại cho gateway. */
@@ -361,6 +361,61 @@ class AuthenticationServiceImplTest {
         assertEquals("ACCOUNT_INACTIVE", error.getCode());
         assertEquals(true, error.getData().get("codeSent"));
         verify(emailNotificationPort).sendVerificationEmail(eq(inactive.getEmail()), anyString());
-        verify(jwtPort, Mockito.never()).generateAccessToken(any());
+        verify(jwtPort, Mockito.never()).generateAccessToken(any(), any());
+    }
+
+    /** Đăng nhập ở nơi thứ hai thay phiên cũ: lưu mã phiên mới cho gateway và báo các tab của phiên cũ đăng xuất. */
+    @Test
+    void loggingInWhileAnotherSessionIsActiveReplacesIt() throws ServiceException {
+        User player = user(RoleEnum.PLAYER, UserStatusEnum.ACTIVE);
+        String userId = player.getUserId().toString();
+        when(userRepository.findByUsernameOrEmailWithRole(player.getEmail(), player.getEmail()))
+                .thenReturn(Optional.of(player));
+        when(jwtPort.getAuthProperties()).thenReturn(new AuthProperties(300, 3600));
+        when(redisPort.hasKey("user:" + userId + ":refresh")).thenReturn(true);
+
+        authenticationService.login(new LoginRequestCommand(player.getEmail(), "secret"));
+
+        verify(redisPort).saveWithTTL(eq("user:" + userId + ":session"), anyString(), eq(3600L), eq(TimeUnit.SECONDS));
+        verify(sessionRevocationPort).notifySessionRevoked(player.getUserId(), SessionRevocationPort.SESSION_REPLACED);
+    }
+
+    @Test
+    void firstLoginDoesNotRevokeAnything() throws ServiceException {
+        User player = user(RoleEnum.PLAYER, UserStatusEnum.ACTIVE);
+        when(userRepository.findByUsernameOrEmailWithRole(player.getEmail(), player.getEmail()))
+                .thenReturn(Optional.of(player));
+        when(jwtPort.getAuthProperties()).thenReturn(new AuthProperties(300, 3600));
+
+        authenticationService.login(new LoginRequestCommand(player.getEmail(), "secret"));
+
+        verifyNoInteractions(sessionRevocationPort);
+    }
+
+    /** Thiết bị cũ đăng xuất bằng refresh token đã bị thay: chỉ thu hồi token của nó, phiên mới vẫn còn. */
+    @Test
+    void loggingOutAReplacedSessionKeepsTheCurrentOne() {
+        String userId = UUID.randomUUID().toString();
+        when(jwtPort.getUserIdFromToken("old-refresh")).thenReturn(userId);
+        when(jwtPort.getRemainingTime("old-access")).thenReturn(120L);
+        when(redisPort.getValue("user:" + userId + ":refresh")).thenReturn("new-refresh");
+
+        authenticationService.logout("old-access", "old-refresh");
+
+        verify(redisPort).saveWithTTL("blacklist:old-access", "revoked", 120L, TimeUnit.SECONDS);
+        verify(redisPort, Mockito.never()).deleteKey("user:" + userId + ":refresh");
+        verify(redisPort, Mockito.never()).deleteKey("user:" + userId + ":session");
+    }
+
+    @Test
+    void loggingOutTheCurrentSessionClearsIt() {
+        String userId = UUID.randomUUID().toString();
+        when(jwtPort.getUserIdFromToken("refresh")).thenReturn(userId);
+        when(redisPort.getValue("user:" + userId + ":refresh")).thenReturn("refresh");
+
+        authenticationService.logout(null, "refresh");
+
+        verify(redisPort).deleteKey("user:" + userId + ":refresh");
+        verify(redisPort).deleteKey("user:" + userId + ":session");
     }
 }
