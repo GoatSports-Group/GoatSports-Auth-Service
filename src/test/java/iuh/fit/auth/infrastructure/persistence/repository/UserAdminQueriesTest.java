@@ -75,6 +75,8 @@ class UserAdminQueriesTest {
                 .satisfies(summary -> {
                     assertThat(summary.fullName()).isEqualTo("User admin");
                     assertThat(summary.email()).isEqualTo("admin@goat.test");
+                    assertThat(summary.username()).isEqualTo("admin");
+                    assertThat(summary.phone()).isEqualTo("0900000000");
                 });
 
         assertThat(repository.findAllForReport()).hasSize(8)
@@ -93,6 +95,7 @@ class UserAdminQueriesTest {
                 .username(username)
                 .fullName("User " + username)
                 .email(username + "@goat.test")
+                .phone("0900000000")
                 .status(status)
                 .role(role)
                 .build()).getUserId();

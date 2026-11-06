@@ -77,7 +77,7 @@ public interface JpaUserRepository extends JpaRepository<UserEntity, UUID>, JpaS
     List<UserReportRow> findAllForReport();
 
     @Query("""
-            select new iuh.fit.auth.application.dto.response.user.UserSummaryResponseCommand(u.userId, u.fullName, u.email)
+            select new iuh.fit.auth.application.dto.response.user.UserSummaryResponseCommand(u.userId, u.fullName, u.email, u.username, u.phone)
             from UserEntity u where u.userId in :userIds
             """)
     List<UserSummaryResponseCommand> findSummariesByIds(@Param("userIds") Collection<UUID> userIds);

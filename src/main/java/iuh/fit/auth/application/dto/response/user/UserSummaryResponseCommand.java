@@ -2,4 +2,4 @@ package iuh.fit.auth.application.dto.response.user;
 
 import java.util.UUID;
 
-public record UserSummaryResponseCommand(UUID userId, String fullName, String email) {}
+public record UserSummaryResponseCommand(UUID userId, String fullName, String email, String username, String phone) {}
